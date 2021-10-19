@@ -20,6 +20,9 @@ export (XML).}
 \item{remove_zip}{logical flag: should the \emph{.zip} file be deleted after
 extraction?}
 }
+\value{
+The function returns \code{TRUE} upon completion.
+}
 \description{
 This function is used to retrieve the full IEDB database from
 \href{https://www.iedb.org}{IEDB} and extract it to a target folder.

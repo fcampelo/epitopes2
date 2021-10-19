@@ -96,6 +96,6 @@ filter_epitopes <- function(df,
     }
   }
 
-  return(df)
+  return(dplyr::as_tibble(df))
 
 }

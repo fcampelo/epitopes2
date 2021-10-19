@@ -12,6 +12,8 @@
 #'
 #' @author Felipe Campelo (\email{f.campelo@@aston.ac.uk})
 #'
+#' @return The function returns `TRUE` upon completion.
+#'
 #' @export
 #'
 

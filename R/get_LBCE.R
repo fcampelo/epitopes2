@@ -85,5 +85,5 @@ get_LBCE <- function(data_folder,
   message("Done!\n", nrow(df), " epitopes retrieved.\n",
       length(errlist), " processing errors.")
 
-  return(df)
+  return(dplyr::as_tibble(df))
 }

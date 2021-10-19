@@ -44,7 +44,7 @@ get_proteins <- function(uids, save_folder = NULL){
   nerr    <- Inf
 
   # First try retrieving from NCBI/protein
-  message("Trying to retrieve ", length(reslist), " proteins",
+  message("\nTrying to retrieve ", length(reslist), " proteins",
           "\nStarted at ", as.character(t0),
           "\nThis may take a while...")
   while(length(errlist) < nerr && length(errlist) > 0){
