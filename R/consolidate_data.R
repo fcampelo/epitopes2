@@ -139,6 +139,7 @@ consolidate_data <- function(epitopes, proteins,
                   Info_host_id      = get_uniques(.data$Info_host_id))
 
   # function to determine class:
+  # TODO - check this aggregation strategy (by direct vote of assays? majority vote of epitope_ids? other?).
   make_class <- function(pos, neg, set_positive){
     pos <- as.numeric(strsplit(pos, ",")[[1]])
     neg <- as.numeric(strsplit(neg, ",")[[1]])

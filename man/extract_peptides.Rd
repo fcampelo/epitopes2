@@ -42,7 +42,7 @@ with its calculated Class attribute value.
 }
 \description{
 Extract relevant peptides from the consolidated protein-epitope data
-(generated using \code{\link[=consolidate_data]{consolidate_data()}}) and build column with neightbourhood
+(generated using \code{\link[=consolidate_data]{consolidate_data()}}) and build column with neighbourhood
 of each labeled aminoacid residue.
 }
 \author{

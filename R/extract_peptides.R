@@ -1,7 +1,7 @@
 #' Extract peptides and windowed representation for epitope prediction.
 #'
 #' Extract relevant peptides from the consolidated protein-epitope data
-#' (generated using [consolidate_data()]) and build column with neightbourhood
+#' (generated using [consolidate_data()]) and build column with neighbourhood
 #' of each labeled aminoacid residue.
 #'
 #' @param df data frame of consolidated protein-epitope data, returned by

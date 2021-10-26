@@ -22,16 +22,20 @@
 #'
 
 filter_epitopes <- function(df,
+                            tax_list  = NULL,
                             orgIDs    = NULL,
                             hostIDs   = NULL,
                             removeIDs = NULL,
                             orgID_column = "sourceOrg_id",
-                            hostID_column = "host_id",
-                            tax_list  = NULL) {
+                            hostID_column = "host_id") {
 
   # ========================================================================== #
   # Sanity checks and initial definitions
   id_classes <- c("NULL", "numeric", "integer", "character")
+  if(!is.null(orgIDs)    && is.na(orgIDs))    orgIDs    <- NULL
+  if(!is.null(hostIDs)   && is.na(hostIDs))   hostIDs   <- NULL
+  if(!is.null(removeIDs) && is.na(removeIDs)) removeIDs <- NULL
+
   assertthat::assert_that(is.data.frame(df),
                           class(orgIDs)    %in% id_classes,
                           class(hostIDs)   %in% id_classes,
@@ -96,6 +100,13 @@ filter_epitopes <- function(df,
     }
   }
 
-  return(dplyr::as_tibble(df))
+  df <- dplyr::as_tibble(df)
+
+  # Set attributes to output data frame:
+  attr(df, "orgIDs")    <- nullcheck(orgIDs)
+  attr(df, "hostIDs")   <- nullcheck(hostIDs)
+  attr(df, "removeIDs") <- nullcheck(removeIDs)
+
+  return(df)
 
 }
