@@ -139,7 +139,8 @@ consolidate_data <- function(epitopes, proteins,
                   Info_host_id      = get_uniques(.data$Info_host_id))
 
   # function to determine class:
-  # TODO - check this aggregation strategy (by direct vote of assays? majority vote of epitope_ids? other?).
+  # TODO - make the aggregation strategy (by direct vote of assays?
+  # majority vote of epitope_ids? other?) a user-defined parameter
   make_class <- function(pos, neg, set_positive){
     pos <- as.numeric(strsplit(pos, ",")[[1]])
     neg <- as.numeric(strsplit(neg, ",")[[1]])
@@ -160,6 +161,18 @@ consolidate_data <- function(epitopes, proteins,
                                      .data$Info_nNeg,
                                      set_positive)) %>%
     dplyr::ungroup()
+
+  # Propagate original attributes from epitopes onto df
+  tmp1 <- attributes(epitopes)
+  idx <- which(!(names(tmp1) %in% names(attributes(df))))
+  for (i in idx){
+    attr(df, names(tmp1)[i]) <- tmp1[[i]]
+  }
+
+  # Add this function's attributes
+  attr(df, "only_exact") <- only_exact
+  attr(df, "set_positive") <- set_positive
+
 
   # Check save folder and create file names
   if(!is.null(save_folder)) {
