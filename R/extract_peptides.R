@@ -48,6 +48,10 @@ extract_peptides <- function(df,
                           is.null(save_folder) | (is.character(save_folder)),
                           is.null(save_folder) | length(save_folder) == 1)
 
+  my.attrs <- attributes(df)
+  filter.attrs <- my.attrs[names(my.attrs) %in% c("orgIDs", "hostIDs", "removeIDs")]
+  consolidate.attrs <- my.attrs[names(my.attrs) %in% c("only_exact", "set_positive")]
+
   # ========================================================================== #
   # Identify contiguous labelled peptides in each protein
   message("Identifying contiguous labeled regions...")
@@ -97,11 +101,13 @@ extract_peptides <- function(df,
     dplyr::ungroup()
 
 
-  outlist <- list(df       = df,
-                  peptides = peptides,
-                  peptide.attrs = list(min_peptide = min_peptide,
-                                       max_epitope = max_epitope,
-                                       window_size = window_size))
+  outlist <- list(df                = df,
+                  peptides          = peptides,
+                  filter.attrs      = filter.attrs,
+                  consolidate.attrs = consolidate.attrs,
+                  peptide.attrs     = list(min_peptide = min_peptide,
+                                           max_epitope = max_epitope,
+                                           window_size = window_size))
 
   class(outlist) <- unique(c(class(outlist), "peptide.list"))
 
