@@ -109,6 +109,13 @@
 #'        split proportions (`split_prop`) vs. on approximating the class
 #'        balance of the full data set. Must be a numeric value between 0 and 1.
 #'        See **Optimisation Problem** for details.
+#' @param return_front should different tradeoff solutions (based on distinct
+#'        values of alpha) be returned as well? Accepts either `NULL` (don't
+#'        calculate front) or a positive integer greater than 2
+#'        (number of equally spaced alpha values between 0 and 1 to evaluate).
+#'        If it's a positive integer, then the tradeoff dataset will be exported
+#'        as object `$splits.attrs$tradeoffs` in the output list. 11 or 21
+#'        points are usually enough to give a good rough idea of the tradeoffs.
 #' @param SAopts list of control parameters to be used by the simulated
 #'        annealing (SANN) algorithm. See [stats::optim()] for details.
 #' @param save_folder path to folder for saving the results. It will save the
@@ -162,6 +169,7 @@ make_data_splits <- function(peptides.list,
                              similarity_threshold = .7,
                              substitution_matrix = "BLOSUM62",
                              alpha  = 0.5,
+                             return_front = NULL,
                              SAopts = list(),
                              save_folder = NULL,
                              ncpus       = 1){
@@ -188,6 +196,8 @@ make_data_splits <- function(peptides.list,
                           similarity_threshold > 0, similarity_threshold < 1,
                           is.numeric(alpha), length(alpha) == 1,
                           alpha >= 0, alpha <= 1,
+                          is.null(return_front) | assertthat::is.count(return_front),
+                          is.null(return_front) | return_front > 2,
                           is.list(SAopts),
                           is.null(save_folder) | (is.character(save_folder)),
                           is.null(save_folder) | length(save_folder) == 1,
@@ -297,63 +307,86 @@ make_data_splits <- function(peptides.list,
   names(y$solstats$pj) <- split_names
 
 
-  # Build outlist
-  outlist          <- peptides.list
-  outlist$df       <- df %>%
-    dplyr::rename(Info_cluster = c("Cluster"),
-                  Info_split   = c("Split")) %>%
-    dplyr::select(dplyr::starts_with("Info"), dplyr::everything())
+  # Build tradeoff dataset if required
+  if(!is.null(return_front)){
+    alpha.vec <- seq(from = 0, to = 1, length.out = return_front)
+    message("Building tradeoff dataset")
+    for (i in seq_along(alpha.vec)){
+      message("Processing tradeoff ", i, " of ", return_front)
+      z <- optimise_splits(Y = Y, Nstar = split_prop, alpha = alpha.vec[i],
+                           SAopts = SAopts, ncpus = ncpus)
+      f1 <- sum((sort(split_prop) - sort(z$solstats$Gj))^2)
+      f2 <- sum((z$solstats$pj - sum(Y$nPos)/sum(Y$N))^2)
+      if (i == 1){
+        tradeoffs <- data.frame(alpha = alpha.vec[i],
+                                f1    = f1,
+                                f2    = f2)
+      } else {
+        tradeoffs <- rbind(tradeoffs,
+                           data.frame(alpha = alpha.vec[i],
+                                      f1    = f1,
+                                      f2    = f2))
+      }
+    }
 
-  outlist$peptides <- peptides %>%
-    dplyr::rename(Info_cluster = c("Cluster"),
-                  Info_split   = c("Split")) %>%
-    dplyr::select(dplyr::starts_with("Info"), dplyr::everything())
+    # Build outlist
+    outlist          <- peptides.list
+    outlist$df       <- df %>%
+      dplyr::rename(Info_cluster = c("Cluster"),
+                    Info_split   = c("Split")) %>%
+      dplyr::select(dplyr::starts_with("Info"), dplyr::everything())
 
-  outlist$proteins <- proteins
-  outlist$splits.attrs <- list(
-    split_level          = split_level,
-    similarity_threshold = similarity_threshold,
-    substitution_matrix  = substitution_matrix,
-    split_props          = y$solstats$Gj,
-    split_balance        = y$solstats$pj,
-    target_props         = split_prop,
-    target_balance       = y$solstats$Pstar,
-    alpha                = alpha,
-    SW.scores            = scores,
-    diss.matrix          = diss,
-    clusters             = clusters,
-    cluster.alloc        = X)
+    outlist$peptides <- peptides %>%
+      dplyr::rename(Info_cluster = c("Cluster"),
+                    Info_split   = c("Split")) %>%
+      dplyr::select(dplyr::starts_with("Info"), dplyr::everything())
 
-  class(outlist) <- unique(c(class(outlist), "splitted.peptide.data"))
+    outlist$proteins <- proteins
+    outlist$splits.attrs <- list(
+      split_level          = split_level,
+      similarity_threshold = similarity_threshold,
+      substitution_matrix  = substitution_matrix,
+      split_props          = y$solstats$Gj,
+      split_balance        = y$solstats$pj,
+      target_props         = split_prop,
+      target_balance       = y$solstats$Pstar,
+      alpha                = alpha,
+      tradeoffs            = tradeoffs,
+      SW.scores            = scores,
+      diss.matrix          = diss,
+      clusters             = clusters,
+      cluster.alloc        = X)
 
-  # Check save folder and create file names
-  if(!is.null(save_folder)) {
-    if(!dir.exists(save_folder)) dir.create(save_folder, recursive = TRUE)
-    saveRDS(outlist, paste0(normalizePath(save_folder), "/peptides_list.rds"))
+    class(outlist) <- unique(c(class(outlist), "splitted.peptide.data"))
+
+    # Check save folder and create file names
+    if(!is.null(save_folder)) {
+      if(!dir.exists(save_folder)) dir.create(save_folder, recursive = TRUE)
+      saveRDS(outlist, paste0(normalizePath(save_folder), "/peptides_list.rds"))
+    }
+
+    # Print resulting split statistics
+    cl_tbl <- outlist$splits.attrs$cluster.alloc %>%
+      group_by(Split) %>% summarise(Clusters = length(unique(Cluster)))
+
+    message("============================================================")
+    message("Data splitting summary")
+    message("Splitting level: ", split_level)
+    message("Similarity threshold: ",  similarity_threshold)
+    message("Number of clusters found: ", length(unique(X$Cluster)))
+    message("Target balance: ", signif(y$solstats$Pstar, 4))
+    message("Target split proportions: ", paste(signif(split_prop, 4), collapse = ", "))
+    message("alpha: ",  alpha)
+    for (i in seq_along(y$solstats$Gj)){
+      message(names(y$solstats$Gj)[i], ": Split proportion = ",
+              round(y$solstats$Gj[i], 4),
+              " | Split balance: ",
+              round(y$solstats$pj[i], 4),
+              " | Number of clusters: ",
+              cl_tbl$Clusters[i])
+    }
+    message("============================================================")
+
+    # return results
+    return(outlist)
   }
-
-  # Print resulting split statistics
-  cl_tbl <- outlist$splits.attrs$cluster.alloc %>%
-    group_by(Split) %>% summarise(Clusters = length(unique(Cluster)))
-
-  message("============================================================")
-  message("Data splitting summary")
-  message("Splitting level: ", split_level)
-  message("Similarity threshold: ",  similarity_threshold)
-  message("Number of clusters found: ", length(unique(X$Cluster)))
-  message("Target balance: ", signif(y$solstats$Pstar, 4))
-  message("Target split proportions: ", paste(signif(split_prop, 4), collapse = ", "))
-  message("alpha: ",  alpha)
-  for (i in seq_along(y$solstats$Gj)){
-    message(names(y$solstats$Gj)[i], ": Split proportion = ",
-            round(y$solstats$Gj[i], 4),
-            " | Split balance: ",
-            round(y$solstats$pj[i], 4),
-            " | Number of clusters: ",
-            cl_tbl$Clusters[i])
-  }
-  message("============================================================")
-
-  # return results
-  return(outlist)
-}
