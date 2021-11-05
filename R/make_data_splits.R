@@ -201,6 +201,7 @@ make_data_splits <- function(peptides.list,
   peptides <- peptides.list$peptides %>%
     dplyr::select(-starts_with("Info_cluster"),
                   -starts_with("Info_split"))
+
   proteins <- proteins %>% dplyr::filter(.data$UID %in% df$Info_protein_id)
 
   message("Performing data split at ", split_level, " level")
@@ -243,8 +244,8 @@ make_data_splits <- function(peptides.list,
   diss <- 1 - scores / denom
 
   message("Extracting clusters (Hierarchical, single linkage)")
-  clusters <- stats::hclust(d = stats::as.dist(diss), method = "single")
-  X$Cluster  <- stats::cutree(clusters, h = diss_t)
+  clusters  <- stats::hclust(d = stats::as.dist(diss), method = "single")
+  X$Cluster <- stats::cutree(clusters, h = diss_t)
 
   if(length(unique(X$Cluster)) < length(split_prop)){
     warning("Impossible to divide data into ", length(split_prop),

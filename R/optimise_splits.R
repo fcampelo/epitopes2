@@ -31,6 +31,8 @@ optimise_splits <- function(Y, Nstar, alpha, SAopts, ncpus){
     tmp <- getstats(x, Y, Nstar)
     sum(alpha * (tmp$Gj - Nstar)^2 + (1 - alpha) * (tmp$pj - tmp$Pstar)^2)
   }
+
+  # Auxiliary function for O.F.
   getstats <- function(x, Y, Nstar){
     Pstar <- sum(Y$nPos) / sum(Y$N)
     ymatr <- matrix(round(x), ncol = length(Nstar), nrow = length(x), byrow = FALSE)
