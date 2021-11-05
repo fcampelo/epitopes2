@@ -13,6 +13,7 @@ make_data_splits(
   similarity_threshold = 0.7,
   substitution_matrix = "BLOSUM62",
   alpha = 0.5,
+  return_front = NULL,
   SAopts = list(),
   save_folder = NULL,
   ncpus = 1
@@ -52,6 +53,14 @@ Must be a matrix recognised by \code{\link[Biostrings:substitution_matrices]{Bio
 split proportions (\code{split_prop}) vs. on approximating the class
 balance of the full data set. Must be a numeric value between 0 and 1.
 See \strong{Optimisation Problem} for details.}
+
+\item{return_front}{should different tradeoff solutions (based on distinct
+values of alpha) be returned as well? Accepts either \code{NULL} (don't
+calculate front) or a positive integer greater than 2
+(number of equally spaced alpha values between 0 and 1 to evaluate).
+If it's a positive integer, then the tradeoff dataset will be exported
+as object \verb{$splits.attrs$tradeoffs} in the output list. 11 or 21
+points are usually enough to give a good rough idea of the tradeoffs.}
 
 \item{SAopts}{list of control parameters to be used by the simulated
 annealing (SANN) algorithm. See \code{\link[stats:optim]{stats::optim()}} for details.}

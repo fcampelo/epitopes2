@@ -328,65 +328,66 @@ make_data_splits <- function(peptides.list,
                                       f2    = f2))
       }
     }
-
-    # Build outlist
-    outlist          <- peptides.list
-    outlist$df       <- df %>%
-      dplyr::rename(Info_cluster = c("Cluster"),
-                    Info_split   = c("Split")) %>%
-      dplyr::select(dplyr::starts_with("Info"), dplyr::everything())
-
-    outlist$peptides <- peptides %>%
-      dplyr::rename(Info_cluster = c("Cluster"),
-                    Info_split   = c("Split")) %>%
-      dplyr::select(dplyr::starts_with("Info"), dplyr::everything())
-
-    outlist$proteins <- proteins
-    outlist$splits.attrs <- list(
-      split_level          = split_level,
-      similarity_threshold = similarity_threshold,
-      substitution_matrix  = substitution_matrix,
-      split_props          = y$solstats$Gj,
-      split_balance        = y$solstats$pj,
-      target_props         = split_prop,
-      target_balance       = y$solstats$Pstar,
-      alpha                = alpha,
-      tradeoffs            = tradeoffs,
-      SW.scores            = scores,
-      diss.matrix          = diss,
-      clusters             = clusters,
-      cluster.alloc        = X)
-
-    class(outlist) <- unique(c(class(outlist), "splitted.peptide.data"))
-
-    # Check save folder and create file names
-    if(!is.null(save_folder)) {
-      if(!dir.exists(save_folder)) dir.create(save_folder, recursive = TRUE)
-      saveRDS(outlist, paste0(normalizePath(save_folder), "/peptides_list.rds"))
-    }
-
-    # Print resulting split statistics
-    cl_tbl <- outlist$splits.attrs$cluster.alloc %>%
-      group_by(Split) %>% summarise(Clusters = length(unique(Cluster)))
-
-    message("============================================================")
-    message("Data splitting summary")
-    message("Splitting level: ", split_level)
-    message("Similarity threshold: ",  similarity_threshold)
-    message("Number of clusters found: ", length(unique(X$Cluster)))
-    message("Target balance: ", signif(y$solstats$Pstar, 4))
-    message("Target split proportions: ", paste(signif(split_prop, 4), collapse = ", "))
-    message("alpha: ",  alpha)
-    for (i in seq_along(y$solstats$Gj)){
-      message(names(y$solstats$Gj)[i], ": Split proportion = ",
-              round(y$solstats$Gj[i], 4),
-              " | Split balance: ",
-              round(y$solstats$pj[i], 4),
-              " | Number of clusters: ",
-              cl_tbl$Clusters[i])
-    }
-    message("============================================================")
-
-    # return results
-    return(outlist)
   }
+
+  # Build outlist
+  outlist          <- peptides.list
+  outlist$df       <- df %>%
+    dplyr::rename(Info_cluster = c("Cluster"),
+                  Info_split   = c("Split")) %>%
+    dplyr::select(dplyr::starts_with("Info"), dplyr::everything())
+
+  outlist$peptides <- peptides %>%
+    dplyr::rename(Info_cluster = c("Cluster"),
+                  Info_split   = c("Split")) %>%
+    dplyr::select(dplyr::starts_with("Info"), dplyr::everything())
+
+  outlist$proteins <- proteins
+  outlist$splits.attrs <- list(
+    split_level          = split_level,
+    similarity_threshold = similarity_threshold,
+    substitution_matrix  = substitution_matrix,
+    split_props          = y$solstats$Gj,
+    split_balance        = y$solstats$pj,
+    target_props         = split_prop,
+    target_balance       = y$solstats$Pstar,
+    alpha                = alpha,
+    tradeoffs            = tradeoffs,
+    SW.scores            = scores,
+    diss.matrix          = diss,
+    clusters             = clusters,
+    cluster.alloc        = X)
+
+  class(outlist) <- unique(c(class(outlist), "splitted.peptide.data"))
+
+  # Check save folder and create file names
+  if(!is.null(save_folder)) {
+    if(!dir.exists(save_folder)) dir.create(save_folder, recursive = TRUE)
+    saveRDS(outlist, paste0(normalizePath(save_folder), "/peptides_list.rds"))
+  }
+
+  # Print resulting split statistics
+  cl_tbl <- outlist$splits.attrs$cluster.alloc %>%
+    group_by(Split) %>% summarise(Clusters = length(unique(Cluster)))
+
+  message("============================================================")
+  message("Data splitting summary")
+  message("Splitting level: ", split_level)
+  message("Similarity threshold: ",  similarity_threshold)
+  message("Number of clusters found: ", length(unique(X$Cluster)))
+  message("Target balance: ", signif(y$solstats$Pstar, 4))
+  message("Target split proportions: ", paste(signif(split_prop, 4), collapse = ", "))
+  message("alpha: ",  alpha)
+  for (i in seq_along(y$solstats$Gj)){
+    message(names(y$solstats$Gj)[i], ": Split proportion = ",
+            round(y$solstats$Gj[i], 4),
+            " | Split balance: ",
+            round(y$solstats$pj[i], 4),
+            " | Number of clusters: ",
+            cl_tbl$Clusters[i])
+  }
+  message("============================================================")
+
+  # return results
+  return(outlist)
+}
