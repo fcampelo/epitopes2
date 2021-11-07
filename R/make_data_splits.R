@@ -315,19 +315,31 @@ make_data_splits <- function(peptides.list,
       message("Processing tradeoff ", i, " of ", return_front)
       z <- optimise_splits(Y = Y, Nstar = split_prop, alpha = alpha.vec[i],
                            SAopts = SAopts, ncpus = ncpus)
-      f1 <- sum((sort(split_prop) - sort(z$solstats$Gj))^2)
-      f2 <- sum((z$solstats$pj - sum(Y$nPos)/sum(Y$N))^2)
+      f1 <- max(sort(split_prop) - sort(z$solstats$Gj))
+      f2 <- max(z$solstats$pj - sum(Y$nPos)/sum(Y$N))
       if (i == 1){
         tradeoffs <- data.frame(alpha = alpha.vec[i],
-                                f1    = f1,
-                                f2    = f2)
+                                max.dev.perc = f1,
+                                max.dev.prop = f2)
       } else {
         tradeoffs <- rbind(tradeoffs,
                            data.frame(alpha = alpha.vec[i],
-                                      f1    = f1,
-                                      f2    = f2))
+                                      max.dev.perc = f1,
+                                      max.dev.prop = f2))
       }
     }
+    nondom <- rep(TRUE, length(alpha.vec))
+    for (i in seq_along(alpha.vec)){
+      idx <- matrix(as.matrix(tradeoffs[i, -1]),
+                    nrow = length(alpha.vec) - 1,
+                    ncol = 2, byrow = TRUE)
+      nondom[i] <- !any(rowSums(idx - as.matrix(tradeoffs[-i, -1]) > 0) == 2)
+
+    }
+    tradeoffs <- tradeoffs[which(nondom), ]
+    tradeoffs <- tradeoffs[-duplicated(tradeoffs[, -1]), ]
+    tradeoffs <- tradeoffs[order(tradeoffs[, 3]), ]
+
   }
 
   # Build outlist
@@ -342,7 +354,7 @@ make_data_splits <- function(peptides.list,
                   Info_split   = c("Split")) %>%
     dplyr::select(dplyr::starts_with("Info"), dplyr::everything())
 
-  outlist$proteins <- proteins
+  outlist$proteins     <- proteins
   outlist$splits.attrs <- list(
     split_level          = split_level,
     similarity_threshold = similarity_threshold,
@@ -352,11 +364,14 @@ make_data_splits <- function(peptides.list,
     target_props         = split_prop,
     target_balance       = y$solstats$Pstar,
     alpha                = alpha,
-    tradeoffs            = tradeoffs,
     SW.scores            = scores,
     diss.matrix          = diss,
     clusters             = clusters,
     cluster.alloc        = X)
+
+  if(!is.null(return_front)){
+    outlist$splits.attrs$tradeoffs <- tradeoffs
+  }
 
   class(outlist) <- unique(c(class(outlist), "splitted.peptide.data"))
 
