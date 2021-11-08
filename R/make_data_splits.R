@@ -114,8 +114,11 @@
 #'        calculate front) or a positive integer greater than 2
 #'        (number of equally spaced alpha values between 0 and 1 to evaluate).
 #'        If it's a positive integer, then the tradeoff dataset will be exported
-#'        as object `$splits.attrs$tradeoffs` in the output list. 11 or 21
-#'        points are usually enough to give a good rough idea of the tradeoffs.
+#'        as object `$splits.attrs$tradeoffs` in the output list. Note that
+#'        only non-dominated tradeoffs are returned, so the number of tradeoff
+#'        points is likely to be smaller than the value of `return_front`.
+#'        Usually 11 or 21 points are enough to give a good rough idea of the
+#'        tradeoffs.
 #' @param SAopts list of control parameters to be used by the simulated
 #'        annealing (SANN) algorithm. See [stats::optim()] for details.
 #' @param save_folder path to folder for saving the results. It will save the
