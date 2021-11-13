@@ -3,7 +3,7 @@ call_protr <- function(SEQs, feat.name, txt.opts, dfnames, ncpus){
   fn <- paste0("extract", feat.name)
 
   # Check if function exists
-  if(!(fn %in% ls('package:protr') | fn %in% ls('package:epitopes'))){
+  if(!(fn %in% ls('package:protr') | fn %in% ls())){
     warning("Function ", fn, "() not found.\nSkipping...")
     return(FALSE)
   }

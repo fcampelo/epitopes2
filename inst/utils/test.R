@@ -41,7 +41,7 @@ peptides.list <- epitopes %>%
                                     "CTDT", "CTriad", "SOCN",
                                     "Entropy", "MolWeight", "AAtypes"),
                 ncpus = ncpus) %>%
-  save_peptide_list()
+  save_peptide_list("./data/tmp")
 
 # peptides.list will be a list with the full information on the resulting data,
 # peptides.list$df       - windowed dataframe, incl. local features and data split information

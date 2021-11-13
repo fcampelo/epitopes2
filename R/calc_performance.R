@@ -83,7 +83,7 @@ calc_performance <- function(truth, pred, prob = NULL,
     auc <- roc %>%
       dplyr::mutate(tprl = dplyr::lag(.data$tpr),
                     fprl = dplyr::lag(.data$fpr)) %>%
-      dplyr::summarise(auc = sum((fpr - fprl) * (tpr + tprl) / 2,
+      dplyr::summarise(auc = sum((.data$fpr - .data$fprl) * (.data$tpr + .data$tprl) / 2,
                                  na.rm = TRUE)) %>%
       as.numeric()
 

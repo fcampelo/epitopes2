@@ -209,11 +209,11 @@ make_data_splits <- function(peptides.list,
   diss_t   <- 1 - similarity_threshold
 
   df <- peptides.list$df %>%
-    dplyr::select(-starts_with("Info_cluster"),
-                  -starts_with("Info_split"))
+    dplyr::select(-dplyr::starts_with("Info_cluster"),
+                  -dplyr::starts_with("Info_split"))
   peptides <- peptides.list$peptides %>%
-    dplyr::select(-starts_with("Info_cluster"),
-                  -starts_with("Info_split"))
+    dplyr::select(-dplyr::starts_with("Info_cluster"),
+                  -dplyr::starts_with("Info_split"))
 
   proteins <- proteins %>% dplyr::filter(.data$UID %in% df$Info_protein_id)
 
@@ -386,7 +386,8 @@ make_data_splits <- function(peptides.list,
 
   # Print resulting split statistics
   cl_tbl <- outlist$splits.attrs$cluster.alloc %>%
-    group_by(Split) %>% summarise(Clusters = length(unique(Cluster)))
+    dplyr::group_by(.data$Split) %>%
+    dplyr::summarise(Clusters = length(unique(.data$Cluster)))
 
   message("============================================================")
   message("Data splitting summary")

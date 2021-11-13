@@ -116,28 +116,28 @@ fit_model <- function(peptides.list,
 
 
 
-
-  # ========================================================================== #
-  # Estimate model performance
-  if (assessment.mode == "holdout"){
-    # Set holdout set (case weights = 0)
-    df <- peptides.list$df %>%
-      dplyr::mutate("weight" = ifelse(.data$Info_split == holdout.split, 0, 1))
-
-
-
-    df <- df %>%
-      dplyr::mutate(pred_prob  = myRF$predictions[, "1"],
-                    pred_class = ifelse(myRF$predictions[, "1"] >= threshold, "1", "-1"))
-
-    myperf <- calc_performance(truth = df$Class[df$Info_split == holdout.split],
-                               pred  = df$pred_class[df$Info_split == holdout.split],
-                               prob  = df$pred_prob[df$Info_split == holdout.split],
-                               posValue = "1",
-                               negValue = "-1",
-                               ret.as.list = TRUE)
-
-  }
+#
+#   # ========================================================================== #
+#   # Estimate model performance
+#   if (assessment.mode == "holdout"){
+#     # Set holdout set (case weights = 0)
+#     df <- peptides.list$df %>%
+#       dplyr::mutate("weight" = ifelse(.data$Info_split == holdout.split, 0, 1))
+#
+#
+#
+#     df <- df %>%
+#       dplyr::mutate(pred_prob  = myRF$predictions[, "1"],
+#                     pred_class = ifelse(myRF$predictions[, "1"] >= threshold, "1", "-1"))
+#
+#     myperf <- calc_performance(truth = df$Class[df$Info_split == holdout.split],
+#                                pred  = df$pred_class[df$Info_split == holdout.split],
+#                                prob  = df$pred_prob[df$Info_split == holdout.split],
+#                                posValue = "1",
+#                                negValue = "-1",
+#                                ret.as.list = TRUE)
+#
+#   }
 
 
 
