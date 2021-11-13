@@ -83,5 +83,30 @@ save_peptide_list <- function(peptide.list, save_folder){
   write.csv(fcpars, paste0(save_folder, "/function_call_parameters.csv"),
             row.names = FALSE)
 
+
+  # Add further split outcomes, if available
+  if("splits.attrs" %in% names(peptide.list)){
+    message("Saving split data")
+    tmp <- peptide.list$splits.attrs[which(!(names(peptide.list$splits.attrs) %in% names(formals(epitopes::make_data_splits))))]
+
+    df1 <- data.frame(split_props    = tmp$split_props,
+                      target_props   = unname(peptide.list$splits.attrs$target_props),
+                      split_balance  = unname(tmp$split_balance),
+                      target_balance = unname(tmp$target_balance))
+
+    write.csv(df1, paste0(save_folder, "/split_properties.csv"),
+              row.names = FALSE)
+
+    write.csv(tmp$cluster.alloc, paste0(save_folder, "/clusters_per_split.csv"),
+              row.names = FALSE)
+
+    write.csv(tmp$diss.matrix, paste0(save_folder, "/dissimilarity_matrix.csv"))
+
+    write.csv(tmp$SW.scores, paste0(save_folder, "/SW_scores.csv"))
+
+    saveRDS(tmp$clusters, paste0(save_folder, "/cluster_structure.rds"))
+
+  }
+
   invisible(peptide.list)
 }
