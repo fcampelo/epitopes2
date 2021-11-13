@@ -5,11 +5,11 @@ library(dplyr)
 
 ncpus <- parallel::detectCores() - 1
 
-orgID    <- 6282    # O. volvulus
-savefile <- "./data/ov_data.rds"
+# orgID    <- 6282    # O. volvulus
+# savefile <- "./data/ov_data.rds"
 
-# orgID    <- 2697049 # SARS-Cov-2
-# savefile <- "./data/sarscov2_data.rds"
+orgID    <- 2697049 # SARS-Cov-2
+savefile <- "./data/sarscov2_data.rds"
 
 #orgID    <- 10376 # Epstein-Barr virus
 #savefile <- "./data/ebv_data.rds"
