@@ -40,7 +40,8 @@ peptides.list <- epitopes %>%
                 global.features = c("AAC", "DC", "CTDC", "CTDD",      # <--- global features are calculated at the full protein level and added to peptides.list$proteins (needs a data join on df later, before training the models)
                                     "CTDT", "CTriad", "SOCN",
                                     "Entropy", "MolWeight", "AAtypes"),
-                ncpus = ncpus)
+                ncpus = ncpus) %>%
+  save_peptide_list()
 
 # peptides.list will be a list with the full information on the resulting data,
 # peptides.list$df       - windowed dataframe, incl. local features and data split information

@@ -7,7 +7,8 @@
 #' @param peptide.list object of class `peptide.list`.
 #' @param save_folder path to folder for saving the resulting CSV files.
 #'
-#' @return Vector with names of the files saved (invisibly).
+#' @return This function returns (invisibly) the same input list,
+#' `peptide.list`, to enable insertion as part of `dplyr` pipelines.
 #'
 #' @author Felipe Campelo (\email{f.campelo@@aston.ac.uk})
 #'
@@ -25,26 +26,21 @@ save_peptide_list <- function(peptide.list, save_folder){
   if(!dir.exists(save_folder)) dir.create(save_folder, recursive = TRUE)
   # ========================================================================== #
 
-  saved <- character()
-
   # save main data frame
   message("Saving main peptides data frame")
   write.csv(peptide.list$df, paste0(save_folder, "/peptides_df_main.csv"),
             row.names = FALSE)
-  saved <- c(saved, "peptides_df_main.csv")
 
   # save summary peptides data frame
   message("Saving summary peptides data frame")
   write.csv(peptide.list$peptides, paste0(save_folder, "/peptides_df_summary.csv"),
             row.names = FALSE)
-  saved <- c(saved, "peptides_df_summary.csv")
 
   # save summary proteins data frame
   if("proteins" %in% names(peptide.list)){
     message("Saving proteins data frame")
     write.csv(peptide.list$proteins, paste0(save_folder, "/proteins_df.csv"),
               row.names = FALSE)
-    saved <- c(saved, "proteins_df.csv")
   }
 
   # save function call parameters
@@ -86,8 +82,6 @@ save_peptide_list <- function(peptide.list, save_folder){
 
   write.csv(fcpars, paste0(save_folder, "/function_call_parameters.csv"),
             row.names = FALSE)
-  saved <- c(saved, "function_call_parameters.csv")
 
-
-  invisible(saved)
+  invisible(peptide.list)
 }
