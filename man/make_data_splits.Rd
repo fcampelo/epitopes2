@@ -8,7 +8,7 @@ make_data_splits(
   peptides.list,
   proteins,
   split_level = "protein",
-  split_prop = c(0.75, 0.25),
+  target_props = c(0.75, 0.25),
   split_names = NULL,
   similarity_threshold = 0.7,
   substitution_matrix = "BLOSUM62",
@@ -35,7 +35,7 @@ together in the splits) or "peptide" (uses similarity of the labelled
 peptides, \code{peptides.list$peptides$Info_peptide}).
 See \strong{Grouping strategy} for details.}
 
-\item{split_prop}{numeric vector of target proportions for each split
+\item{target_props}{numeric vector of target proportions for each split
 (i.e., a vector (p1, p2, ..., pK) such that 0 < pk < 1 for all k and
 sum(pk) = 1).}
 
@@ -50,7 +50,7 @@ Must be a matrix recognised by \code{\link[Biostrings:substitution_matrices]{Bio
 (e.g., "BLOSUM45", "PAM30", etc.)}
 
 \item{alpha}{weight parameter to regulate focus on maximising match to desired
-split proportions (\code{split_prop}) vs. on approximating the class
+split proportions (\code{target_props}) vs. on approximating the class
 balance of the full data set. Must be a numeric value between 0 and 1.
 See \strong{Optimisation Problem} for details.}
 
@@ -59,8 +59,11 @@ values of alpha) be returned as well? Accepts either \code{NULL} (don't
 calculate front) or a positive integer greater than 2
 (number of equally spaced alpha values between 0 and 1 to evaluate).
 If it's a positive integer, then the tradeoff dataset will be exported
-as object \verb{$splits.attrs$tradeoffs} in the output list. 11 or 21
-points are usually enough to give a good rough idea of the tradeoffs.}
+as object \verb{$splits.attrs$tradeoffs} in the output list. Note that
+only non-dominated tradeoffs are returned, so the number of tradeoff
+points is likely to be smaller than the value of \code{return_front}.
+Usually 11 or 21 points are enough to give a good rough idea of the
+tradeoffs.}
 
 \item{SAopts}{list of control parameters to be used by the simulated
 annealing (SANN) algorithm. See \code{\link[stats:optim]{stats::optim()}} for details.}
@@ -88,7 +91,7 @@ relevant attributes used in the earlier call to \code{\link[=extract_peptides]{e
 \item \emph{substitution_matrix}: same as input parameter \code{substitution_matrix}
 \item \emph{split_props}: proportion of data allocated to each split
 \item \emph{split_balance}: proportion of positive observations in each split
-\item \emph{target_props}: same as input parameter \code{split_prop}
+\item \emph{target_props}: same as input parameter \code{target_props}
 \item \emph{target_balance}: proportion of positive observations in full data
 \item \emph{alpha}: same as input parameter \code{alpha}
 \item \emph{SW.scores}: local alignment scores between each sequence (Smith-Waterman)

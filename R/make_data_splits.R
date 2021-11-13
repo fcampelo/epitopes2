@@ -39,7 +39,7 @@
 #' @section **Optimisation Problem**:
 #' This routine attempts to simultaneously minimise two objectives: (i) the
 #' difference between the actual proportion of data within each split and the
-#' desired levels informed by `split_prop`, and (ii) the difference between the
+#' desired levels informed by `target_props`, and (ii) the difference between the
 #' proportion of _positive_ observations within each split and the overall
 #' proportion in the data. A simple linear aggregation strategy is used to
 #' define the following optimisation problem. Let:
@@ -95,7 +95,7 @@
 #'        together in the splits) or "peptide" (uses similarity of the labelled
 #'        peptides, `peptides.list$peptides$Info_peptide`).
 #'        See **Grouping strategy** for details.
-#' @param split_prop numeric vector of target proportions for each split
+#' @param target_props numeric vector of target proportions for each split
 #'        (i.e., a vector (p1, p2, ..., pK) such that 0 < pk < 1 for all k and
 #'        sum(pk) = 1).
 #' @param split_names optional, vector of names to be given to each split.
@@ -106,7 +106,7 @@
 #'        Must be a matrix recognised by [Biostrings::substitution.matrices()]
 #'        (e.g., "BLOSUM45", "PAM30", etc.)
 #' @param alpha weight parameter to regulate focus on maximising match to desired
-#'        split proportions (`split_prop`) vs. on approximating the class
+#'        split proportions (`target_props`) vs. on approximating the class
 #'        balance of the full data set. Must be a numeric value between 0 and 1.
 #'        See **Optimisation Problem** for details.
 #' @param return_front should different tradeoff solutions (based on distinct
@@ -142,7 +142,7 @@
 #'        \item *substitution_matrix*: same as input parameter `substitution_matrix`
 #'        \item *split_props*: proportion of data allocated to each split
 #'        \item *split_balance*: proportion of positive observations in each split
-#'        \item *target_props*: same as input parameter `split_prop`
+#'        \item *target_props*: same as input parameter `target_props`
 #'        \item *target_balance*: proportion of positive observations in full data
 #'        \item *alpha*: same as input parameter `alpha`
 #'        \item *SW.scores*: local alignment scores between each sequence (Smith-Waterman)
@@ -166,9 +166,9 @@
 
 make_data_splits <- function(peptides.list,
                              proteins,
-                             split_level = "protein",
-                             split_prop  = c(.75, .25),
-                             split_names = NULL,
+                             split_level  = "protein",
+                             target_props = c(.75, .25),
+                             split_names  = NULL,
                              similarity_threshold = .7,
                              substitution_matrix = "BLOSUM62",
                              alpha  = 0.5,
@@ -181,19 +181,19 @@ make_data_splits <- function(peptides.list,
   # Sanity checks and initial definitions
   split_level <- tolower(split_level)
   if (is.null(split_names)) split_names <- sprintf("split_%02d_%02d",
-                                                   seq_along(split_prop),
-                                                   round(100*split_prop))
+                                                   seq_along(target_props),
+                                                   round(100*target_props))
 
   assertthat::assert_that(is.list(peptides.list),
                           all(c("df", "peptides") %in% names(peptides.list)),
                           is.data.frame(proteins),
                           length(split_level) == 1,
                           split_level %in% c("peptide", "protein"),
-                          is.numeric(split_prop), length(split_prop) > 1,
-                          all(split_prop > 0), all(split_prop < 1),
-                          sum(split_prop) == 1,
+                          is.numeric(target_props), length(target_props) > 1,
+                          all(target_props > 0), all(target_props < 1),
+                          sum(target_props) == 1,
                           is.character(split_names),
-                          length(split_names) == length(split_prop),
+                          length(split_names) == length(target_props),
                           is.numeric(similarity_threshold),
                           length(similarity_threshold) == 1,
                           similarity_threshold > 0, similarity_threshold < 1,
@@ -260,8 +260,8 @@ make_data_splits <- function(peptides.list,
   clusters  <- stats::hclust(d = stats::as.dist(diss), method = "single")
   X$Cluster <- stats::cutree(clusters, h = diss_t)
 
-  if(length(unique(X$Cluster)) < length(split_prop)){
-    warning("Impossible to divide data into ", length(split_prop),
+  if(length(unique(X$Cluster)) < length(target_props)){
+    warning("Impossible to divide data into ", length(target_props),
             " splits at similarity level ", similarity_threshold,
             ".\nTry a higher similarity threshold or a smaller number of splits.")
     return(list(SW.scores       = scores,
@@ -285,9 +285,9 @@ make_data_splits <- function(peptides.list,
   # Optimise split alllocations
 
   if(!("maxit" %in% names(SAopts))) {
-    SAopts$maxit <- min(1e5, 2000 * round(log10(length(split_prop) ^ nrow(Y))))
+    SAopts$maxit <- min(1e5, 2000 * round(log10(length(target_props) ^ nrow(Y))))
   }
-  y <- optimise_splits(Y = Y, Nstar = split_prop, alpha = alpha,
+  y <- optimise_splits(Y = Y, Nstar = target_props, alpha = alpha,
                        SAopts = SAopts, ncpus = ncpus)
 
   Y$Split <- split_names[y$x]
@@ -316,9 +316,9 @@ make_data_splits <- function(peptides.list,
     message("Building tradeoff dataset")
     for (i in seq_along(alpha.vec)){
       message("Processing tradeoff ", i, " of ", return_front)
-      z <- optimise_splits(Y = Y, Nstar = split_prop, alpha = alpha.vec[i],
+      z <- optimise_splits(Y = Y, Nstar = target_props, alpha = alpha.vec[i],
                            SAopts = SAopts, ncpus = ncpus)
-      f1 <- max(sort(split_prop) - sort(z$solstats$Gj))
+      f1 <- max(sort(target_props) - sort(z$solstats$Gj))
       f2 <- max(z$solstats$pj - sum(Y$nPos)/sum(Y$N))
       if (i == 1){
         tradeoffs <- data.frame(alpha = alpha.vec[i],
@@ -364,7 +364,7 @@ make_data_splits <- function(peptides.list,
     substitution_matrix  = substitution_matrix,
     split_props          = y$solstats$Gj,
     split_balance        = y$solstats$pj,
-    target_props         = split_prop,
+    target_props         = target_props,
     target_balance       = y$solstats$Pstar,
     alpha                = alpha,
     SW.scores            = scores,
@@ -394,7 +394,7 @@ make_data_splits <- function(peptides.list,
   message("Similarity threshold: ",  similarity_threshold)
   message("Number of clusters found: ", length(unique(X$Cluster)))
   message("Target balance: ", signif(y$solstats$Pstar, 4))
-  message("Target split proportions: ", paste(signif(split_prop, 4), collapse = ", "))
+  message("Target split proportions: ", paste(signif(target_props, 4), collapse = ", "))
   message("alpha: ",  alpha)
   for (i in seq_along(y$solstats$Gj)){
     message(names(y$solstats$Gj)[i], ": Split proportion = ",
