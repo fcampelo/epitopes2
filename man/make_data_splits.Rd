@@ -148,7 +148,7 @@ to split the data.
 
 This routine attempts to simultaneously minimise two objectives: (i) the
 difference between the actual proportion of data within each split and the
-desired levels informed by \code{split_prop}, and (ii) the difference between the
+desired levels informed by \code{target_props}, and (ii) the difference between the
 proportion of \emph{positive} observations within each split and the overall
 proportion in the data. A simple linear aggregation strategy is used to
 define the following optimisation problem. Let:

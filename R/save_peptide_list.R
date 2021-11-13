@@ -7,10 +7,11 @@
 #' @param peptide.list object of class `peptide.list`.
 #' @param save_folder path to folder for saving the resulting CSV files.
 #'
-#' @return Vector of file names generated (invisibly).
+#' @return Vector with names of the files saved (invisibly).
 #'
 #' @author Felipe Campelo (\email{f.campelo@@aston.ac.uk})
 #'
+#' @importFrom utils write.csv
 #' @export
 
 save_peptide_list <- function(peptide.list, save_folder){
@@ -28,17 +29,26 @@ save_peptide_list <- function(peptide.list, save_folder){
 
   # save main data frame
   message("Saving main peptides data frame")
-  write.csv(peptide.list$df, paste0(save_folder, "peptides_df_main.csv"),
+  write.csv(peptide.list$df, paste0(save_folder, "/peptides_df_main.csv"),
             row.names = FALSE)
   saved <- c(saved, "peptides_df_main.csv")
 
   # save summary peptides data frame
   message("Saving summary peptides data frame")
-  write.csv(peptide.list$peptides, paste0(save_folder, "peptides_df_summary.csv"),
+  write.csv(peptide.list$peptides, paste0(save_folder, "/peptides_df_summary.csv"),
             row.names = FALSE)
   saved <- c(saved, "peptides_df_summary.csv")
 
+  # save summary proteins data frame
+  if("proteins" %in% names(peptide.list)){
+    message("Saving proteins data frame")
+    write.csv(peptide.list$proteins, paste0(save_folder, "/proteins_df.csv"),
+              row.names = FALSE)
+    saved <- c(saved, "proteins_df.csv")
+  }
+
   # save function call parameters
+  message("Saving function call parameters")
   fcpars <- rbind(
     # filter attributes
     data.frame(Function  = "filter_epitopes",
@@ -49,17 +59,35 @@ save_peptide_list <- function(peptide.list, save_folder){
                Parameter = names(peptide.list$consolidate.attrs),
                Value     = unname(unlist(peptide.list$consolidate.attrs))),
     # peptide extraction attributes
-    data.frame(Function  = "peptide.attrs",
+    data.frame(Function  = "extract_peptides",
                Parameter = names(peptide.list$peptide.attrs),
                Value     = unname(unlist(peptide.list$peptide.attrs))))
 
+  # Add split parameters, if available
+  if("splits.attrs" %in% names(peptide.list)){
+    tmp <- peptide.list$splits.attrs[which(names(peptide.list$splits.attrs) %in% names(formals(epitopes::make_data_splits)))]
+    tmp$target_props <- paste(tmp$target_props, collapse = ",")
+    fcpars <- rbind(fcpars,
+                    data.frame(Function  = "make_data_splits",
+                               Parameter = names(tmp),
+                               Value     = unname(unlist(tmp))))
+  }
 
+  # Add feature calculation parameters, if available
+  if("feature.attrs" %in% names(peptide.list)){
+    tmp <- peptide.list$feature.attrs[which(names(peptide.list$feature.attrs) %in% names(formals(epitopes::calc_features)))]
+    tmp$local.features <- paste(tmp$local.features, collapse = ",")
+    tmp$global.features <- paste(tmp$global.features, collapse = ",")
+    fcpars <- rbind(fcpars,
+                    data.frame(Function  = "calc_features",
+                               Parameter = names(tmp),
+                               Value     = unname(unlist(tmp))))
+  }
 
-  message("Saving function call parameters")
-  write.csv(peptide.list$peptides, paste0(save_folder, "peptides_df_summary.csv"),
+  write.csv(fcpars, paste0(save_folder, "/function_call_parameters.csv"),
             row.names = FALSE)
-  saved <- c(saved, "peptides_df_summary.csv")
+  saved <- c(saved, "function_call_parameters.csv")
 
 
-
+  invisible(saved)
 }

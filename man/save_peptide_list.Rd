@@ -12,7 +12,7 @@ save_peptide_list(peptide.list, save_folder)
 \item{save_folder}{path to folder for saving the resulting CSV files.}
 }
 \value{
-Vector of file names generated (invisibly).
+Vector with names of the files saved (invisibly).
 }
 \description{
 Saves the full information from objects of type \code{peptide.list} (e.g., output
