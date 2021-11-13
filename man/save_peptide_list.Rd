@@ -12,7 +12,8 @@ save_peptide_list(peptide.list, save_folder)
 \item{save_folder}{path to folder for saving the resulting CSV files.}
 }
 \value{
-Vector with names of the files saved (invisibly).
+This function returns (invisibly) the same input list,
+\code{peptide.list}, to enable insertion as part of \code{dplyr} pipelines.
 }
 \description{
 Saves the full information from objects of type \code{peptide.list} (e.g., output

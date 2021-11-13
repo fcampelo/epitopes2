@@ -17,7 +17,7 @@ Description: Routines for retrieval and preprocessing of epitope data from
              IEDB (https://iedb.org/), as well as feature calculation and 
              assessment of classification performance .
 License: GPL-2
-Depends: R (>= 3.6.0)
+Depends: R (>= 4.0.0)
 Imports: assertthat (>= 0.2.1),
          XML (>= 3.99),
          dplyr (>= 1.0.7),
