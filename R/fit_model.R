@@ -24,16 +24,35 @@
 #' each observation of class _i_ has a weight equal to `1 / K_i`, where
 #' `K_i` is the total number of cases of class `i` in the training data.
 #'
+#' @section Performance assessment:
+#' This function has the following modes of performance assessment:
+#'
+#' \itemize{
+#'     \item If both _holdout.split_ and _CV.folds_ are `NULL`, no performance
+#'     assessment is done. A model is fit on the full data and returned.
+#'     \item If _holdout.split_ is the valid name of a data split in
+#'     `peptides.list$df$Info_split` **AND** _CV.folds_ is `NULL`, a model is
+#'     trained on the full data except the _holdout.split_ and then applied to
+#'     predict the labels for _holdout.split_. The performance returned
+#'     corresponds to the performance on _holdout.split_.
+#'     \item If _CV.folds_ is a vector of valid names of data splits in
+#'     `peptides.list$df$Info_split`, the splits named are used as
+#'     cross-validation folds. The performance returned
+#'     corresponds to the average cross-validation performance using the
+#'     _CV.folds_. Notice that if _CV.folds_ is not `NULL` the value of
+#'     _holdout.split_ is ignored.
+#' }
+#'
+#' **IMPORTANT**: in all cases, the model returned by this routine is a model
+#' trained on the **full data** (fit after the performance is assessed on
+#' holdout splits or on cross-validation folds).
+#'
 #' @param peptides.list data frame containing the training data (one or more
 #' numerical predictors and one **Class** attribute).
-#' @param assessment.mode mode of performance assessment to use. Accepts `"CV"`
-#' (for cross-validation using all splits in `peptides.list$df`) or `"holdout"`
-#' (in which case the holdout split must be informed in `holdout.split`); or
-#' `"none"` (the default - no out-of-sample performance estimate is returned).
-#' @param holdout.split name of split to be used as a holdout set. Only used if
-#' `assessment.mode = "holdout"`.
+#' @param holdout.split name of split to be used as a holdout set. If `NULL`
+#' then the full data is used for training.
 #' @param CV.folds vector with the names of the splits to be used as CV folds.
-#' Only used if `assessment.mode = "CV"`.
+#' If `NULL` no cross-validation is performed.
 #' @param threshold probability threshold for attributing a prediction as
 #' *positive*.
 #' @param sample.rebalancing logical: should the model try to compensate class
@@ -61,7 +80,6 @@
 #' @importFrom rlang .data
 
 fit_model <- function(peptides.list,
-                      assessment.mode = c("none","holdout", "CV"),
                       threshold = 0.5,
                       holdout.split = NULL,
                       CV.folds = NULL,
@@ -80,7 +98,6 @@ fit_model <- function(peptides.list,
                           "splitted.peptide.data" %in% class(peptides.list),
                           is.character(assessment.mode),
                           length(assessment.mode) == 1,
-                          assessment.mode %in% c("none", "CV", "holdout"),
                           is.null(holdout.split) || (
                             is.character(holdout.split) &&
                               length(holdout.split) == 1 &&
@@ -114,40 +131,30 @@ fit_model <- function(peptides.list,
                            by = c("Info_protein_id" = "UID"))
   }
 
-  if (assessment.mode != "CV"){
+  full.model <- NULL
+  if(is.null(CV.folds)){
+    # hold-out OR no assessment mode
     # Fit random forest
     message("Fitting model...")
-    RF.model <- fit_RF(df, sample.rebalancing, holdout.split, threshold, ncpus, ...)
-    RF.perf  <- NULL
+    mymodel <- fit_RF(df, sample.rebalancing, holdout.split, threshold, ncpus, ...)
+    perf    <- mymodel$perf
+    if(is.null(holdout.split)) full.model <- mymodel$RF.model
 
-    if (assessment.mode == "holdout"){
-      # Calculate predictions and performance on holdout set
-      ho.df    <- df[which(df$Info_split == holdout.split), ]
-      preds <- stats::predict(myRF,
-                              data = dplyr::select(ho.df,
-                                                   dplyr::starts_with("feat_"),
-                                                   Class = .data$Class))
-      ho.df <- ho.df %>%
-        dplyr::select(c("Info_PepID", "Info_protein_id", "Info_pos", "Info_split",
-                        "Class")) %>%
-        dplyr::mutate(pred.prob  = preds$predictions[, 2],
-                      pred.class = ifelse(preds$predictions[, 2] >= threshold,
-                                          "1", "-1"))
-      perf <-  calc_performance(truth = ho.df$Class,
-                                pred  = ho.df$pred.class,
-                                prob  = ho.df$pred.prob,
-                                ret.as.list = TRUE,
-                                posValue = "1",
-                                negValue = "-1",
-                                ncpus = ncpus)
-    }
   } else {
     # Cross-validation
 
   }
 
+  # Fit full model here
+  if (is.null(full.model)){
+    message("Fitting full model")
+    mymodel <- fit_RF(df, sample.rebalancing, holdout.split = NULL, threshold, ncpus, ...)
+    full.model <- mymodel$RF.model
+  }
 
   .Random.seed <- oldseed
-  return()
+
+  # Assemble return list
+  # return()
 
 }

@@ -7,14 +7,20 @@ fit_RF_model <- function(df,
                          ...){
 
 
-  # Get number of trees (for inbag setup)
+  # Get some Ranger parameters (if passed)
   ntrees <- ifelse("num.trees" %in% ...names(),
                    ...elt(which(...names() == "num.trees")),
                    formals(ranger::ranger)$num.trees)
 
-  # remove the holdout split (if present)
+  min.node.size <- ifelse("min.node.size" %in% ...names(),
+                          ...elt(which(...names() == "min.node.size")),
+                          50)
+
+  # isolate the holdout split (if present)
   if(!is.null(holdout.split)){
+    message("Model fitting with hold-out split = ", holdout.split)
     df.tr <- df[which(df$Info_split != holdout.split), ]
+    df.ho <- df[which(df$Info_split == holdout.split), ]
   }
 
   # Determine sampled cases for each tree
@@ -57,10 +63,33 @@ fit_RF_model <- function(df,
                          class.weights  = nrow(df.tr)/table(df.tr$Class),
                          inbag          = inbag,
                          num.threads    = ncpus,
-                         min.node.size  = 100,
+                         min.node.size  = min.node.size,
                          oob.error      = FALSE,
                          ...)
 
-  return(myRF)
+  # Assess performance
+  if (!is.null(holdout.split)){
+    preds <- stats::predict(myRF,
+                            data = dplyr::select(df.ho,
+                                                 dplyr::starts_with("feat_"),
+                                                 Class = .data$Class))
+
+    perf <-  calc_performance(truth = df.ho$Class,
+                              pred  = ifelse(preds$predictions[, 2] >= threshold,
+                                             "1", "-1"),
+                              prob  = preds$predictions[, 2],
+                              ret.as.list = TRUE,
+                              posValue = "1",
+                              negValue = "-1",
+                              ncpus = ncpus)
+  } else {
+    perf <- NULL
+  }
+
+  # Assemble outlist
+  outlist <- list(RF.model = myRF,
+                  perf     = perf)
+
+  return(outlist)
 
 }
