@@ -26,12 +26,14 @@
 #'
 #' @param peptides.list data frame containing the training data (one or more
 #' numerical predictors and one **Class** attribute).
-#' @param assessment.mode mode of performance assessment to use. Accepts "CV"
-#' (for cross-validation using all splits in `peptides.list$df`) or "holdout"
-#' (in which case the holdout split must be informed in `holdout.split`).
-#' Defaults to "CV".
-#' @param holdout.split name of split to be used as a holdout set.Ignored if
-#' `assessment.mode = "CV"`.
+#' @param assessment.mode mode of performance assessment to use. Accepts `"CV"`
+#' (for cross-validation using all splits in `peptides.list$df`) or `"holdout"`
+#' (in which case the holdout split must be informed in `holdout.split`); or
+#' `"none"` (the default - no out-of-sample performance estimate is returned).
+#' @param holdout.split name of split to be used as a holdout set. Only used if
+#' `assessment.mode = "holdout"`.
+#' @param CV.folds vector with the names of the splits to be used as CV folds.
+#' Only used if `assessment.mode = "CV"`.
 #' @param threshold probability threshold for attributing a prediction as
 #' *positive*.
 #' @param sample.rebalancing logical: should the model try to compensate class
@@ -59,9 +61,10 @@
 #' @importFrom rlang .data
 
 fit_model <- function(peptides.list,
-                      assessment.mode = c("CV", "holdout"),
+                      assessment.mode = c("none","holdout", "CV"),
                       threshold = 0.5,
                       holdout.split = NULL,
+                      CV.folds = NULL,
                       sample.rebalancing = TRUE,
                       use.global.features = ifelse(peptides.list$splits.attrs$split_level == "protein", TRUE, FALSE),
                       ncpus = 1,
@@ -77,11 +80,15 @@ fit_model <- function(peptides.list,
                           "splitted.peptide.data" %in% class(peptides.list),
                           is.character(assessment.mode),
                           length(assessment.mode) == 1,
-                          assessment.mode %in% c("CV", "holdout"),
+                          assessment.mode %in% c("none", "CV", "holdout"),
                           is.null(holdout.split) || (
                             is.character(holdout.split) &&
                               length(holdout.split) == 1 &&
                               holdout.split %in% unique(peptides.list$df$Info_split)),
+                          is.null(CV.folds) || (
+                            is.character(CV.folds) &&
+                              length(CV.folds) > 1 &&
+                              all(CV.folds %in% unique(peptides.list$df$Info_split))),
                           is.numeric(threshold), length(threshold) == 1,
                           threshold >= 0, threshold <= 1,
                           is.logical(sample.rebalancing),
@@ -97,7 +104,8 @@ fit_model <- function(peptides.list,
   }
 
   # Merge global features into data frame if needed/available
-  df <- peptides.list$df
+  df <- peptides.list$df %>%
+    dplyr::mutate(Class = as.factor(.data$Class))
   if(use.global.features && "global.features" %in% class(peptides.list)){
     message("Merging global features into windowed dataframe...")
     df <- dplyr::left_join(df,
@@ -106,40 +114,37 @@ fit_model <- function(peptides.list,
                            by = c("Info_protein_id" = "UID"))
   }
 
-  if (assessment.mode == "holdout"){
-    message("Fitting model in 'holdout' mode...")
-    ho.preds   <- fit_RF_holdout(df, sample.rebalancing, holdout.split, threshold, ncpus, ...)
+  if (assessment.mode != "CV"){
+    # Fit random forest
+    message("Fitting model...")
+    RF.model <- fit_RF(df, sample.rebalancing, holdout.split, threshold, ncpus, ...)
+    RF.perf  <- NULL
 
-  } else if (assessment.mode == "CV"){
+    if (assessment.mode == "holdout"){
+      # Calculate predictions and performance on holdout set
+      ho.df    <- df[which(df$Info_split == holdout.split), ]
+      preds <- stats::predict(myRF,
+                              data = dplyr::select(ho.df,
+                                                   dplyr::starts_with("feat_"),
+                                                   Class = .data$Class))
+      ho.df <- ho.df %>%
+        dplyr::select(c("Info_PepID", "Info_protein_id", "Info_pos", "Info_split",
+                        "Class")) %>%
+        dplyr::mutate(pred.prob  = preds$predictions[, 2],
+                      pred.class = ifelse(preds$predictions[, 2] >= threshold,
+                                          "1", "-1"))
+      perf <-  calc_performance(truth = ho.df$Class,
+                                pred  = ho.df$pred.class,
+                                prob  = ho.df$pred.prob,
+                                ret.as.list = TRUE,
+                                posValue = "1",
+                                negValue = "-1",
+                                ncpus = ncpus)
+    }
+  } else {
+    # Cross-validation
 
-  } else stop("assessment mode '", assessment.mode, "' not recognized.")
-
-
-
-#
-#   # ========================================================================== #
-#   # Estimate model performance
-#   if (assessment.mode == "holdout"){
-#     # Set holdout set (case weights = 0)
-#     df <- peptides.list$df %>%
-#       dplyr::mutate("weight" = ifelse(.data$Info_split == holdout.split, 0, 1))
-#
-#
-#
-#     df <- df %>%
-#       dplyr::mutate(pred_prob  = myRF$predictions[, "1"],
-#                     pred_class = ifelse(myRF$predictions[, "1"] >= threshold, "1", "-1"))
-#
-#     myperf <- calc_performance(truth = df$Class[df$Info_split == holdout.split],
-#                                pred  = df$pred_class[df$Info_split == holdout.split],
-#                                prob  = df$pred_prob[df$Info_split == holdout.split],
-#                                posValue = "1",
-#                                negValue = "-1",
-#                                ret.as.list = TRUE)
-#
-#   }
-
-
+  }
 
 
   .Random.seed <- oldseed

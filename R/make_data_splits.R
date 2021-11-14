@@ -149,6 +149,9 @@
 #'        \item *diss.matrix*: dissimilarity matrix (see **Grouping strategy** for details)
 #'        \item *clusters*: `hclust` object with clustering structure.
 #'        \item *cluster.alloc*: data frame summarising the split allocations.
+#'        \item *tradeoffs*: data frame with tradeoffs between class balance and
+#'              nominal split size as a function of `alpha` (only if
+#'              `return_front` is not `NULL`).
 #'    }
 #'  }
 #'
