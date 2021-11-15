@@ -31,12 +31,11 @@ peptides.list <- epitopes %>%
   make_data_splits(proteins    = proteins,
                    target_props = c(.25, rep(.15, 5)), # <--- desired split ratios
                    similarity_threshold = .6,
-                   return_front = 21,
+                   #return_front = 21,
                    ncpus = ncpus) %>%
-  calc_features(local.features = c("AAC", "CTDC", "CTDD", "CTDT",     # <--- local features are calculated for the 15-AA windows and added to peptides.list$df
-                                   "BLOSUM", "Entropy",
-                                   "MolWeight", "AAtypes", "Atoms"),
-                global.features = c("AAC", "DC", "CTDC", "CTDD",      # <--- global features are calculated at the full protein level and added to peptides.list$proteins (needs a data join on df later, before training the models)
+  calc_features(local.features = c("Entropy","MolWeight", "AAtypes", "Atoms",   # <--- local features are calculated for the 15-AA windows and added to peptides.list$df
+                                   "AAC", "CTDC", "CTDD", "CTDT", "BLOSUM"),
+                global.features = c("AAC", "DC", "CTDC", "CTDD",                # <--- global features are calculated at the full protein level and added to peptides.list$proteins (needs a data join on df later, before training the models)
                                     "CTDT", "CTriad", "SOCN",
                                     "Entropy", "MolWeight", "AAtypes"),
                 ncpus = ncpus) %>%

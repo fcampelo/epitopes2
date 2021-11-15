@@ -6,9 +6,9 @@
 \usage{
 fit_model(
   peptides.list,
-  assessment.mode = c("CV", "holdout"),
   threshold = 0.5,
   holdout.split = NULL,
+  CV.folds = NULL,
   sample.rebalancing = TRUE,
   use.global.features = ifelse(peptides.list$splits.attrs$split_level == "protein",
     TRUE, FALSE),
@@ -21,16 +21,14 @@ fit_model(
 \item{peptides.list}{data frame containing the training data (one or more
 numerical predictors and one \strong{Class} attribute).}
 
-\item{assessment.mode}{mode of performance assessment to use. Accepts "CV"
-(for cross-validation using all splits in \code{peptides.list$df}) or "holdout"
-(in which case the holdout split must be informed in \code{holdout.split}).
-Defaults to "CV".}
-
 \item{threshold}{probability threshold for attributing a prediction as
 \emph{positive}.}
 
-\item{holdout.split}{name of split to be used as a holdout set.Ignored if
-\code{assessment.mode = "CV"}.}
+\item{holdout.split}{name of split to be used as a holdout set. If \code{NULL}
+then the full data is used for training.}
+
+\item{CV.folds}{vector with the names of the splits to be used as CV folds.
+If \code{NULL} no cross-validation is performed.}
 
 \item{sample.rebalancing}{logical: should the model try to compensate class
 imbalances by weighted sampling of examples when training the trees in the
@@ -80,6 +78,31 @@ to cost-sensitive training, which is done internally by setting the
 parameter \code{case.weights} in the call to \code{\link[ranger:ranger]{ranger::ranger()}} to a vector where
 each observation of class \emph{i} has a weight equal to \code{1 / K_i}, where
 \code{K_i} is the total number of cases of class \code{i} in the training data.
+}
+
+\section{Performance assessment}{
+
+This function has the following modes of performance assessment:
+
+\itemize{
+\item If both \emph{holdout.split} and \emph{CV.folds} are \code{NULL}, no performance
+assessment is done. A model is fit on the full data and returned.
+\item If \emph{holdout.split} is the valid name of a data split in
+\code{peptides.list$df$Info_split} \strong{AND} \emph{CV.folds} is \code{NULL}, a model is
+trained on the full data except the \emph{holdout.split} and then applied to
+predict the labels for \emph{holdout.split}. The performance returned
+corresponds to the performance on \emph{holdout.split}.
+\item If \emph{CV.folds} is a vector of valid names of data splits in
+\code{peptides.list$df$Info_split}, the splits named are used as
+cross-validation folds. The performance returned
+corresponds to the average cross-validation performance using the
+\emph{CV.folds}. Notice that if \emph{CV.folds} is not \code{NULL} the value of
+\emph{holdout.split} is ignored.
+}
+
+\strong{IMPORTANT}: in all cases, the model returned by this routine is a model
+trained on the \strong{full data} (fit after the performance is assessed on
+holdout splits or on cross-validation folds).
 }
 
 \author{

@@ -1,5 +1,3 @@
-#' @importFrom dplyr %>%
-#' @importFrom rlang .data
 extractAtoms <- function(x){
   y <- data.frame(
     Code1    = c("A", "C", "D", "E", "F", "G", "H", "I", "K", "L",
@@ -12,11 +10,12 @@ extractAtoms <- function(x){
 
   cnts <- as.data.frame(as.matrix(table(strsplit(x, split = "")[[1]])))
   cnts$Code1 <- rownames(cnts)
-  cnts <- y %>%
-    dplyr::left_join(cnts, by = "Code1") %>%
-    dplyr::mutate(dplyr::across(dplyr::starts_with("n"), ~.x*.data$V1)) %>%
-    dplyr::select(-c("Code1", "V1")) %>%
-    dplyr::summarise(dplyr::across(dplyr::everything(), sum, na.rm = TRUE))
+  cnts <- dplyr::left_join(y, cnts, by = "Code1")
+  out <- data.frame(nC = sum(cnts$nC * cnts$V1, na.rm = TRUE),
+                    nH = sum(cnts$nH * cnts$V1, na.rm = TRUE),
+                    nN = sum(cnts$nN * cnts$V1, na.rm = TRUE),
+                    nO = sum(cnts$nO * cnts$V1, na.rm = TRUE),
+                    nS = sum(cnts$nS * cnts$V1, na.rm = TRUE))
 
-  return(cnts)
+  return(out)
 }

@@ -98,6 +98,9 @@ relevant attributes used in the earlier call to \code{\link[=extract_peptides]{e
 \item \emph{diss.matrix}: dissimilarity matrix (see \strong{Grouping strategy} for details)
 \item \emph{clusters}: \code{hclust} object with clustering structure.
 \item \emph{cluster.alloc}: data frame summarising the split allocations.
+\item \emph{tradeoffs}: data frame with tradeoffs between class balance and
+nominal split size as a function of \code{alpha} (only if
+\code{return_front} is not \code{NULL}).
 }
 }
 

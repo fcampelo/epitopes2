@@ -1,5 +1,3 @@
-#' @importFrom dplyr %>%
-#' @importFrom rlang .data
 extractMolWeight <- function(x){
   y <- data.frame(
   Code1    = c("A", "C", "D", "E", "F", "G", "H", "I", "K", "L",
@@ -11,11 +9,14 @@ extractMolWeight <- function(x){
 
   cnts <- as.data.frame(as.matrix(table(strsplit(x, split = "")[[1]])))
   cnts$Code1 <- rownames(cnts)
-  cnts <- y %>%
-    dplyr::left_join(cnts, by = "Code1") %>%
-    dplyr::mutate("AA_MW" = .data$AA_MW * .data$V1) %>%
-    dplyr::select(-c("Code1", "V1")) %>%
-    dplyr::summarise(MolWeight = sum(.data$AA_MW, na.rm = TRUE))
+  cnts <-  dplyr::left_join(y, cnts, by = "Code1")
+  cnts$AA_MW <- cnts$AA_MW * cnts$V1
+  return(data.frame(MolWeight = sum(cnts$AA_MW, na.rm = TRUE)))
 
-  return(cnts)
+  # cnts <- y %>%
+  #   dplyr::left_join(cnts, by = "Code1") %>%
+  #   dplyr::mutate("AA_MW" = .data$AA_MW * .data$V1) %>%
+  #   dplyr::select(-c("Code1", "V1")) %>%
+  #   dplyr::summarise(MolWeight = sum(.data$AA_MW, na.rm = TRUE))
+
 }

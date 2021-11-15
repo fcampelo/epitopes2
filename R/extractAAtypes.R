@@ -1,5 +1,3 @@
-#' @importFrom dplyr %>%
-#' @importFrom rlang .data
 extractAAtypes <- function(x){
   AAtypes <- list(Tiny      = c("A", "C", "G", "S", "T"),
                   Small     = c("A", "B", "C", "D", "G", "N", "P", "S", "T", "V"),

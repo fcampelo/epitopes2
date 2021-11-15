@@ -133,11 +133,11 @@ calc_features <- function(peptides.list,
   # Calculate local features
   if(length(local.features) > 0) {
     for (i in seq_along(local.features)){
-      y <- call_protr(SEQs      = peptides.list$df$Info_window,
-                      feat.name = local.features[i],
-                      txt.opts  = c("local", "df"),
-                      dfnames   = names(peptides.list$df),
-                      ncpus     = ncpus)
+      y <- call_feat_functions(SEQs      = peptides.list$df$Info_window,
+                               feat.name = local.features[i],
+                               txt.opts  = c("local", "df"),
+                               dfnames   = names(peptides.list$df),
+                               ncpus     = ncpus)
 
       if(is.data.frame(y)) {
         torm <- which(names(peptides.list$df) %in% names(y))
@@ -152,11 +152,11 @@ calc_features <- function(peptides.list,
   # Calculate global features
   if(length(global.features) > 0) {
     for (i in seq_along(global.features)){
-      y <- call_protr(SEQs      = peptides.list$proteins$TSeq_sequence,
-                      feat.name = global.features[i],
-                      txt.opts  = c("global", "proteins"),
-                      dfnames   = names(peptides.list$proteins),
-                      ncpus     = ncpus)
+      y <- call_feat_functions(SEQs      = peptides.list$proteins$TSeq_sequence,
+                               feat.name = global.features[i],
+                               txt.opts  = c("global", "proteins"),
+                               dfnames   = names(peptides.list$proteins),
+                               ncpus     = ncpus)
 
       if(is.data.frame(y)) {
         peptides.list$proteins <- cbind(peptides.list$proteins, y)
