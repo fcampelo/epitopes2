@@ -124,6 +124,13 @@ fit_model <- function(peptides.list,
   df <- peptides.list$df %>%
     dplyr::mutate(Class = as.factor(.data$Class))
   if(use.global.features && "global.features" %in% class(peptides.list)){
+    if(peptides.list$splits.attrs$split_level == "protein"){
+      warning("Using global features when split_level is 'protein' is\n",
+              "likely to result in data leakage through protein-level\n",
+              "information. Performance estimates may not accurately\n",
+              "represent expected generalisation behaviour.")
+    }
+
     message("Merging global features into windowed dataframe...")
     df <- dplyr::left_join(df,
                            dplyr::select(peptides.list$proteins,
