@@ -1,3 +1,4 @@
+#' @export
 extractMolWeight <- function(x){
   y <- data.frame(
   Code1    = c("A", "C", "D", "E", "F", "G", "H", "I", "K", "L",
