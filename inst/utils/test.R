@@ -2,6 +2,7 @@
 # > devtools::install_github("fcampelo/epitopes@devel-next", force = TRUE)
 
 library(dplyr)
+library(epitopes)
 
 ncpus <- parallel::detectCores() - 1
 
