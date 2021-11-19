@@ -37,11 +37,8 @@ peptides.list <- epitopes %>%
                    similarity_threshold = .6,
                    #return_front = 21,
                    ncpus = ncpus) %>%
-  calc_features(local.features = c("Entropy","MolWeight", "AAtypes", "Atoms",   # <--- local features are calculated for the 15-AA windows and added to peptides.list$df
-                                   "AAC", "CTDC", "CTDD", "CTDT", "BLOSUM"),
-                global.features = c("AAC", "DC", "CTDC", "CTDD",                # <--- global features are calculated at the full protein level and added to peptides.list$proteins (needs a data join on df later, before training the models)
-                                    "CTDT", "CTriad", "SOCN",
-                                    "Entropy", "MolWeight", "AAtypes"),
+  calc_features(local.features = c("Entropy","MolWeight", "CTDT", "BLOSUM"),
+                global.features = c("AAC", "DC", "CTDC", "AAtypes"),
                 ncpus = ncpus) %>%
   save_peptide_list("./data/tmp")
 
