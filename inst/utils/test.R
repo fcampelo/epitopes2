@@ -1,4 +1,6 @@
 # this script uses the devel-next version of the epitopes package:
+# > install.packages("BiocManager")
+# > BiocManager::install("Biostrings")
 # > devtools::install_github("fcampelo/epitopes@devel-next", force = TRUE)
 
 library(dplyr)
@@ -40,7 +42,7 @@ peptides.list <- epitopes %>%
                 global.features = c("AAC", "DC", "CTDC", "CTDD",                # <--- global features are calculated at the full protein level and added to peptides.list$proteins (needs a data join on df later, before training the models)
                                     "CTDT", "CTriad", "SOCN",
                                     "Entropy", "MolWeight", "AAtypes"),
-                ncpus = 1) %>%
+                ncpus = ncpus) %>%
   save_peptide_list("./data/tmp")
 
 # peptides.list will be a list with the full information on the resulting data,

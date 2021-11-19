@@ -8,6 +8,12 @@ call_feat_functions <- function(SEQs, feat.name, txt.opts, dfnames, ncpus){
     return(FALSE)
   }
 
+  # Prevent paralellisation errors in Windows
+  if(.Platform$OS.type == "windows") {
+    message('Attention: multicore feature calculations are not currently supported for Windows')
+    ncpus <- 1
+  }
+
   if (fn %in% ls('package:protr')) fn <- paste0("protr::", fn)
 
   # Remove or replace invalid AA codes, depending on feature:
