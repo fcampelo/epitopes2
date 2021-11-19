@@ -51,7 +51,7 @@ close_mc <- function(cl){
 mypblapply <- function(X, FUN, ncpus, toexport = list(), ...){
   cl  <- set_mc(ncpus)
 
-  if(length(toexport) > 0 && .Platform$OS.type == "windows"){
+  if(ncpus > 1 && length(toexport) > 0 && .Platform$OS.type == "windows"){
     parallel::clusterExport(cl = cl,
                             varlist = toexport)
   }
