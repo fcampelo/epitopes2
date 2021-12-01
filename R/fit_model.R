@@ -17,12 +17,18 @@
 #' checked on `peptides.list$splits.attrs$split_level`.
 #'
 #' @section Dealing with class imbalance:
-#' Parameter `sample.rebalancing` regulates whether the resulting model attempts
-#' to compensate class imbalances. If `TRUE` the Random Forest model is subject
-#' to cost-sensitive training, which is done internally by setting the
-#' parameter `case.weights` in the call to [ranger::ranger()] to a vector where
-#' each observation of class _i_ has a weight equal to `1 / K_i`, where
-#' `K_i` is the total number of cases of class `i` in the training data.
+#' Parameter `sample.rebalancing` regulates how the modelling routine attempts
+#' to compensate class imbalances. The following strategies are available:
+#' \itemize{
+#'     \item `"by_tree"`: changes the sampling procedure for each tree in the
+#'     random forest, so that each observation has a sampling probability
+#'     inversely proportional to its class prevalence (resulting in samples
+#'     that are, on average, balanced for each tree).
+#'     Works by setting the parameter `case.weights` of [ranger::ranger()].
+#'     \item `"undersampling"`: undersamples the majority class to reach a
+#'     balanced training set.
+#'     \item any other value: no sample rebalancing is done.
+#' }
 #'
 #' @section Performance assessment:
 #' This function has the following modes of performance assessment:
@@ -39,28 +45,29 @@
 #'     `peptides.list$df$Info_split`, the splits named are used as
 #'     cross-validation folds. The performance returned
 #'     corresponds to the average cross-validation performance using the
-#'     _CV.folds_. Notice that if _CV.folds_ is not `NULL` the value of
+#'     _CV.folds_. If _CV.folds_ is not `NULL` the value of
 #'     _holdout.split_ is ignored.
 #' }
 #'
-#' **IMPORTANT**: in all cases, the model returned by this routine is a model
+#' **IMPORTANT**: by default, the model returned by this routine is a model
 #' trained on the **full data** (fit after the performance is assessed on
-#' holdout splits or on cross-validation folds).
+#' holdout splits or on cross-validation folds). This can be regulated by
+#' parameter `return.model`.
 #'
 #' @param peptides.list data frame containing the training data (one or more
 #' numerical predictors and one **Class** attribute).
 #' @param holdout.split name of split to be used as a holdout set. If `NULL`
-#' then the full data is used for training.
-#' @param CV.folds vector with the names of the splits to be used as CV folds.
+#' then the full data is used for training. Ignored if `CV.folds` is not `NULL`.
+#' @param CV.folds vector with the names of the splits to be used for cross validation.
 #' If `NULL` no cross-validation is performed.
 #' @param threshold probability threshold for attributing a prediction as
 #' *positive*.
-#' @param sample.rebalancing logical: should the model try to compensate class
-#' imbalances by weighted sampling of examples when training the trees in the
-#' random forest? See **Dealing with class imbalance**.
+#' @param sample.rebalancing character: should the model try to compensate class
+#' imbalances during training? See **Dealing with class imbalance** for details.
 #' @param use.global.features logical: should global features (potentially
 #' available in `peptides.list$proteins`) be used? Should be left as the default
 #' unless the user knows exactly what they're doing. See **Details**.
+#' return.model
 #' @param ncpus number of cores to use.
 #' @param rnd.seed seed for random number generator. **Note**: this function
 #' always returns the state of the random number generator back to its original
@@ -83,21 +90,19 @@ fit_model <- function(peptides.list,
                       threshold = 0.5,
                       holdout.split = NULL,
                       CV.folds = NULL,
-                      sample.rebalancing = TRUE,
+                      sample.rebalancing = 'by_tree',
                       use.global.features = ifelse(peptides.list$splits.attrs$split_level == "protein", TRUE, FALSE),
+                      return.model = "full",
                       ncpus = 1,
                       rnd.seed = NULL,
                       ...){
 
   # ========================================================================== #
   # Sanity checks and initial definitions
-  assessment.mode = assessment.mode[1]
   assertthat::assert_that(is.list(peptides.list),
                           all(c("df", "proteins") %in% names(peptides.list)),
                           "local.features" %in% class(peptides.list),
                           "splitted.peptide.data" %in% class(peptides.list),
-                          is.character(assessment.mode),
-                          length(assessment.mode) == 1,
                           is.null(holdout.split) || (
                             is.character(holdout.split) &&
                               length(holdout.split) == 1 &&
@@ -108,7 +113,7 @@ fit_model <- function(peptides.list,
                               all(CV.folds %in% unique(peptides.list$df$Info_split))),
                           is.numeric(threshold), length(threshold) == 1,
                           threshold >= 0, threshold <= 1,
-                          is.logical(sample.rebalancing),
+                          is.character(sample.rebalancing),
                           length(sample.rebalancing) == 1,
                           is.logical(use.global.features),
                           length(use.global.features) == 1,
@@ -138,12 +143,30 @@ fit_model <- function(peptides.list,
                            by = c("Info_protein_id" = "UID"))
   }
 
+  # prepare some parameters for the RF model
+  min.node.size <- ifelse("min.node.size" %in% ...names(),
+                          ...elt(which(...names() == "min.node.size")),
+                          peptides.list$peptide.attrs$min_peptide)
+
+  ntrees <- NULL
+  if("num.trees" %in% ...names()) {
+    ntrees <- ...elt(which(...names() == "num.trees"))
+  }
+
+
   full.model <- NULL
   if(is.null(CV.folds)){
     # hold-out OR no assessment mode
     # Fit random forest
     message("Fitting model...")
-    mymodel <- fit_RF(df, sample.rebalancing, holdout.split, threshold, ncpus, ...)
+    mymodel <- fit_RF(df = df,
+                      sample.rebalancing = sample.rebalancing,
+                      holdout.split = holdout.split,
+                      threshold = threshold,
+                      ncpus = ncpus,
+                      min.node.size = min.node.size,
+                      ntrees = ntrees,
+                      ...)
     perf    <- mymodel$perf
     if(is.null(holdout.split)) full.model <- mymodel$RF.model
 
