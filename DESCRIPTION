@@ -1,8 +1,8 @@
 Package: epitopes
 Type: Package
-Title: Processing and Feature Extraction for Epitope Data
-Version: 0.8.9010
-Date: 2021-11-19
+Title: Data retrieval, consolidation and mining for linear epitope prediction.
+Version: 0.9.9000
+Date: 2021-12-02
 Author: c(person(given = "Felipe", family = "Campelo",
                     email = "f.campelo@aston.ac.uk",
                     role = c("aut", "cre")),
@@ -24,12 +24,12 @@ Imports: assertthat (>= 0.2.1),
          rlang (>= 0.4.11),
          reutils (>= 0.2.3),
          pbapply (>= 1.4.0),
-         Biostrings (>= 2.60),
          protr (>= 1.6),
          ranger (>= 0.13.1),
          parallel,
          utils
 Suggests: 
+    Biostrings,
     pkgdown,
     knitr,
     rmarkdown,

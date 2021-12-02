@@ -1,30 +1,16 @@
-# Not currently used in the package.
+.onAttach <- function(...) {
+  # Check if Biostrings is installed
+  pkgs <- installed.packages()[, 3]
+  bsp <- grep("Biostrings", names(pkgs))
 
-# .onAttach <- function(...) {
-#   # Check if BLAST is installed
-#   errk <- FALSE
-#   tryCatch({
-#     invisible(utils::capture.output(
-#       blast_version <- system("blastp -version", intern = TRUE)[1]))},
-#     error   = function(c) {errk <<- TRUE},
-#     warning = function(c) {errk <<- TRUE},
-#     finally = NULL)
-#
-#   if (errk) {
-#     blast_version <- paste0("\nWARNING: blastp not found",
-#                             "\nPlease follow the instructions in",
-#                             "\nhttps://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download",
-#                             "\nto set up BLAST+ on your machine.",
-#                             "\n====================================================")
-#   } else {
-#     blast_version <- paste0(blast_version, " detected",
-#                             "\n====================================================")
-#   }
-#
-#   msg <- paste0("\n================= epitopes package =================",
-#              "\nNOTE: Data splitting functions require BLAST+.",
-#              "\nChecking if BLAST+ is available:\n",
-#              blast_version)
-#
-#   packageStartupMessage(msg)
-# }
+  if(length(bsp) == 0) {
+    message("\nPackage 'Biostrings' not detected.\n",
+            "Please run install_bioc_dependencies()\n",
+            "before using the epitopes package.")
+  } else if(packageVersion("Biostrings") < '2.60.0') {
+    message("\nPackage 'Biostrings' version 2.60.0 or later is required\n",
+            "Please run install_bioc_dependencies(force = TRUE)\n",
+            "before using the epitopes package.")
+  }
+
+}

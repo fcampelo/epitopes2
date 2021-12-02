@@ -9,7 +9,7 @@
 fit_RF(
   df,
   sample.rebalancing,
-  holdout.split,
+  holdout.split = NULL,
   threshold,
   ncpus,
   min.node.size,
