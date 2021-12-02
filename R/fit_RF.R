@@ -1,21 +1,21 @@
 #'  fits a single random forest and assess the performance on a holdout split
 #'  @importFrom dplyr %>%
 #'  @importFrom rlang .data
-fit_RF_model <- function(df,
-                         sample.rebalancing,
-                         holdout.split,
-                         threshold,
-                         ncpus,
-                         min.node.size,
-                         ntrees){
-
-
+fit_RF <- function(df,
+                   sample.rebalancing,
+                   holdout.split = NULL,
+                   threshold,
+                   ncpus,
+                   min.node.size,
+                   ntrees, ...){
 
   # isolate the holdout split (if present)
   if(!is.null(holdout.split)){
     message("Fit model excluding split: ", holdout.split)
     df.tr <- df[which(df$Info_split != holdout.split), ]
     df.ho <- df[which(df$Info_split == holdout.split), ]
+  } else {
+    df.tr <- df
   }
 
   # Determine how class imbalance is treated
@@ -39,10 +39,10 @@ fit_RF_model <- function(df,
                          classification = TRUE,
                          probability    = TRUE,
                          case.weights   = case.weights,
-                         #inbag          = inbag,
                          num.threads    = ncpus,
                          min.node.size  = min.node.size,
-                         oob.error      = FALSE)
+                         oob.error      = FALSE,
+                         ...)
 
   # Assess performance
   if (!is.null(holdout.split)){

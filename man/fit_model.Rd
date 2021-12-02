@@ -9,9 +9,10 @@ fit_model(
   threshold = 0.5,
   holdout.split = NULL,
   CV.folds = NULL,
-  sample.rebalancing = TRUE,
+  sample.rebalancing = "by_tree",
   use.global.features = ifelse(peptides.list$splits.attrs$split_level == "protein",
     TRUE, FALSE),
+  return.model = "full",
   ncpus = 1,
   rnd.seed = NULL,
   ...
@@ -25,18 +26,22 @@ numerical predictors and one \strong{Class} attribute).}
 \emph{positive}.}
 
 \item{holdout.split}{name of split to be used as a holdout set. If \code{NULL}
-then the full data is used for training.}
+then the full data is used for training. Ignored if \code{CV.folds} is not \code{NULL}.}
 
-\item{CV.folds}{vector with the names of the splits to be used as CV folds.
+\item{CV.folds}{vector with the names of the splits to be used for cross validation.
 If \code{NULL} no cross-validation is performed.}
 
-\item{sample.rebalancing}{logical: should the model try to compensate class
-imbalances by weighted sampling of examples when training the trees in the
-random forest? See \strong{Dealing with class imbalance}.}
+\item{sample.rebalancing}{character: should the model try to compensate class
+imbalances during training? See \strong{Dealing with class imbalance} for details.}
 
 \item{use.global.features}{logical: should global features (potentially
 available in \code{peptides.list$proteins}) be used? Should be left as the default
 unless the user knows exactly what they're doing. See \strong{Details}.}
+
+\item{return.model}{model to be returned. Accepts \code{"full"} (return model
+trained on the full data); \code{"partial"} (model trained on all data except the
+holdout split; or on the set of data specified in all CV folds); or \code{"none"}
+(does not return a model).}
 
 \item{ncpus}{number of cores to use.}
 
@@ -72,12 +77,18 @@ checked on \code{peptides.list$splits.attrs$split_level}.
 }
 \section{Dealing with class imbalance}{
 
-Parameter \code{sample.rebalancing} regulates whether the resulting model attempts
-to compensate class imbalances. If \code{TRUE} the Random Forest model is subject
-to cost-sensitive training, which is done internally by setting the
-parameter \code{case.weights} in the call to \code{\link[ranger:ranger]{ranger::ranger()}} to a vector where
-each observation of class \emph{i} has a weight equal to \code{1 / K_i}, where
-\code{K_i} is the total number of cases of class \code{i} in the training data.
+Parameter \code{sample.rebalancing} regulates how the modelling routine attempts
+to compensate class imbalances. The following strategies are available:
+\itemize{
+\item \code{"by_tree"}: changes the sampling procedure for each tree in the
+random forest, so that each observation has a sampling probability
+inversely proportional to its class prevalence (resulting in samples
+that are, on average, balanced for each tree).
+Works by setting the parameter \code{case.weights} of \code{\link[ranger:ranger]{ranger::ranger()}}.
+\item \code{"undersampling"}: undersamples the majority class to reach a
+balanced training set.
+\item any other value: no sample rebalancing is done.
+}
 }
 
 \section{Performance assessment}{
@@ -96,13 +107,14 @@ corresponds to the performance on \emph{holdout.split}.
 \code{peptides.list$df$Info_split}, the splits named are used as
 cross-validation folds. The performance returned
 corresponds to the average cross-validation performance using the
-\emph{CV.folds}. Notice that if \emph{CV.folds} is not \code{NULL} the value of
+\emph{CV.folds}. If \emph{CV.folds} is not \code{NULL} the value of
 \emph{holdout.split} is ignored.
 }
 
-\strong{IMPORTANT}: in all cases, the model returned by this routine is a model
+\strong{IMPORTANT}: by default, the model returned by this routine is a model
 trained on the \strong{full data} (fit after the performance is assessed on
-holdout splits or on cross-validation folds).
+holdout splits or on cross-validation folds). This can be regulated by
+parameter \code{return.model}.
 }
 
 \author{

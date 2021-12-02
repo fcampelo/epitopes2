@@ -67,7 +67,10 @@
 #' @param use.global.features logical: should global features (potentially
 #' available in `peptides.list$proteins`) be used? Should be left as the default
 #' unless the user knows exactly what they're doing. See **Details**.
-#' return.model
+#' @param return.model model to be returned. Accepts `"full"` (return model
+#' trained on the full data); `"partial"` (model trained on all data except the
+#' holdout split; or on the set of data specified in all CV folds); or `"none"`
+#' (does not return a model).
 #' @param ncpus number of cores to use.
 #' @param rnd.seed seed for random number generator. **Note**: this function
 #' always returns the state of the random number generator back to its original
@@ -117,6 +120,9 @@ fit_model <- function(peptides.list,
                           length(sample.rebalancing) == 1,
                           is.logical(use.global.features),
                           length(use.global.features) == 1,
+                          is.character(return.model),
+                          length(return.model) == 1,
+                          return.model %in% c("none", "partial", "full"),
                           assertthat::is.count(ncpus),
                           is.null(rnd.seed) || is.integer(rnd.seed))
 
@@ -153,38 +159,92 @@ fit_model <- function(peptides.list,
     ntrees <- ...elt(which(...names() == "num.trees"))
   }
 
-
-  full.model <- NULL
+  output.model <- NULL
   if(is.null(CV.folds)){
     # hold-out OR no assessment mode
-    # Fit random forest
-    message("Fitting model...")
-    mymodel <- fit_RF(df = df,
+    res <- fit_RF(df = df,
+                  sample.rebalancing = sample.rebalancing,
+                  holdout.split = holdout.split,
+                  threshold = threshold,
+                  ncpus = ncpus,
+                  min.node.size = min.node.size,
+                  ntrees = ntrees,
+                  ...)
+
+    perf     <- res$perf
+    perflist <- NULL
+
+    if (return.model == "partial"){
+      output.model <- res$RF.model
+    } else if (return.model == "full"){
+      output.model <- fit_RF(df = df,
+                             sample.rebalancing = sample.rebalancing,
+                             threshold = threshold,
+                             ncpus = ncpus,
+                             min.node.size = min.node.size,
+                             ntrees = ntrees,
+                             ...)$RF.model
+    }
+
+  } else {
+    # Cross-validation mode
+    perflist <- vector("list", length(CV.folds))
+    for (i in seq_along(CV.folds)){
+      tmpdf <- dplyr::filter(df, Info_split %in% CV.folds)
+      res   <- fit_RF(df = tmpdf,
                       sample.rebalancing = sample.rebalancing,
-                      holdout.split = holdout.split,
+                      holdout.split = CV.folds[i],
                       threshold = threshold,
                       ncpus = ncpus,
                       min.node.size = min.node.size,
                       ntrees = ntrees,
                       ...)
-    perf    <- mymodel$perf
-    if(is.null(holdout.split)) full.model <- mymodel$RF.model
+      perflist[[i]] <- res$perf
+    }
 
-  } else {
-    # Cross-validation
+    perf <- lapply(perflist,
+                   function(x){
+                     x$roc <- NULL
+                     as.data.frame(x)
+                   }) %>%
+      dplyr::bind_rows() %>%
+      dplyr::summarise(across(everything(), mean)) %>%
+      as.list()
 
-  }
-
-  # Fit full model here
-  if (is.null(full.model)){
-    message("Fitting full model")
-    mymodel <- fit_RF(df, sample.rebalancing, holdout.split = NULL, threshold, ncpus, ...)
-    full.model <- mymodel$RF.model
+    if (return.model == "partial"){
+      output.model <- fit_RF(df = tmpdf,
+                             sample.rebalancing = sample.rebalancing,
+                             threshold = threshold,
+                             ncpus = ncpus,
+                             min.node.size = min.node.size,
+                             ntrees = ntrees,
+                             ...)$RF.model
+    } else if (return.model == "full"){
+      output.model <- fit_RF(df = df,
+                             sample.rebalancing = sample.rebalancing,
+                             threshold = threshold,
+                             ncpus = ncpus,
+                             min.node.size = min.node.size,
+                             ntrees = ntrees,
+                             ...)$RF.model
+    }
   }
 
   .Random.seed <- oldseed
 
   # Assemble return list
-  # return()
+  peptides.list$model       <- output.model
+  peptides.list$model.perf  <- perf
+  peptides.list$CV.perflist <- perflist
+  peptides.list$model.attrs <- list(threshold = threshold,
+                                    holdout.split = holdout.split,
+                                    CV.folds = CV.folds,
+                                    sample.rebalancing = sample.rebalancing,
+                                    use.global.features = use.global.features,
+                                    return.model = return.model,
+                                    rnd.seed = rnd.seed,
+                                    other.args = as.list(substitute(list(...)))[-1])
+
+  return(peptides.list)
 
 }
