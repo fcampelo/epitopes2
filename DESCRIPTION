@@ -1,7 +1,7 @@
 Package: epitopes
 Type: Package
 Title: Data retrieval, consolidation and mining for linear epitope prediction.
-Version: 0.9.9000
+Version: 0.9.9001
 Date: 2021-12-02
 Author: c(person(given = "Felipe", family = "Campelo",
                     email = "f.campelo@aston.ac.uk",
@@ -36,7 +36,7 @@ Suggests:
     Peptides
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.2
+RoxygenNote: 7.1.1
 VignetteBuilder: knitr
 URL: https://github.com/fcampelo/epitopes
 Roxygen: list(markdown = TRUE)

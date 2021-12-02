@@ -44,9 +44,7 @@ peptides.list <- epitopes %>%
             ncpus = ncpus)
 
 # TODO:
-# - sort out installation of Biostrings from bioconductor
 # - test splitting by peptides
-# - add modelling stuff to "save_peptides_list()"
 # - make sure make_splits(is protected against empty splits)
 # - add print/summary/plot routines
 # - update Lucid.app graphical description
