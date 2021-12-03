@@ -2,21 +2,21 @@
 % Please edit documentation in R/save_peptide_list.R
 \name{save_peptide_list}
 \alias{save_peptide_list}
-\title{Save information from a peptide.list object to files .}
+\title{Save information from a peptides.list object to files .}
 \usage{
-save_peptide_list(peptide.list, save_folder)
+save_peptide_list(peptides.list, save_folder)
 }
 \arguments{
-\item{peptide.list}{object of class \code{peptide.list}.}
+\item{peptides.list}{object of class \code{peptides.list}.}
 
 \item{save_folder}{path to folder for saving the resulting CSV files.}
 }
 \value{
 This function returns (invisibly) the same input list,
-\code{peptide.list}, to enable insertion as part of \code{dplyr} pipelines.
+\code{peptides.list}, to enable insertion as part of \code{dplyr} pipelines.
 }
 \description{
-Saves the full information from objects of type \code{peptide.list} (e.g., output
+Saves the full information from objects of type \code{peptides.list} (e.g., output
 of functions \code{\link[=extract_peptides]{extract_peptides()}}, \code{\link[=make_data_splits]{make_data_splits()}} or \code{\link[=calc_features]{calc_features()}})
 to a set of CSV files for easier sharing and cross-platform use.
 }

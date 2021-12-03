@@ -1,19 +1,17 @@
 # this script uses the devel-next version of the epitopes package:
-# > install.packages("BiocManager")
-# > BiocManager::install("Biostrings")
 # > devtools::install_github("fcampelo/epitopes@devel-next", force = TRUE)
+# > epitopes::install_bioc_dependencies(force = TRUE)
 
 library(dplyr)
-library(protr)
 library(epitopes)
 
 ncpus <- parallel::detectCores() - 1
 
 # orgID    <- 6282    # O. volvulus
-# savefile <- "./data/ov_data.rds"
+# savefile <- "./data/ov_data_LegacyFeatures_holdout.rds"
 
 # orgID    <- 2697049 # SARS-Cov-2
-# savefile <- "./data/sarscov2_data.rds"
+# savefile <- "./data/sarscov2_data_LegacyFeatures_holdout.rds"
 
 orgID    <- 10376 # Epstein-Barr virus
 savefile <- "./data/ebv_data_LegacyFeatures_holdout.rds"
@@ -33,9 +31,9 @@ peptides.list <- epitopes %>%
   consolidate_data(proteins, only_exact = FALSE, ncpus = ncpus) %>%
   extract_peptides(min_peptide = 8, max_epitope = 25) %>%
   make_data_splits(proteins    = proteins,
-                   target_props = c(rep(.15, 5), .25), # <--- desired split ratios
-                   split_names = c(paste0("CV", 1:5), "holdout"),
-                   similarity_threshold = .6,
+                   target_props = c(.75, .25), # <--- desired split ratios
+                   split_names = c("training", "holdout"),#c(paste0("CV", 1:5), "holdout"),
+                   similarity_threshold = .7,
                    #return_front = 21,
                    ncpus = ncpus) %>%
   calc_features(local.features = "LegacyFeatures",
@@ -48,14 +46,7 @@ peptides.list <- epitopes %>%
 # - make sure make_splits(is protected against empty splits)
 # - add print/summary/plot routines
 # - update Lucid.app graphical description
-
-# peptides.list will be a list with the full information on the resulting data,
-# peptides.list$df       - windowed dataframe, incl. local features and data split information
-# peptides.list$peptides - dataframe with information about the (non-windowed) peptides.
-# peptides.list$proteins - dataframe of protein information, incl. global features.
-# peptides.list$peptide.attrs  - attributes related to how the peptides were extracted
-# peptides.list$peptide.attrs  - attributes related to how the data splits were defined
-# peptides.list$feature.attrs  - attributes related to which features were calculated
+# - optional echoing mode
 
 
 t1 <- Sys.time()

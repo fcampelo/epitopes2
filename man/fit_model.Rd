@@ -9,7 +9,7 @@ fit_model(
   threshold = 0.5,
   holdout.split = NULL,
   CV.folds = NULL,
-  sample.rebalancing = "by_tree",
+  sample.rebalancing = "undersampling",
   use.global.features = ifelse(peptides.list$splits.attrs$split_level == "protein",
     TRUE, FALSE),
   return.model = "full",
@@ -80,14 +80,14 @@ checked on \code{peptides.list$splits.attrs$split_level}.
 Parameter \code{sample.rebalancing} regulates how the modelling routine attempts
 to compensate class imbalances. The following strategies are available:
 \itemize{
-\item \code{"by_tree"}: changes the sampling procedure for each tree in the
-random forest, so that each observation has a sampling probability
-inversely proportional to its class prevalence (resulting in samples
-that are, on average, balanced for each tree).
-Works by setting the parameter \code{case.weights} of \code{\link[ranger:ranger]{ranger::ranger()}}.
-\item \code{"undersampling"}: undersamples the majority class to reach a
-balanced training set.
-\item any other value: no sample rebalancing is done.
+\item \code{"undersampling"} (default) : stratified undersampling of the
+majority class. The undersampling is performed in a
+manner that retains at least some observations related to each peptide
+from the majority class (plus all observations from the minority class).
+\item \code{"by_tree"}: sets the parameter \code{case.weights} of
+\code{\link[ranger:ranger]{ranger::ranger()}} to give each observation a sampling probability
+inversely proportional to its class prevalence.
+\item any other value: no rebalancing is done.
 }
 }
 

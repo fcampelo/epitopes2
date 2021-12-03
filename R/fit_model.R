@@ -20,14 +20,14 @@
 #' Parameter `sample.rebalancing` regulates how the modelling routine attempts
 #' to compensate class imbalances. The following strategies are available:
 #' \itemize{
-#'     \item `"by_tree"`: changes the sampling procedure for each tree in the
-#'     random forest, so that each observation has a sampling probability
-#'     inversely proportional to its class prevalence (resulting in samples
-#'     that are, on average, balanced for each tree).
-#'     Works by setting the parameter `case.weights` of [ranger::ranger()].
-#'     \item `"undersampling"`: undersamples the majority class to reach a
-#'     balanced training set.
-#'     \item any other value: no sample rebalancing is done.
+#'     \item `"undersampling"` (default) : stratified undersampling of the
+#'     majority class. The undersampling is performed in a
+#'     manner that retains at least some observations related to each peptide
+#'     from the majority class (plus all observations from the minority class).
+#'     \item `"by_tree"`: sets the parameter `case.weights` of
+#'     [ranger::ranger()] to give each observation a sampling probability
+#'     inversely proportional to its class prevalence.
+#'     \item any other value: no rebalancing is done.
 #' }
 #'
 #' @section Performance assessment:
@@ -72,12 +72,7 @@
 #' holdout split; or on the set of data specified in all CV folds); or `"none"`
 #' (does not return a model).
 #' @param ncpus number of cores to use.
-#' @param rnd.seed seed for random number generator. **Note**: this function
-#' always returns the state of the random number generator back to its original
-#' value before returning the results. Running it twice in sequence with
-#' `rnd.seed = NULL` should result in exactly the same results (but it is
-#' safer to simply set a specific seed, or to reuse the seed that is returned
-#' in the output list).
+#' @param rnd.seed seed for random number generator.
 #' @param ... other options to be passed down to [ranger::ranger()].
 #'
 #' @return List containing the fitted model and several performance indicators.
@@ -93,7 +88,7 @@ fit_model <- function(peptides.list,
                       threshold = 0.5,
                       holdout.split = NULL,
                       CV.folds = NULL,
-                      sample.rebalancing = 'by_tree',
+                      sample.rebalancing = 'undersampling',
                       use.global.features = ifelse(peptides.list$splits.attrs$split_level == "protein", TRUE, FALSE),
                       return.model = "full",
                       ncpus = 1,
@@ -126,7 +121,6 @@ fit_model <- function(peptides.list,
                           assertthat::is.count(ncpus),
                           is.null(rnd.seed) || is.integer(rnd.seed))
 
-  oldseed <- .Random.seed
   if(!is.null(rnd.seed)){
     set.seed(rnd.seed)
   }
@@ -154,9 +148,10 @@ fit_model <- function(peptides.list,
                           ...elt(which(...names() == "min.node.size")),
                           peptides.list$peptide.attrs$min_peptide)
 
-  ntrees <- NULL
   if("num.trees" %in% ...names()) {
     ntrees <- ...elt(which(...names() == "num.trees"))
+  } else {
+    ntrees <- formals(ranger::ranger)$num.trees
   }
 
   output.model <- NULL
@@ -229,8 +224,6 @@ fit_model <- function(peptides.list,
                              ...)$RF.model
     }
   }
-
-  .Random.seed <- oldseed
 
   # Assemble return list
   peptides.list$model       <- output.model

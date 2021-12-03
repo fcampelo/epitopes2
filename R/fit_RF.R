@@ -20,15 +20,47 @@ fit_RF <- function(df,
 
   # Determine how class imbalance is treated
   case.weights <- NULL
+  inbag        <- NULL
   if(sample.rebalancing == "by_tree"){
+    message("Sample rebalancing by modified sampling probabilities")
     case.weights <- ifelse(df.tr$Class == "1",
                            sum(df.tr$Class == "-1") / nrow(df.tr),
                            sum(df.tr$Class == "1") / nrow(df.tr))
+
+    # inbag  <- mypblapply(1:ntrees,
+    #                      function(i, clvec, idvec){
+    #                        minclass <- names(which.min(table(clvec)))
+    #
+    #                        minpool  <- data.frame(rown = which(clvec == minclass),
+    #                                               idx = idvec[which(clvec == minclass)])
+    #                        maxpool  <- data.frame(rown = which(clvec != minclass),
+    #                                               idx = idvec[which(clvec != minclass)])
+    #
+    #                        minsmp <- dplyr::group_by(minpool, .data$idx) %>%
+    #                          dplyr::sample_n(1)
+    #                        maxsmp <- dplyr::group_by(maxpool, .data$idx) %>%
+    #                          dplyr::sample_n(1) %>%
+    #                          dplyr::ungroup() %>%
+    #                          dplyr::sample_n(nrow(minsmp))
+    #
+    #                        return(c(minsmp$rown, maxsmp$rown))
+    #                      },
+    #                      clvec = df.tr$Class,
+    #                      idvec = df.tr$Info_PepID,
+    #                      ncpus = ncpus)
+
   } else if (sample.rebalancing == "undersampling"){
-    df.tr <- df.tr %>%
-      group_by(Class) %>%
-      sample_n(size = min(table(df.tr$Class)), replace = FALSE) %>%
-      ungroup()
+    message("Sample rebalancing by stratified undersampling")
+    # Balance classes in such a way that all *peptides* of the majority
+    # class retain some representation in the sub-sampledtraining set.
+    minclass <- names(which.min(table(df.tr$Class)))
+    nmin     <- sum(df.tr$Class == minclass)
+    nmaj     <- sum(df.tr$Class != minclass)
+    df.tr    <- dplyr::filter(df.tr, .data$Class != minclass) %>%
+      dplyr::group_by(.data$Info_PepID) %>%
+      dplyr::sample_frac(nmin/nmaj) %>%
+      dplyr::ungroup() %>%
+      dplyr::bind_rows(dplyr::filter(df.tr, .data$Class == minclass))
   }
 
   message("Fitting Random Forest...")
@@ -36,12 +68,13 @@ fit_RF <- function(df,
                          data =  dplyr::select(df.tr,
                                                dplyr::starts_with("feat_"),
                                                "Class"),
-                         classification = TRUE,
-                         probability    = TRUE,
-                         case.weights   = case.weights,
-                         num.threads    = ncpus,
-                         min.node.size  = min.node.size,
-                         oob.error      = FALSE,
+                         classification  = TRUE,
+                         probability     = TRUE,
+                         inbag           = inbag,
+                         case.weights    = case.weights,
+                         num.threads     = ncpus,
+                         min.node.size   = min.node.size,
+                         oob.error       = FALSE,
                          ...)
 
   # Assess performance
