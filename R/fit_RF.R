@@ -61,6 +61,8 @@ fit_RF <- function(df,
       dplyr::sample_frac(nmin/nmaj) %>%
       dplyr::ungroup() %>%
       dplyr::bind_rows(dplyr::filter(df.tr, .data$Class == minclass))
+
+    # TODO: check balancing and reduce maj class further if needed
   }
 
   message("Fitting Random Forest...")
