@@ -45,12 +45,7 @@ holdout split; or on the set of data specified in all CV folds); or \code{"none"
 
 \item{ncpus}{number of cores to use.}
 
-\item{rnd.seed}{seed for random number generator. \strong{Note}: this function
-always returns the state of the random number generator back to its original
-value before returning the results. Running it twice in sequence with
-\code{rnd.seed = NULL} should result in exactly the same results (but it is
-safer to simply set a specific seed, or to reuse the seed that is returned
-in the output list).}
+\item{rnd.seed}{seed for random number generator.}
 
 \item{...}{other options to be passed down to \code{\link[ranger:ranger]{ranger::ranger()}}.}
 }

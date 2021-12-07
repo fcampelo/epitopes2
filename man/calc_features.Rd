@@ -89,6 +89,8 @@ implementations:
 \item "MolWeight" - the total molecular weight of the sequence
 \item "AAtypes" - the proportion of AAs of each type (acidic, aliphatic,
 acidic, etc.)
+\item "LegacyFeatures" - calculates the features used in paper
+\url{https://doi.org/10.1093/bioinformatics/btab536}
 }
 
 Each feature group may be used either at the local or global level -

@@ -1,6 +1,18 @@
-#'  fits a single random forest and assess the performance on a holdout split
+#'  Fits a single random forest and assess the performance on a holdout split.
+#'
+#'  Not to be used separately, this function is called as part of calls to
+#'  [fit_model()].
+#'
+#'  @inheritParams fit_model
+#'  @param df dataframe containing a `Class` attribute and one or more feature
+#'  attributes (columns starting with "feat_")
+#'  @param min.node.size min node size for [ranger::ranger()]
+#'  @param ntrees number of trees for [ranger::ranger()]
+#'
 #'  @importFrom dplyr %>%
 #'  @importFrom rlang .data
+#'  @export
+
 fit_RF <- function(df,
                    sample.rebalancing,
                    holdout.split = NULL,
@@ -27,42 +39,24 @@ fit_RF <- function(df,
                            sum(df.tr$Class == "-1") / nrow(df.tr),
                            sum(df.tr$Class == "1") / nrow(df.tr))
 
-    # inbag  <- mypblapply(1:ntrees,
-    #                      function(i, clvec, idvec){
-    #                        minclass <- names(which.min(table(clvec)))
-    #
-    #                        minpool  <- data.frame(rown = which(clvec == minclass),
-    #                                               idx = idvec[which(clvec == minclass)])
-    #                        maxpool  <- data.frame(rown = which(clvec != minclass),
-    #                                               idx = idvec[which(clvec != minclass)])
-    #
-    #                        minsmp <- dplyr::group_by(minpool, .data$idx) %>%
-    #                          dplyr::sample_n(1)
-    #                        maxsmp <- dplyr::group_by(maxpool, .data$idx) %>%
-    #                          dplyr::sample_n(1) %>%
-    #                          dplyr::ungroup() %>%
-    #                          dplyr::sample_n(nrow(minsmp))
-    #
-    #                        return(c(minsmp$rown, maxsmp$rown))
-    #                      },
-    #                      clvec = df.tr$Class,
-    #                      idvec = df.tr$Info_PepID,
-    #                      ncpus = ncpus)
-
   } else if (sample.rebalancing == "undersampling"){
     message("Sample rebalancing by stratified undersampling")
     # Balance classes in such a way that all *peptides* of the majority
-    # class retain some representation in the sub-sampledtraining set.
+    # class retain some representation in the sub-sampled training set.
     minclass <- names(which.min(table(df.tr$Class)))
     nmin     <- sum(df.tr$Class == minclass)
     nmaj     <- sum(df.tr$Class != minclass)
-    df.tr    <- dplyr::filter(df.tr, .data$Class != minclass) %>%
+    df.tmp   <- dplyr::filter(df.tr, .data$Class != minclass) %>%
       dplyr::group_by(.data$Info_PepID) %>%
-      dplyr::sample_frac(nmin/nmaj) %>%
-      dplyr::ungroup() %>%
-      dplyr::bind_rows(dplyr::filter(df.tr, .data$Class == minclass))
+      dplyr::sample_n(ceiling(dplyr::n() * nmin / nmaj)) %>%
+      dplyr::ungroup()
+    if (nrow(df.tmp) > nmin){
+      df.tmp <- dplyr::sample_n(df.tmp, nmin)
+    }
+    df.tr <- dplyr::filter(df.tr, .data$Class == minclass) %>%
+      dplyr::bind_rows(df.tmp)
 
-    # TODO: check balancing and reduce maj class further if needed
+    rm(df.tmp)
   }
 
   message("Fitting Random Forest...")

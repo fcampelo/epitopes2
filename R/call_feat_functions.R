@@ -3,18 +3,19 @@ call_feat_functions <- function(SEQs, feat.name, txt.opts, dfnames, ncpus){
   fn <- paste0("extract", feat.name)
 
   # Check if function exists
-  if(!(fn %in% ls('package:protr') | fn %in% ls('package:epitopes'))){
-    warning("Function ", fn, "() not found.\nSkipping...")
-    return(FALSE)
-  }
+  # if(!(fn %in% ls('package:protr') | fn %in% ls('package:epitopes'))){
+  #   warning("Function ", fn, "() not found.\nSkipping...")
+  #   return(FALSE)
+  # }
 
   # Prevent paralellisation errors in Windows
+  # TODO: fix this
   if(.Platform$OS.type == "windows") {
     message('Attention: multicore feature calculations are not currently supported for Windows')
     ncpus <- 1
   }
 
-  if (fn %in% ls('package:protr')) fn <- paste0("protr::", fn)
+  if (!fn %in% ls('package:epitopes')) fn <- paste0("protr::", fn)
 
   # Remove or replace invalid AA codes, depending on feature:
   if (grepl("Gap$", fn)) {

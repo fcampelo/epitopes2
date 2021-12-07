@@ -1,6 +1,6 @@
 Package: epitopes
 Type: Package
-Title: Data retrieval, consolidation and mining for linear epitope prediction.
+Title: Data retrieval, consolidation and mining for linear epitope prediction
 Version: 0.9.9001
 Date: 2021-12-02
 Author: c(person(given = "Felipe", family = "Campelo",

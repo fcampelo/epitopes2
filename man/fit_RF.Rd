@@ -2,9 +2,7 @@
 % Please edit documentation in R/fit_RF.R
 \name{fit_RF}
 \alias{fit_RF}
-\title{fits a single random forest and assess the performance on a holdout split
-@importFrom dplyr \%>\%
-@importFrom rlang .data}
+\title{Fits a single random forest and assess the performance on a holdout split.}
 \usage{
 fit_RF(
   df,
@@ -18,7 +16,17 @@ fit_RF(
 )
 }
 \description{
-fits a single random forest and assess the performance on a holdout split
+Not to be used separately, this function is called as part of calls to
+\code{\link[=fit_model]{fit_model()}}.
+}
+\details{
+@inheritParams fit_model
+@param df dataframe containing a \code{Class} attribute and one or more feature
+attributes (columns starting with "feat_")
+@param min.node.size min node size for \code{\link[ranger:ranger]{ranger::ranger()}}
+@param ntrees number of trees for \code{\link[ranger:ranger]{ranger::ranger()}}
+
 @importFrom dplyr \%>\%
 @importFrom rlang .data
+@export
 }
