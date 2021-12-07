@@ -7,6 +7,8 @@ library(epitopes)
 
 ncpus <- parallel::detectCores() - 1
 
+orgID <- 11103 # HepC
+
 # orgID    <- 6282    # O. volvulus
 # savefile <- "./data/ov_data_holdout_locglob.rds"
 
@@ -32,12 +34,12 @@ peptides.list <- epitopes %>%
                    similarity_threshold = .7,
                    #return_front = 21,
                    ncpus = ncpus) %>%
-  calc_features(local.features = c("Entropy","MolWeight", "AAtypes", "Atoms",   # <--- local features are calculated for the 15-AA windows and added to peptides.list$df
-                                   "AAC", "CTDC", "CTDD", "CTDT", "BLOSUM",
-                                   "SOCN", "QSO", "ScalesGap"),
-                global.features = c("Entropy","MolWeight", "AAtypes", "Atoms",   # <--- local features are calculated for the 15-AA windows and added to peptides.list$df
-                                    "AAC", "DC", "CTDC", "CTDD", "CTDT", "BLOSUM",
-                                    "SOCN", "QSO", "ScalesGap"),
+  calc_features(local.features = "AAC", #c("Entropy","MolWeight", "AAtypes", "Atoms",   # <--- local features are calculated for the 15-AA windows and added to peptides.list$df
+                #                   "AAC", "CTDC", "CTDD", "CTDT", "BLOSUM",
+                #                   "SOCN", "QSO", "ScalesGap"),
+                global.features = "AAC",#c("Entropy","MolWeight", "AAtypes", "Atoms",   # <--- local features are calculated for the 15-AA windows and added to peptides.list$df
+                                  #  "AAC", "DC", "CTDC", "CTDD", "CTDT", "BLOSUM",
+                                  #  "SOCN", "QSO", "ScalesGap"),
                 ncpus = ncpus) %>%
   fit_model(holdout.split = "holdout", # CV.folds = paste0("CV", 1:3),#
             ncpus = ncpus, return.model = "none")

@@ -15,7 +15,7 @@ call_feat_functions <- function(SEQs, feat.name, txt.opts, dfnames, ncpus){
     ncpus <- 1
   }
 
-  if (!fn %in% ls('package:epitopes')) fn <- paste0("protr::", fn)
+  if (!(fn %in% ls('package:epitopes'))) fn <- paste0("protr::", fn)
 
   # Remove or replace invalid AA codes, depending on feature:
   if (grepl("Gap$", fn)) {
