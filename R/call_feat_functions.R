@@ -19,9 +19,9 @@ call_feat_functions <- function(SEQs, feat.name, txt.opts, dfnames, ncpus){
 
   # Remove or replace invalid AA codes, depending on feature:
   if (grepl("Gap$", fn)) {
-    SEQs <- sapply(SEQs, function(x){gsub("[^ACDEFGHIKLMNPQRSTVWZ]", "-", toupper(x))})
+    SEQs <- sapply(SEQs, function(x){gsub("[^ACDEFGHIKLMNPQRSTVW]", "-", toupper(x))})
   } else {
-    SEQs <- sapply(SEQs, function(x){gsub("[^ACDEFGHIKLMNPQRSTVWZ]", "", x)})
+    SEQs <- sapply(SEQs, function(x){gsub("[^ACDEFGHIKLMNPQRSTVW]", "", x)})
   }
 
   message("   ", txt.opts[1], ":", feat.name)
@@ -32,10 +32,11 @@ call_feat_functions <- function(SEQs, feat.name, txt.opts, dfnames, ncpus){
                     do.call(eval(parse(text = fn)),
                             args = myargs)},
                   fn = fn, myargs = myargs,
-                  toexport = c("extractAtoms", "extractAAtypes",
-                                  "extractEntropy", "extractMolWeight",
-                               ls("package:protr")),
+                  # toexport = c("extractAtoms", "extractAAtypes",
+                  #                 "extractEntropy", "extractMolWeight",
+                  #              ls("package:protr")),
                   ncpus = ncpus) %>%
+    unname() %>%
     dplyr::bind_rows() %>%
     dplyr::rename_with(~ ifelse(feat.name == .x,
                                 paste0("feat_", txt.opts[1], "_", .x),

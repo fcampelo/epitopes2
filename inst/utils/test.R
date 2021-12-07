@@ -34,15 +34,17 @@ peptides.list <- epitopes %>%
                    similarity_threshold = .7,
                    #return_front = 21,
                    ncpus = ncpus) %>%
-  calc_features(local.features = "AAC", #c("Entropy","MolWeight", "AAtypes", "Atoms",   # <--- local features are calculated for the 15-AA windows and added to peptides.list$df
-                #                   "AAC", "CTDC", "CTDD", "CTDT", "BLOSUM",
-                #                   "SOCN", "QSO", "ScalesGap"),
-                global.features = "AAC",#c("Entropy","MolWeight", "AAtypes", "Atoms",   # <--- local features are calculated for the 15-AA windows and added to peptides.list$df
-                                  #  "AAC", "DC", "CTDC", "CTDD", "CTDT", "BLOSUM",
-                                  #  "SOCN", "QSO", "ScalesGap"),
+  calc_features(local.features = "AAC",
+                global.features = "AAC",
                 ncpus = ncpus) %>%
   fit_model(holdout.split = "holdout", # CV.folds = paste0("CV", 1:3),#
             ncpus = ncpus, return.model = "none")
+
+
+#c("Entropy","MolWeight", "AAtypes", "Atoms",   # <--- local features are calculated for the 15-AA windows and added to peptides.list$df
+#                   "AAC", "CTDC", "CTDD", "CTDT", "BLOSUM",
+#                   "SOCN", "QSO", "ScalesGap"),
+
 
 # TODO:
 # - test splitting by peptides
