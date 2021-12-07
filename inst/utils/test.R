@@ -54,4 +54,4 @@ peptides.list <- epitopes %>%
 
 t1 <- Sys.time()
 message("Elapsed time: ", signif(t1 - t0, 3), " ", units(t1 - t0))
-saveRDS(peptides.list, savefile)
+#saveRDS(peptides.list, savefile)
