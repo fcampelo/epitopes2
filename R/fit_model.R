@@ -185,7 +185,7 @@ fit_model <- function(peptides.list,
     # Cross-validation mode
     perflist <- vector("list", length(CV.folds))
     for (i in seq_along(CV.folds)){
-      tmpdf <- dplyr::filter(df, Info_split %in% CV.folds)
+      tmpdf <- dplyr::filter(df, .data$Info_split %in% CV.folds)
       res   <- fit_RF(df = tmpdf,
                       sample.rebalancing = sample.rebalancing,
                       holdout.split = CV.folds[i],
@@ -203,7 +203,7 @@ fit_model <- function(peptides.list,
                      as.data.frame(x)
                    }) %>%
       dplyr::bind_rows() %>%
-      dplyr::summarise(across(everything(), mean)) %>%
+      dplyr::summarise(dplyr::across(dplyr::everything(), mean)) %>%
       as.list()
 
     if (return.model == "partial"){

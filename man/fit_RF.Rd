@@ -15,18 +15,27 @@ fit_RF(
   ...
 )
 }
+\arguments{
+\item{df}{dataframe containing a \code{Class} attribute and one or more feature
+attributes (columns starting with "feat_")}
+
+\item{sample.rebalancing}{character: should the model try to compensate class
+imbalances during training? See \strong{Dealing with class imbalance} for details.}
+
+\item{holdout.split}{name of split to be used as a holdout set.}
+
+\item{threshold}{probability threshold for attributing a prediction as
+\emph{positive}.}
+
+\item{ncpus}{number of cores to use.}
+
+\item{min.node.size}{min node size for \code{\link[ranger:ranger]{ranger::ranger()}}}
+
+\item{ntrees}{number of trees for \code{\link[ranger:ranger]{ranger::ranger()}}}
+
+\item{...}{other options to be passed down to \code{\link[ranger:ranger]{ranger::ranger()}}.}
+}
 \description{
 Not to be used separately, this function is called as part of calls to
 \code{\link[=fit_model]{fit_model()}}.
-}
-\details{
-@inheritParams fit_model
-@param df dataframe containing a \code{Class} attribute and one or more feature
-attributes (columns starting with "feat_")
-@param min.node.size min node size for \code{\link[ranger:ranger]{ranger::ranger()}}
-@param ntrees number of trees for \code{\link[ranger:ranger]{ranger::ranger()}}
-
-@importFrom dplyr \%>\%
-@importFrom rlang .data
-@export
 }

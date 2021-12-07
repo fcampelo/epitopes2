@@ -47,7 +47,7 @@ The following features are calculated based on the implementations available
 in package
 \href{https://cran.r-project.org/package=protr}{\strong{protr}}. As of August 2021,
 the following groups of features are supported by the \strong{epitopes} package
-(see the \href{https://cran.r-project.org/web/packages/protr/vignettes/protr.html#3_package_overview}{protr vignette}
+(see the \href{https://CRAN.R-project.org/package=protr/vignettes/protr.html#3_package_overview}{protr vignette}
 for details on each of these):
 \itemize{
 \item "AAC" - Amino acid composition
@@ -90,7 +90,7 @@ implementations:
 \item "AAtypes" - the proportion of AAs of each type (acidic, aliphatic,
 acidic, etc.)
 \item "LegacyFeatures" - calculates the features used in paper
-\url{https://doi.org/10.1093/bioinformatics/btab536}
+\doi{10.1093/bioinformatics/btab536}
 }
 
 Each feature group may be used either at the local or global level -

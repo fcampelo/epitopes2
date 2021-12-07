@@ -3,15 +3,21 @@
 #'  Not to be used separately, this function is called as part of calls to
 #'  [fit_model()].
 #'
-#'  @inheritParams fit_model
-#'  @param df dataframe containing a `Class` attribute and one or more feature
-#'  attributes (columns starting with "feat_")
-#'  @param min.node.size min node size for [ranger::ranger()]
-#'  @param ntrees number of trees for [ranger::ranger()]
+#' @param df dataframe containing a `Class` attribute and one or more feature
+#' attributes (columns starting with "feat_")
+#' @param min.node.size min node size for [ranger::ranger()]
+#' @param ntrees number of trees for [ranger::ranger()]
+#' @param threshold probability threshold for attributing a prediction as
+#' *positive*.
+#' @param sample.rebalancing character: should the model try to compensate class
+#' imbalances during training? See **Dealing with class imbalance** for details.
+#' @param ncpus number of cores to use.
+#' @param holdout.split name of split to be used as a holdout set.
+#' @param ... other options to be passed down to [ranger::ranger()].
 #'
-#'  @importFrom dplyr %>%
-#'  @importFrom rlang .data
-#'  @export
+#' @importFrom dplyr %>%
+#' @importFrom rlang .data
+#' @export
 
 fit_RF <- function(df,
                    sample.rebalancing,

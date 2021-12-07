@@ -1,6 +1,6 @@
 extractLegacyFeatures <- function(x, max.N = 2){
 
-  if(!("Peptides" %in% rownames(installed.packages()))) {
+  if(!("Peptides" %in% rownames(utils::installed.packages()))) {
     stop("Package 'Peptides' is required to calculate 'LegacyFeatures'")
   }
 

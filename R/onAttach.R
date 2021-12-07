@@ -1,9 +1,8 @@
 .onAttach <- function(...) {
   # Check if Biostrings is installed
-  pkgs <- utils::installed.packages()[, 3]
-  bsp <- grep("Biostrings", names(pkgs))
+  bsp <- suppressWarnings(utils::packageDescription("Biostrings"))
 
-  if(length(bsp) == 0) {
+  if(all(is.na(bsp))) {
     packageStartupMessage("\nPackage 'Biostrings' not detected.\n",
                           "Please run install_bioc_dependencies()\n",
                           "before using the epitopes package.")
