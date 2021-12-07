@@ -19,9 +19,9 @@ call_feat_functions <- function(SEQs, feat.name, txt.opts, dfnames, ncpus){
 
   # Remove or replace invalid AA codes, depending on feature:
   if (grepl("Gap$", fn)) {
-    SEQs <- sapply(SEQs, function(x){gsub("[^ACDEFGHIKLMNPQRSTVW]", "-", toupper(x))})
+    SEQs <- sapply(SEQs, function(x){gsub("[^ACDEFGHIKLMNPQRSTVWY]", "-", toupper(x))})
   } else {
-    SEQs <- sapply(SEQs, function(x){gsub("[^ACDEFGHIKLMNPQRSTVW]", "", x)})
+    SEQs <- sapply(SEQs, function(x){gsub("[^ACDEFGHIKLMNPQRSTVWY]", "", x)})
   }
 
   message("   ", txt.opts[1], ":", feat.name)

@@ -7,9 +7,9 @@ library(epitopes)
 
 ncpus <- parallel::detectCores() - 1
 
-orgID <- 11103 #
+#orgID <- 11103 # HepC
 
-# orgID    <- 6282    # O. volvulus
+orgID    <- 6282    # O. volvulus
 # savefile <- "./data/ov_data_holdout_locglob.rds"
 
 # orgID    <- 10376 # Epstein-Barr virus
@@ -29,20 +29,21 @@ peptides.list <- epitopes %>%
   consolidate_data(proteins, only_exact = FALSE, ncpus = ncpus) %>%
   extract_peptides(min_peptide = 8, max_epitope = 25) %>%
   make_data_splits(proteins    = proteins,
-                   target_props = c(.7,.3), #c(1/3,1/3,1/3), #
-                   split_names = c("training", "holdout"), # paste0("CV", 1:3), #
-                   similarity_threshold = .7,
-                   #return_front = 21,
+                   target_props = rep(.2, 5),#c(1/3,1/3,1/3), #c(.7,.3), #
+                   split_names = paste0("CV", 1:5), #c("training", "holdout"), #
+                   similarity_threshold = .9,
                    ncpus = ncpus) %>%
-  calc_features(local.features = c("Entropy","MolWeight", "AAtypes", "Atoms",   # <--- local features are calculated for the 15-AA windows and added to peptides.list$df
+  calc_features(local.features = c(#"Entropy","MolWeight", "AAtypes", "Atoms",   # <--- local features are calculated for the 15-AA windows and added to peptides.list$df
                                    "AAC", "CTDC", "CTDD", "CTDT", "BLOSUM",
                                    "SOCN", "QSO", "ScalesGap"),
-                global.features = c("Entropy","MolWeight", "AAtypes", "Atoms",   # <--- local features are calculated for the 15-AA windows and added to peptides.list$df
+                global.features = c(#"Entropy","MolWeight", "AAtypes", "Atoms",   # <--- local features are calculated for the 15-AA windows and added to peptides.list$df
                                     "AAC", "DC", "CTDC", "CTDD", "CTDT", "BLOSUM",
                                     "SOCN", "QSO", "ScalesGap"),
                 ncpus = ncpus) %>%
-  fit_model(holdout.split = "holdout", # CV.folds = paste0("CV", 1:3),#
-            ncpus = ncpus, return.model = "none")
+  fit_model(CV.folds = paste0("CV", 1:5),
+            #holdout.split = "holdout",
+            ncpus = ncpus,
+            return.model = "none")
 
 # TODO:
 # - test splitting by peptides
