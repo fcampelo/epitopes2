@@ -1,12 +1,12 @@
 Package: epitopes
 Type: Package
-Title: Data retrieval, consolidation and mining for linear epitope prediction
+Title: Data Retrieval, Consolidation and Mining for Linear Epitope Prediction
 Version: 0.9.9010
 Date: 2021-12-07
-Author: c(person(given = "Felipe", family = "Campelo",
+Authors@R: c(person(given = "Felipe", family = "Campelo",
                     email = "f.campelo@aston.ac.uk",
                     role = c("aut", "cre")),
-          person(given = "Jodie", family = "Ashford",
+             person(given = "Jodie", family = "Ashford",
                     email = "ashfojsm@aston.ac.uk",
                     role = c("ctb")),
           person(given = "Francisco", family = "Lobo",
@@ -14,7 +14,7 @@ Author: c(person(given = "Felipe", family = "Campelo",
                     role = c("ctb")))
 Maintainer: Felipe Campelo <f.campelo@aston.ac.uk>
 Description: Routines for retrieval and preprocessing of epitope data from 
-             IEDB (https://iedb.org/), as well as feature calculation and 
+             <https://iedb.org/>, as well as feature calculation and 
              assessment of classification performance .
 License: GPL-2
 Depends: R (>= 4.0.0)
