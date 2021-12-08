@@ -29,6 +29,7 @@ call_feat_functions <- function(SEQs, feat.name, txt.opts, dfnames, ncpus){
 
   message("   ", txt.opts[1], ":", feat.name)
   myargs <- get_feature_args(feat.name)
+  AABLOSUM62 <- protr::AABLOSUM62 # just to load the matrix into the search path
   y <- mypblapply(SEQs,
                   function(x, fn, myargs){
                     myargs$x <- x
@@ -36,8 +37,8 @@ call_feat_functions <- function(SEQs, feat.name, txt.opts, dfnames, ncpus){
                             args = myargs)},
                   fn = fn, myargs = myargs,
                   # toexport = c("extractAtoms", "extractAAtypes",
-                  #                 "extractEntropy", "extractMolWeight",
-                  #              ls("package:protr")),
+                  #              "extractEntropy", "extractMolWeight",
+                  #              "AABLOSUM62"),
                   ncpus = ncpus) %>%
     unname() %>%
     dplyr::bind_rows() %>%
