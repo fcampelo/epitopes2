@@ -8,7 +8,7 @@ calc_features(
   peptides.list,
   local.features = character(),
   global.features = character(),
-  ncpus = 1
+  ...
 )
 }
 \arguments{
@@ -21,7 +21,7 @@ at the local neighbourhood (\code{peptides.list$df$Info_window}) level.}
 at the global level (\code{peptides.list$proteins$TSeq_sequence}).
 See \strong{Feature Lists} for details.}
 
-\item{ncpus}{positive integer, number of cores to use.}
+\item{...}{any other parameters (currently unused)}
 }
 \value{
 Updated \code{peptides.list} object, with local features added as columns
