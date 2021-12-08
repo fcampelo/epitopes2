@@ -7,9 +7,12 @@ library(epitopes)
 
 ncpus <- parallel::detectCores() - 1
 
-#orgID <- 11103 # HepC
+# orgID <- 11103 # HepC
 
-orgID    <- 6282    # O. volvulus
+orgID <- 5693 # T. Cruzi
+savefile <- "./data/Tcruzi_crossval.rds"
+
+# orgID    <- 6282    # O. volvulus
 # savefile <- "./data/ov_data_holdout_locglob.rds"
 
 # orgID    <- 10376 # Epstein-Barr virus
@@ -31,12 +34,12 @@ peptides.list <- epitopes %>%
   make_data_splits(proteins    = proteins,
                    target_props = rep(.2, 5),#c(1/3,1/3,1/3), #c(.7,.3), #
                    split_names = paste0("CV", 1:5), #c("training", "holdout"), #
-                   similarity_threshold = .9,
+                   similarity_threshold = .6,
                    ncpus = ncpus) %>%
-  calc_features(local.features = c(#"Entropy","MolWeight", "AAtypes", "Atoms",   # <--- local features are calculated for the 15-AA windows and added to peptides.list$df
+  calc_features(local.features = c("Entropy","MolWeight", "AAtypes", "Atoms",   # <--- local features are calculated for the 15-AA windows and added to peptides.list$df
                                    "AAC", "CTDC", "CTDD", "CTDT", "BLOSUM",
                                    "SOCN", "QSO", "ScalesGap"),
-                global.features = c(#"Entropy","MolWeight", "AAtypes", "Atoms",   # <--- local features are calculated for the 15-AA windows and added to peptides.list$df
+                global.features = c("Entropy","MolWeight", "AAtypes", "Atoms",   # <--- local features are calculated for the 15-AA windows and added to peptides.list$df
                                     "AAC", "DC", "CTDC", "CTDD", "CTDT", "BLOSUM",
                                     "SOCN", "QSO", "ScalesGap"),
                 ncpus = ncpus) %>%
@@ -55,4 +58,4 @@ peptides.list <- epitopes %>%
 
 t1 <- Sys.time()
 message("Elapsed time: ", signif(t1 - t0, 3), " ", units(t1 - t0))
-#saveRDS(peptides.list, savefile)
+saveRDS(peptides.list, savefile)

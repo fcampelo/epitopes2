@@ -1,5 +1,8 @@
 call_feat_functions <- function(SEQs, feat.name, txt.opts, dfnames, ncpus){
 
+  internal.functions <- c("extractAAtypes", "extractAtoms", "extractEntropy",
+                          "extractLegacyFeatures", "extractMolWeight")
+
   fn <- paste0("extract", feat.name)
 
   # Check if function exists
@@ -15,7 +18,7 @@ call_feat_functions <- function(SEQs, feat.name, txt.opts, dfnames, ncpus){
     ncpus <- 1
   }
 
-  if (!(fn %in% ls('package:epitopes'))) fn <- paste0("protr::", fn)
+  if (!(fn %in% internal.functions)) fn <- paste0("protr::", fn)
 
   # Remove or replace invalid AA codes, depending on feature:
   if (grepl("Gap$", fn)) {
