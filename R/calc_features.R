@@ -42,8 +42,6 @@
 #'        \item "ScalesGap" - Scales-based descriptors derived by Principal
 #'        Components Analysis (using all properties in the `protr::AAindex`
 #'        matrix, `pc = 5` and `lag = 3`)
-#'        \item "BLOSUM" - BLOSUM -derived descriptors (with
-#'        `submat = "AABLOSUM62"`, `k = 5` and `lag = 3`)
 #'    }
 #' }
 #'
@@ -59,6 +57,9 @@
 #'     \item "MolWeight" - the total molecular weight of the sequence
 #'     \item "AAtypes" - the proportion of AAs of each type (acidic, aliphatic,
 #'     acidic, etc.)
+#'     \item "BLOSUM" - BLOSUM-derived descriptors (same as
+#'     [protr::extractBLOSUM()] with `submat = "AABLOSUM62"`,
+#'     `k = 5`, `lag = 3` and `scale = TRUE`)
 #'     \item "LegacyFeatures" - calculates the features used in paper
 #'     \doi{10.1093/bioinformatics/btab536}
 #' }

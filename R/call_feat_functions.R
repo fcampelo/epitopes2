@@ -1,7 +1,8 @@
 call_feat_functions <- function(SEQs, feat.name, txt.opts, dfnames){
 
   internal.functions <- c("extractAAtypes", "extractAtoms", "extractEntropy",
-                          "extractLegacyFeatures", "extractMolWeight")
+                          "extractLegacyFeatures", "extractMolWeight",
+                          "extractBLOSUM")
 
   fn <- paste0("extract", feat.name)
 
