@@ -105,7 +105,7 @@
 #' @param global.features lists of features to be calculated
 #' at the global level (`peptides.list$proteins$TSeq_sequence`).
 #' See **Feature Lists** for details.
-#' @param ncpus positive integer, number of cores to use.
+#' @param ... any other parameters (currently unused)
 #'
 #' @return Updated `peptides.list` object, with local features added as columns
 #' to `peptides.list$df`, and global features added as columns to
@@ -121,15 +121,21 @@
 calc_features <- function(peptides.list,
                           local.features = character(),
                           global.features = character(),
-                          ncpus = 1){
+                          ...){
   # ========================================================================== #
   # Sanity checks and initial definitions
   assertthat::assert_that(is.list(peptides.list),
                           all(c("df", "proteins") %in% names(peptides.list)),
                           is.character(local.features),
-                          is.character(global.features),
-                          assertthat::is.count(ncpus))
+                          is.character(global.features))
   # ========================================================================== #
+
+  # Prevent paralellisation errors in Windows
+  # TODO: fix this
+  # if(.Platform$OS.type == "windows") {
+  #   message('Attention: multicore feature calculations are not currently supported for Windows')
+  #   ncpus <- 1
+  # }
 
   message("Calculating features:")
   # Calculate local features
@@ -138,8 +144,7 @@ calc_features <- function(peptides.list,
       y <- call_feat_functions(SEQs      = peptides.list$df$Info_window,
                                feat.name = local.features[i],
                                txt.opts  = c("local", "df"),
-                               dfnames   = names(peptides.list$df),
-                               ncpus     = ncpus)
+                               dfnames   = names(peptides.list$df))
 
       if(is.data.frame(y)) {
         torm <- which(names(peptides.list$df) %in% names(y))
@@ -157,8 +162,7 @@ calc_features <- function(peptides.list,
       y <- call_feat_functions(SEQs      = peptides.list$proteins$TSeq_sequence,
                                feat.name = global.features[i],
                                txt.opts  = c("global", "proteins"),
-                               dfnames   = names(peptides.list$proteins),
-                               ncpus     = ncpus)
+                               dfnames   = names(peptides.list$proteins))
 
       if(is.data.frame(y)) {
         peptides.list$proteins <- cbind(peptides.list$proteins, y)

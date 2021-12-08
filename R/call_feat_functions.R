@@ -1,4 +1,4 @@
-call_feat_functions <- function(SEQs, feat.name, txt.opts, dfnames, ncpus){
+call_feat_functions <- function(SEQs, feat.name, txt.opts, dfnames){
 
   internal.functions <- c("extractAAtypes", "extractAtoms", "extractEntropy",
                           "extractLegacyFeatures", "extractMolWeight")
@@ -10,13 +10,6 @@ call_feat_functions <- function(SEQs, feat.name, txt.opts, dfnames, ncpus){
   #   warning("Function ", fn, "() not found.\nSkipping...")
   #   return(FALSE)
   # }
-
-  # Prevent paralellisation errors in Windows
-  # TODO: fix this
-  if(.Platform$OS.type == "windows") {
-    message('Attention: multicore feature calculations are not currently supported for Windows')
-    ncpus <- 1
-  }
 
   if (!(fn %in% internal.functions)) fn <- paste0("protr::", fn)
 
@@ -30,16 +23,12 @@ call_feat_functions <- function(SEQs, feat.name, txt.opts, dfnames, ncpus){
   message("   ", txt.opts[1], ":", feat.name)
   myargs <- get_feature_args(feat.name)
   AABLOSUM62 <- protr::AABLOSUM62 # just to load the matrix into the search path
-  y <- mypblapply(SEQs,
-                  function(x, fn, myargs){
-                    myargs$x <- x
-                    do.call(eval(parse(text = fn)),
-                            args = myargs)},
-                  fn = fn, myargs = myargs,
-                  # toexport = c("extractAtoms", "extractAAtypes",
-                  #              "extractEntropy", "extractMolWeight",
-                  #              "AABLOSUM62"),
-                  ncpus = ncpus) %>%
+  y <- lapply(SEQs,
+              function(x, fn, myargs){
+                myargs$x <- x
+                do.call(eval(parse(text = fn)),
+                        args = myargs)},
+              fn = fn, myargs = myargs) %>%
     unname() %>%
     dplyr::bind_rows() %>%
     dplyr::rename_with(~ ifelse(feat.name == .x,
