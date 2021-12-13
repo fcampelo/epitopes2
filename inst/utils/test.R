@@ -53,6 +53,7 @@ peptides.list <- epitopes %>%
 # - add print/summary/plot routines
 # - update Lucid.app graphical description
 # - optional echoing mode
+# - test unbalanced data-specific splitting functions for RF
 
 
 t1 <- Sys.time()

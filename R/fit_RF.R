@@ -5,8 +5,6 @@
 #'
 #' @param df dataframe containing a `Class` attribute and one or more feature
 #' attributes (columns starting with "feat_")
-#' @param min.node.size min node size for [ranger::ranger()]
-#' @param ntrees number of trees for [ranger::ranger()]
 #' @param threshold probability threshold for attributing a prediction as
 #' *positive*.
 #' @param sample.rebalancing character: should the model try to compensate class
@@ -24,8 +22,7 @@ fit_RF <- function(df,
                    holdout.split = NULL,
                    threshold,
                    ncpus,
-                   min.node.size,
-                   ntrees, ...){
+                   ...){
 
   # isolate the holdout split (if present)
   if(!is.null(holdout.split)){
@@ -75,7 +72,6 @@ fit_RF <- function(df,
                          inbag           = inbag,
                          case.weights    = case.weights,
                          num.threads     = ncpus,
-                         min.node.size   = min.node.size,
                          oob.error       = FALSE,
                          ...)
 

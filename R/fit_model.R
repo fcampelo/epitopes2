@@ -143,17 +143,6 @@ fit_model <- function(peptides.list,
                            by = c("Info_protein_id" = "UID"))
   }
 
-  # prepare some parameters for the RF model
-  min.node.size <- ifelse("min.node.size" %in% ...names(),
-                          ...elt(which(...names() == "min.node.size")),
-                          peptides.list$peptide.attrs$min_peptide)
-
-  if("num.trees" %in% ...names()) {
-    ntrees <- ...elt(which(...names() == "num.trees"))
-  } else {
-    ntrees <- formals(ranger::ranger)$num.trees
-  }
-
   output.model <- NULL
   if(is.null(CV.folds)){
     # hold-out OR no assessment mode
@@ -162,8 +151,6 @@ fit_model <- function(peptides.list,
                   holdout.split = holdout.split,
                   threshold = threshold,
                   ncpus = ncpus,
-                  min.node.size = min.node.size,
-                  ntrees = ntrees,
                   ...)
 
     perf     <- res$perf
@@ -176,8 +163,6 @@ fit_model <- function(peptides.list,
                              sample.rebalancing = sample.rebalancing,
                              threshold = threshold,
                              ncpus = ncpus,
-                             min.node.size = min.node.size,
-                             ntrees = ntrees,
                              ...)$RF.model
     }
 
@@ -191,8 +176,6 @@ fit_model <- function(peptides.list,
                       holdout.split = CV.folds[i],
                       threshold = threshold,
                       ncpus = ncpus,
-                      min.node.size = min.node.size,
-                      ntrees = ntrees,
                       ...)
       perflist[[i]] <- res$perf
     }
@@ -211,16 +194,12 @@ fit_model <- function(peptides.list,
                              sample.rebalancing = sample.rebalancing,
                              threshold = threshold,
                              ncpus = ncpus,
-                             min.node.size = min.node.size,
-                             ntrees = ntrees,
                              ...)$RF.model
     } else if (return.model == "full"){
       output.model <- fit_RF(df = df,
                              sample.rebalancing = sample.rebalancing,
                              threshold = threshold,
                              ncpus = ncpus,
-                             min.node.size = min.node.size,
-                             ntrees = ntrees,
                              ...)$RF.model
     }
   }
