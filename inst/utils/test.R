@@ -47,6 +47,25 @@ peptides.list <- epitopes %>%
             ncpus = ncpus,
             return.model = "none")
 
+
+for (i in 1:20){
+  message("Fitting for i = ", i)
+  tmp <- peptides.list %>%
+    fit_model(CV.folds = paste0("CV", 1:5),
+              #holdout.split = "holdout",
+              ncpus = ncpus,
+              return.model = "none",
+              min.node.size = i)
+  res <- rbind(res,
+               data.frame(min.node.size = i,
+                          Var = names(tmp$model.perf[5:14]),
+                          Value = unlist(tmp$model.perf[5:14])))
+}
+
+library(ggplot2)
+ggplot(res, aes(x = min.node.size, y = Value, group = Var)) + geom_line() + facet_grid(Var~., scales = "free_y")
+
+
 # TODO:
 # - test splitting by peptides
 # - make sure make_splits(is protected against empty splits)

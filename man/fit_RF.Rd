@@ -4,16 +4,7 @@
 \alias{fit_RF}
 \title{Fits a single random forest and assess the performance on a holdout split.}
 \usage{
-fit_RF(
-  df,
-  sample.rebalancing,
-  holdout.split = NULL,
-  threshold,
-  ncpus,
-  min.node.size,
-  ntrees,
-  ...
-)
+fit_RF(df, sample.rebalancing, holdout.split = NULL, threshold, ncpus, ...)
 }
 \arguments{
 \item{df}{dataframe containing a \code{Class} attribute and one or more feature
@@ -28,10 +19,6 @@ imbalances during training? See \strong{Dealing with class imbalance} for detail
 \emph{positive}.}
 
 \item{ncpus}{number of cores to use.}
-
-\item{min.node.size}{min node size for \code{\link[ranger:ranger]{ranger::ranger()}}}
-
-\item{ntrees}{number of trees for \code{\link[ranger:ranger]{ranger::ranger()}}}
 
 \item{...}{other options to be passed down to \code{\link[ranger:ranger]{ranger::ranger()}}.}
 }
