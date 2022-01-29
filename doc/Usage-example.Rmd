@@ -30,6 +30,8 @@ The `epitopes` package provides functions to download, extract, consolidate and 
 This initial part is quite time-consuming, but it 
 only needs to be done once, at the start of any project (or possibly once every few months, to get updated versions of the database). Once these are retrieved and saved, they can be loaded using simple `readRDS()` calls.
 
+**NOTE**: Function `get_LBCE()` is returning odd errors on Windows machines. This is fixed in the current development version, but in the meantime the resulting dataframe obtained by running `get_IEDB` -> `get_LBCE()` on 28 Jan 2022 is available for download under <https://github.com/fcampelo/epitopes/tree/master/data>.
+
 ```{r, eval=FALSE}
 library(epitopes)
 

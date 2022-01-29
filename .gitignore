@@ -31,3 +31,5 @@ Meta
 results/.DS_Store
 doc
 inst/doc
+/doc/
+/Meta/

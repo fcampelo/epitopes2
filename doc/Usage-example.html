@@ -26,7 +26,14 @@
     </style>
 
 
-<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
 <style type="text/css" data-origin="pandoc">
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
@@ -142,6 +149,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h2>Initial setup:</h2>
 <p>The <code>epitopes</code> package provides functions to download, extract, consolidate and pre-process epitope data from the <a href="http://www.iedb.org/">Immune Epitope Database (IEDB)</a>, together with protein data (retrieved from NCBI and Uniprot) and taxonomy information for each pathogen (also from NCBI).</p>
 <p>This initial part is quite time-consuming, but it only needs to be done once, at the start of any project (or possibly once every few months, to get updated versions of the database). Once these are retrieved and saved, they can be loaded using simple <code>readRDS()</code> calls.</p>
+<p><strong>NOTE</strong>: Function <code>get_LBCE()</code> is returning odd errors on Windows machines. This is fixed in the current development version, but in the meantime the resulting dataframe obtained by running <code>get_IEDB</code> -&gt; <code>get_LBCE()</code> on 28 Jan 2022 is available for download under <a href="https://github.com/fcampelo/epitopes/tree/master/data" class="uri">https://github.com/fcampelo/epitopes/tree/master/data</a>.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(epitopes)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Download the full IEDB export into a given folder &quot;XYZ&quot;</span></span>

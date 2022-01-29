@@ -121,7 +121,7 @@ different UIDs.
 \strong{NOTE}: this will require BLAST+ to be installed in your
 local machine. For details on how to set up BLAST+ on your machine, check
 \url{https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download}.
-This function was developed using package \verb{blast 2.10.0}.
+This function was developed for versions \verb{blast 2.10.0} or later.
 }
 
 \author{
