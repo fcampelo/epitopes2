@@ -122,7 +122,8 @@ consolidate_data <- function(epitopes, proteins,
                                           Info_sourceOrg_id = x$sourceOrg_id,
                                           Info_host_id      = x$host_id,
                                           Info_nPos         = x$n_Positive,
-                                          Info_nNeg         = x$n_Negative)},
+                                          Info_nNeg         = x$n_Negative,
+                                          Info_type         = x$epit_struc_def)},
                              ncpus = ncpus) %>%
     dplyr::bind_rows() %>%
     #
@@ -136,7 +137,8 @@ consolidate_data <- function(epitopes, proteins,
     dplyr::mutate(Info_pubmed_id    = get_uniques(.data$Info_pubmed_id),
                   Info_epitope_id   = get_uniques(.data$Info_epitope_id),
                   Info_sourceOrg_id = get_uniques(.data$Info_sourceOrg_id),
-                  Info_host_id      = get_uniques(.data$Info_host_id))
+                  Info_host_id      = get_uniques(.data$Info_host_id),
+                  Info_type         = get_uniques(.data$Info_type))
 
   # function to determine class:
   # TODO - make the aggregation strategy (by direct vote of assays?

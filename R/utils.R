@@ -6,7 +6,7 @@ nullcheck <- function(x) { ifelse(is.null(x), yes = NA, no = x) }
 get_uniques <- function(x){
   sapply(x,
          function(y) {
-           paste(unique(unlist(strsplit(y, split = ","))), collapse = ",")
+           paste(unname(unique(unlist(strsplit(y, split = ",")))), collapse = ",")
          })
 }
 
