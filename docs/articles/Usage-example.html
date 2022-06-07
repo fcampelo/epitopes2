@@ -19,6 +19,8 @@
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-article">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -31,18 +33,12 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">epitopes</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.5.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.9.9018</span>
       </span>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-<li>
-  <a href="../index.html">
-    <span class="fas fa-home fa-lg"></span>
-     
-  </a>
-</li>
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
@@ -64,7 +60,7 @@
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
-  <a href="https://github.com/fcampelo/epitopes/">
+  <a href="https://github.com/fcampelo/epitopes/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
@@ -79,199 +75,104 @@
 
       
 
-      </header><script src="Usage-example_files/header-attrs-2.6/header-attrs.js"></script><div class="row">
+      </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Usage example</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/fcampelo/epitopes/blob/master/vignettes/Usage-example.Rmd"><code>vignettes/Usage-example.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/fcampelo/epitopes/blob/HEAD/vignettes/Usage-example.Rmd" class="external-link"><code>vignettes/Usage-example.Rmd</code></a></small>
       <div class="hidden name"><code>Usage-example.Rmd</code></div>
 
     </div>
 
     
     
-<div id="introduction" class="section level2">
-<h2 class="hasAnchor">
-<a href="#introduction" class="anchor"></a>Introduction</h2>
-<p>This document illustrates an example of how the <code>epitopes</code> package can be used to create an organism-specific epitope predictor. We will use data related to the nematode <em>O. volvulus</em> as our target pathogen.</p>
+<div class="section level2">
+<h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
+</h2>
+<p>This document illustrates an example of how the <code>epitopes</code> package can be used to create an organism-specific epitope predictor.</p>
 </div>
-<div id="initial-setup" class="section level2">
-<h2 class="hasAnchor">
-<a href="#initial-setup" class="anchor"></a>Initial setup:</h2>
-<p>The <code>epitopes</code> package provides functions to download, extract, consolidate and pre-process epitope data from the <a href="http://www.iedb.org/">Immune Epitope Database (IEDB)</a>, together with protein data (retrieved from NCBI and Uniprot) and taxonomy information for each pathogen (also from NCBI).</p>
-<p>This initial part is quite time-consuming, but it only needs to be done once, at the start of any project (or possibly once every few months, to get updated versions of the database). Once these are retrieved and saved, they can be loaded using simple <code><a href="https://rdrr.io/r/base/readRDS.html">readRDS()</a></code> calls.</p>
+<div class="section level2">
+<h2 id="initial-setup">Initial setup:<a class="anchor" aria-label="anchor" href="#initial-setup"></a>
+</h2>
+<p>The <code>epitopes</code> package provides functions to download, extract, consolidate and pre-process epitope data from the <a href="http://www.iedb.org/" class="external-link">Immune Epitope Database (IEDB)</a>, together with protein data (retrieved from NCBI and Uniprot) and taxonomy information for each pathogen (also from NCBI).</p>
+<p>This initial part is quite time-consuming, but it only needs to be done once, at the start of any project (or possibly once every few months, to get updated versions of the database). Once these are retrieved and saved, they can be loaded using simple <code><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS()</a></code> calls.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/fcampelo/epitopes">epitopes</a></span><span class="op">)</span>
-
-<span class="co"># Download the full IEDB export into a given folder "XYZ"</span>
-<span class="fu">epitopes</span><span class="fu">::</span><span class="fu"><a href="../reference/get_IEDB.html">get_IEDB</a></span><span class="op">(</span>save_folder <span class="op">=</span> <span class="st">"XYZ"</span><span class="op">)</span>
-
-<span class="co"># Extract only the linear B-cell epitopes from the IEDB export and save the </span>
-<span class="co"># result to folder "ABC"</span>
-<span class="va">epitopes</span> <span class="op">&lt;-</span> <span class="fu">epitopes</span><span class="fu">::</span><span class="fu"><a href="../reference/get_LBCE.html">get_LBCE</a></span><span class="op">(</span>data_folder <span class="op">=</span> <span class="st">"XYZ"</span>, 
-                               ncpus <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">2</span>,
-                               save_folder <span class="op">=</span> <span class="st">"ABC"</span><span class="op">)</span>
-
-<span class="co"># Retrieve the relevant proteins and save them into the same folder "ABC"</span>
-<span class="va">proteins</span> <span class="op">&lt;-</span> <span class="fu">epitopes</span><span class="fu">::</span><span class="fu"><a href="../reference/get_proteins.html">get_proteins</a></span><span class="op">(</span>uids <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">epitopes</span><span class="op">$</span><span class="va">protein_id</span><span class="op">)</span>,
-                                   save_folder <span class="op">=</span> <span class="st">"ABC"</span><span class="op">)</span>
-
-<span class="co"># Retrieve a taxonomy list for all pathogens and save it into the same folder "ABC"</span>
-<span class="va">taxonomy</span> <span class="op">&lt;-</span> <span class="fu">epitopes</span><span class="fu">::</span><span class="fu"><a href="../reference/get_taxonomy.html">get_taxonomy</a></span><span class="op">(</span>uids <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">epitopes</span><span class="op">$</span><span class="va">sourceOrg_id</span><span class="op">)</span>,
-                                   save_folder <span class="op">=</span> <span class="st">"ABC"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="co"># library(epitopes)</span>
+<span class="co"># </span>
+<span class="co"># # Download the full IEDB export into a given folder "XYZ"</span>
+<span class="co"># epitopes::get_IEDB(save_folder = "XYZ")</span>
+<span class="co"># </span>
+<span class="co"># # Extract only the linear B-cell epitopes from the IEDB export and save the </span>
+<span class="co"># # result to folder "ABC"</span>
+<span class="co"># epitopes &lt;- epitopes::get_LBCE(data_folder = "XYZ", </span>
+<span class="co">#                                ncpus = parallel::detectCores() - 2,</span>
+<span class="co">#                                save_folder = "ABC")</span>
+<span class="co"># </span>
+<span class="co"># # Retrieve the relevant proteins and save them into the same folder "ABC"</span>
+<span class="co"># proteins &lt;- epitopes::get_proteins(uids = unique(epitopes$protein_id),</span>
+<span class="co">#                                    save_folder = "ABC")</span>
+<span class="co"># </span>
+<span class="co"># # Retrieve a taxonomy list for all pathogens and save it into the same folder "ABC"</span>
+<span class="co"># taxonomy &lt;- epitopes::get_taxonomy(uids = unique(c(epitopes$sourceOrg_id,</span>
+<span class="co">#                                                    epitopes$host_id)),</span>
+<span class="co">#                                    save_folder = "ABC")</span></code></pre></div>
 </div>
-<div id="merge-datasets-and-filter-observations" class="section level2">
-<h2 class="hasAnchor">
-<a href="#merge-datasets-and-filter-observations" class="anchor"></a>Merge datasets and filter observations</h2>
-<p>The first step is to enrich the epitope data with protein information. This step is also useful to perform some initial filtering of the epitopes. In this example, assume that:</p>
-<ul>
-<li>We’re interested only in peptides between 8 and 25 amino acids long.</li>
-<li>Both <em>Exact epitopes</em> and <em>Epitope-containing regions</em> should be considered.</li>
-<li>If there’s a mismatch between the stated position of the peptide (from the <em>epitopes</em> data) and the corresponding sub-sequence on the protein (from the <em>proteins</em> data) then the sequence should not be considered.</li>
-<li>If a given peptide has conflicting labels (emerging from distinct assays, for instance) then its class should be determined as the most frequent value.</li>
-</ul>
+<div class="section level2">
+<h2 id="usage-pipeline">Usage Pipeline<a class="anchor" aria-label="anchor" href="#usage-pipeline"></a>
+</h2>
+<p>Functions in the <em>epitopes</em> package are designed to work well with <em>dplyr</em> pipelines. To go from the initial files to a data structure containing the the data splits (training / hold-out, cross-validation folds or any other data splitting required) and the desired local and global features, just follow the example below:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Join proteins into epitope dataset</span>
-<span class="va">jdf</span> <span class="op">&lt;-</span> <span class="fu">epitopes</span><span class="fu">::</span><span class="fu"><a href="../reference/prepare_join_df.html">prepare_join_df</a></span><span class="op">(</span><span class="va">epitopes</span>, <span class="va">proteins</span>,
-                                 min_epit        <span class="op">=</span> <span class="fl">8</span>,  
-                                 max_epit        <span class="op">=</span> <span class="fl">25</span>,
-                                 only_exact      <span class="op">=</span> <span class="cn">FALSE</span>,
-                                 pos.mismatch.rm <span class="op">=</span> <span class="st">"all"</span>, 
-                                 set.positive    <span class="op">=</span> <span class="st">"mode"</span><span class="op">)</span></code></pre></div>
-<p>The next step is to filter out only the observations correspoding to the pathogen of interest, based on its taxonomy ID (the function retains all lower-order taxIDs, so if you pass e.g. a genus taxID it will retain all organisms from that genus). We can also use function <code><a href="../reference/filter_epitopes.html">filter_epitopes()</a></code> to filter observations by the host ID or to indicate whether we want to remove some specific ID from the list (e.g., remove a specific strain).</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">OrgID</span>   <span class="op">&lt;-</span> <span class="fl">6282</span> <span class="co"># Pathogen: O. volvulus</span>
-<span class="va">hostIDs</span> <span class="op">&lt;-</span> <span class="fl">9606</span> <span class="co"># Host: humans</span>
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/fcampelo/epitopes" class="external-link">epitopes</a></span><span class="op">)</span>
 
-<span class="co"># Filter data</span>
-<span class="va">jdf</span> <span class="op">&lt;-</span> <span class="fu">epitopes</span><span class="fu">::</span><span class="fu"><a href="../reference/filter_epitopes.html">filter_epitopes</a></span><span class="op">(</span><span class="va">jdf</span>,
-                                 orgIDs   <span class="op">=</span> <span class="va">OrgID</span>,
-                                 hostIDs  <span class="op">=</span> <span class="va">hostIDs</span>,
-                                 tax_list <span class="op">=</span> <span class="va">taxonomy</span><span class="op">)</span></code></pre></div>
-</div>
-<div id="prepare-a-windowed-representation-and-calculate-features" class="section level2">
-<h2 class="hasAnchor">
-<a href="#prepare-a-windowed-representation-and-calculate-features" class="anchor"></a>Prepare a windowed representation and calculate features:</h2>
-<p>The next step for preparing the data is to project the data into a windowed representation, in which each amino acid position of each labelled peptide from the epitope data will be represented by a fixed-length window of its local neighbourhood. By default, the window size is set as <code>2 * min_epit - 1</code>, to guarantee that the majority of positions in the window will always be part of a labelled peptide.</p>
-<p>Feature calculation is still a relatively time-consuming part of the pipeline (increasing speed is high in our to-do list). The current version of the <code>epitopes</code> package calculates the following features:</p>
+<span class="va">epitopes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"./data/epitopes.rds"</span><span class="op">)</span> <span class="co"># Generated by get_IEDB() -&gt; get_LBCE()</span>
+<span class="va">proteins</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"./data/proteins.rds"</span><span class="op">)</span> <span class="co"># Generated by get_proteins()</span>
+<span class="va">taxonomy</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"./data/taxonomy.rds"</span><span class="op">)</span> <span class="co"># Generated by get_taxonomy()</span>
+
+<span class="va">orgID</span> <span class="op">&lt;-</span> <span class="fl">10376</span> <span class="co"># Taxonomy ID for the Epstein-Barr virus</span>
+<span class="va">ncpus</span> <span class="op">&lt;-</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">2</span>
+
+<span class="va">peptides.list</span> <span class="op">&lt;-</span> <span class="va">epitopes</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="../reference/filter_epitopes.html">filter_epitopes</a></span><span class="op">(</span>orgIDs        <span class="op">=</span> <span class="va">orgID</span>, <span class="co"># &lt;--- Filter entries by organism ID</span>
+                  tax_list      <span class="op">=</span> <span class="va">taxonomy</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="../reference/consolidate_data.html">consolidate_data</a></span><span class="op">(</span><span class="va">proteins</span>, 
+                   only_exact <span class="op">=</span> <span class="cn">FALSE</span>, <span class="co"># &lt;----- Also include 'epitope containing regions'</span>
+                   ncpus <span class="op">=</span> <span class="va">ncpus</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="../reference/extract_peptides.html">extract_peptides</a></span><span class="op">(</span>min_peptide <span class="op">=</span> <span class="fl">8</span>, <span class="co"># &lt;-------- shortest labelled peptide considered (regardles of Class)</span>
+                   max_epitope <span class="op">=</span> <span class="fl">25</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="co"># &lt;--- longest positively-labelled entry considered</span>
+  <span class="fu"><a href="../reference/make_data_splits.html">make_data_splits</a></span><span class="op">(</span>proteins     <span class="op">=</span> <span class="va">proteins</span>,
+                   target_props <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.25</span>, <span class="fl">.75</span><span class="op">)</span>, <span class="co"># &lt;-- desired split proportions</span>
+                   similarity_threshold <span class="op">=</span> <span class="fl">.6</span>,  <span class="co"># &lt;-- proteins more similar than this are always placed in the same split.</span>
+                   ncpus <span class="op">=</span> <span class="va">ncpus</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="../reference/calc_features.html">calc_features</a></span><span class="op">(</span>
+    <span class="co"># local features are calculated for the local windows and added to peptides.list$df</span>
+    local.features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Entropy"</span>,<span class="st">"MolWeight"</span>, <span class="st">"AAtypes"</span>, <span class="st">"Atoms"</span>, <span class="st">"AAC"</span>, <span class="st">"CTDC"</span>, <span class="st">"CTDD"</span>, <span class="st">"CTDT"</span>, <span class="st">"BLOSUM"</span><span class="op">)</span>, 
+    <span class="co"># global features are calculated at the full protein level and added to peptides.list$proteins (needs a data join on df later, before training the models)</span>
+    global.features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AAC"</span>, <span class="st">"DC"</span>, <span class="st">"CTDC"</span>, <span class="st">"CTDD"</span>, <span class="st">"CTDT"</span>, <span class="st">"CTriad"</span>, <span class="st">"SOCN"</span>, <span class="st">"Entropy"</span>, <span class="st">"MolWeight"</span>, <span class="st">"AAtypes"</span><span class="op">)</span>,
+    ncpus <span class="op">=</span> <span class="va">ncpus</span><span class="op">)</span></code></pre></div>
+<p>The resulting <code>peptides.list</code> contains information not only about the results, but also the function parameters used at each step:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="sc">&gt;</span> <span class="fu">names</span>(peptides.list)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>[<span class="dv">1</span>] <span class="st">"df"</span>                <span class="st">"peptides"</span>          <span class="st">"filter.attrs"</span>      <span class="st">"consolidate.attrs"</span> <span class="st">"peptide.attrs"</span>    </span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>[<span class="dv">6</span>] <span class="st">"proteins"</span>          <span class="st">"splits.attrs"</span>      <span class="st">"feature.attrs"</span></span></code></pre></div>
 <ul>
-<li>Percent composition of the sequence in terms of:
-<ul>
-<li>Individual AA (20 features)</li>
-<li>Dipeptides (400 features)</li>
-<li>Conjoint triads (343 features)</li>
-<li>AA types (Tiny, Small, Aliphatic, Aromatic, NonPolar, Polar, Charged, Basic and Acidic - 9 features).</li>
+<li>
+<code>df</code> contains the labelled entries by protein position, plus the local feature columns and the split information</li>
+<li>
+<code>proteins</code> contains the protein data, plus the global feature columns</li>
+<li>
+<code>peptides</code> contains a summary of the labelled peptides in the data</li>
+<li>
+<code>filter.attrs</code>, <code>consolidate.attrs</code>, <code>peptide.attrs</code> and <code>feature.attrs</code> contain information about the parameters used for <code><a href="../reference/filter_epitopes.html">filter_epitopes()</a></code>, <code><a href="../reference/consolidate_data.html">consolidate_data()</a></code>, <code><a href="../reference/extract_peptides.html">extract_peptides()</a></code> and <code><a href="../reference/calc_features.html">calc_features()</a></code>.</li>
+<li>
+<code>splits.attrs</code> contains information about the parameters used for <code><a href="../reference/make_data_splits.html">make_data_splits()</a></code>, together with relevant quantities calculated as part of that routine (clusters identified, similarity matrices, cluster allocation to splits, etc.)</li>
 </ul>
-</li>
-<li>AA descriptors, averaged over the window: Cruciani properties, Kidera factors, Z scales, FASGAI indices, T scales, VHSE scales, ProtFP descriptors, ST Scales, BLOSUM indices, and MS-WHIM scores (66 features). These features come from package <a href="https://cran.r-project.org/package=Peptides">Peptides</a>.</li>
-<li>Total molecular weight of the window (1 feature).</li>
-<li>Total number of Carbon, Hydrogen, Nitrogen, Oxygen and Sulphur atoms in the sequence (5 features).</li>
-<li>Entropy of the distribution of AA residues in the sequence (1 feature).</li>
-</ul>
-<p>Future versions of <code>epitopes</code> are planned to include structure-based features, protein-level features and others. The package is structured in a way to easily incorporate the calculation of new features.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Prepare windowed representation</span>
-<span class="va">wdf</span> <span class="op">&lt;-</span> <span class="fu">epitopes</span><span class="fu">::</span><span class="fu"><a href="../reference/make_window_df.html">make_window_df</a></span><span class="op">(</span><span class="va">jdf</span>, ncpus <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">2</span><span class="op">)</span>
-
-<span class="co"># Calculate features</span>
-<span class="va">wdf</span> <span class="op">&lt;-</span> <span class="fu">epitopes</span><span class="fu">::</span><span class="fu"><a href="../reference/calc_features.html">calc_features</a></span><span class="op">(</span><span class="va">wdf</span>, max.N <span class="op">=</span> <span class="fl">2</span>, ncpus <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">2</span><span class="op">)</span></code></pre></div>
+<p>For more information please refer to the documentation of the specific functions used above.</p>
 </div>
-<div id="split-model-development-and-hold-out-sets" class="section level1">
-<h1 class="hasAnchor">
-<a href="#split-model-development-and-hold-out-sets" class="anchor"></a>Split Model development and hold-out sets</h1>
-<p>Before training our organism-specific predictor, we isolate a subset of the data to be able to get a good estimate of the generalisation performance of the model. Although cross-validation could potentially be used, it is slightly harder to prevent data-leakage between folds, so we opted for a hold-out set approach.</p>
-<p>If BLASTp is installed locally in your machine (check <a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&amp;DOC_TYPE=Download">here</a> for installation details), function <code><a href="../reference/split_epitope_data.html">split_epitope_data()</a></code> can split the data at the protein level using <em>coverage</em> and <em>similarity</em> thresholds to ensure that similar proteins are always placed under the same split, reducing the chances of leakage between the training and hold-out sets.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://seqinr.r-forge.r-project.org/">seqinr</a></span><span class="op">)</span>
-
-<span class="va">prots</span> <span class="op">&lt;-</span> <span class="va">proteins</span><span class="op">[</span><span class="va">proteins</span><span class="op">$</span><span class="va">UID</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">jdf</span><span class="op">$</span><span class="va">protein_id</span><span class="op">)</span>, <span class="op">]</span>
-
-<span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files2.html">dir.exists</a></span><span class="op">(</span><span class="st">"./BLASTp"</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/files2.html">dir.create</a></span><span class="op">(</span><span class="st">"./BLASTp"</span><span class="op">)</span>
-<span class="va">fn</span> <span class="op">&lt;-</span> <span class="st">"./BLASTp/prots.fasta"</span>
-<span class="fu">seqinr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/seqinr/man/write.fasta.html">write.fasta</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">as.list</a></span><span class="op">(</span><span class="va">prots</span><span class="op">$</span><span class="va">TSeq_sequence</span><span class="op">)</span>, names <span class="op">=</span> <span class="va">prots</span><span class="op">$</span><span class="va">UID</span>,
-                    file.out <span class="op">=</span> <span class="va">fn</span>, as.string <span class="op">=</span> <span class="cn">TRUE</span>, nbchar <span class="op">=</span> <span class="fl">100000</span><span class="op">)</span>
-
-<span class="co"># Run BLASTp to determine protein similarities</span>
-<span class="fu"><a href="https://rdrr.io/r/base/system.html">system</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"makeblastdb -in "</span>, <span class="va">fn</span>, <span class="st">" -dbtype prot"</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/system.html">system</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"blastp -query "</span>, <span class="va">fn</span>, <span class="st">" -db "</span>, <span class="va">fn</span>, <span class="st">" -seg no "</span>,
-              <span class="st">"-outfmt '6 qseqid sseqid length qlen "</span>, 
-              <span class="st">"slen nident pident qcovhsp mismatch gaps qstart "</span>,
-              <span class="st">"qend sstart send evalue score' &gt; "</span>, <span class="va">fn</span>, <span class="st">"-BLAST"</span><span class="op">)</span><span class="op">)</span>
-
-<span class="co"># Split data into training/test/final validation sets, splitting by protein ID</span>
-<span class="co"># and using BLASTp to minimise similarities across splits</span>
-<span class="va">splits</span> <span class="op">&lt;-</span> <span class="fu">epitopes</span><span class="fu">::</span><span class="fu"><a href="../reference/split_epitope_data.html">split_epitope_data</a></span><span class="op">(</span><span class="va">wdf</span>, split_level <span class="op">=</span> <span class="st">"prot"</span>,
-                                       split_perc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">75</span>, <span class="fl">25</span><span class="op">)</span>,
-                                       split_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"01_training"</span>, <span class="st">"02_holdout"</span><span class="op">)</span>,
-                                       save_folder <span class="op">=</span> <span class="st">"./splits"</span>,
-                                       blast_file <span class="op">=</span> <span class="st">"./BLASTp/prots.fasta-BLAST"</span>,
-                                       coverage_threshold <span class="op">=</span> <span class="fl">60</span>, identity_threshold <span class="op">=</span> <span class="fl">60</span><span class="op">)</span></code></pre></div>
-<div id="fit-predictive-model" class="section level2">
-<h2 class="hasAnchor">
-<a href="#fit-predictive-model" class="anchor"></a>Fit predictive model</h2>
-<p>Any classification strategy can now be used to generate a predictor. The <code>epitopes</code> package provides a quick interface to the Random Forest implementation from <a href="https://cran.r-project.org/package=ranger">ranger</a>, which is quite versatile. Check the documentation of function <code><a href="../reference/fit_model.html">fit_model()</a></code> to check how to pass specific hyperparameters to ranger’s RF routines.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Fit model using ranger's standard parameters</span>
-<span class="va">my.model</span> <span class="op">&lt;-</span> <span class="fu">epitopes</span><span class="fu">::</span><span class="fu"><a href="../reference/fit_model.html">fit_model</a></span><span class="op">(</span>data.train <span class="op">=</span> <span class="va">splits</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">wdf</span>,
-                                data.test  <span class="op">=</span> <span class="va">splits</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">wdf</span>,
-                                rnd.seed   <span class="op">=</span> <span class="fl">1234</span>,
-                                ncpus      <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">2</span><span class="op">)</span>
-
-<span class="co"># Calculate performance</span>
-<span class="va">my_perf</span> <span class="op">&lt;-</span> <span class="fu">epitopes</span><span class="fu">::</span><span class="fu"><a href="../reference/calc_performance.html">calc_performance</a></span><span class="op">(</span>truth <span class="op">=</span> <span class="va">splits</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">wdf</span><span class="op">$</span><span class="va">Class</span>,
-                                      pred  <span class="op">=</span> <span class="va">my.model</span><span class="op">$</span><span class="va">rf_class</span>,
-                                      prob  <span class="op">=</span> <span class="va">my.model</span><span class="op">$</span><span class="va">rf_probs</span>,
-                                      ret.as.list <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
-<p>To check the model performance:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Plot ROC curve</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">my_perf</span><span class="op">$</span><span class="va">fpr</span>, <span class="va">my_perf</span><span class="op">$</span><span class="va">tpr</span>, type <span class="op">=</span> <span class="st">"p"</span>, pch <span class="op">=</span> <span class="fl">20</span>, las <span class="op">=</span> <span class="fl">1</span>,
-     xlab <span class="op">=</span> <span class="st">"FPR"</span>, ylab <span class="op">=</span> <span class="st">"TPR"</span>, 
-     main <span class="op">=</span> <span class="st">"ROC curve for O. volvulus predictor"</span>, 
-     sub <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"AUC = "</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">signif</a></span><span class="op">(</span><span class="va">my_perf</span><span class="op">$</span><span class="va">auc</span>, digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
-
-<span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="va">my_perf</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">5</span><span class="op">:</span><span class="fl">12</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<p><img src="ROC.png"></p>
-</div>
-<div id="apply-to-a-new-sequence" class="section level2">
-<h2 class="hasAnchor">
-<a href="#apply-to-a-new-sequence" class="anchor"></a>Apply to a new sequence</h2>
-<p>To apply the predictor (which is saved under <code>my.model$rf_model</code>) to a new protein, you just need to:</p>
-<ul>
-<li>Create a windowed representation of the protein</li>
-<li>Calculate feature</li>
-<li>Pass the protein through the model using the <code>predict</code> function</li>
-</ul>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Get the first protein from the hold-out set as an example:</span>
-<span class="va">myprot</span> <span class="op">&lt;-</span> <span class="va">proteins</span><span class="op">[</span><span class="va">proteins</span><span class="op">$</span><span class="va">UID</span> <span class="op">==</span> <span class="va">splits</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">wdf</span><span class="op">$</span><span class="va">Info_protein_id</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>
-
-<span class="co"># Make windowed representation:</span>
-<span class="va">myprot_w</span> <span class="op">&lt;-</span> <span class="fu">epitopes</span><span class="fu">::</span><span class="fu"><a href="../reference/make_window_df.html">make_window_df</a></span><span class="op">(</span><span class="va">myprot</span>, 
-                                     window_size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nchar.html">nchar</a></span><span class="op">(</span><span class="va">splits</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">wdf</span><span class="op">$</span><span class="va">Info_window_seq</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>
-<span class="va">myprot_w</span> <span class="op">&lt;-</span> <span class="fu">epitopes</span><span class="fu">::</span><span class="fu"><a href="../reference/calc_features.html">calc_features</a></span><span class="op">(</span><span class="va">myprot_w</span>, max.N <span class="op">=</span> <span class="fl">2</span>, 
-                                    ncpus <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">2</span><span class="op">)</span>
-
-<span class="co"># Get predictions from the model</span>
-<span class="va">myprot_w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">myprot_w</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html">grepl</a></span><span class="op">(</span><span class="st">"Info_"</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">myprot_w</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">]</span>
-<span class="va">preds</span>    <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">my.model</span><span class="op">$</span><span class="va">rf_model</span>,
-                           data <span class="op">=</span> <span class="va">myprot_w</span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Smooth predictions (to remove very short positive sequences)</span>
-<span class="va">myclass</span> <span class="op">&lt;-</span> <span class="fu">epitopes</span><span class="fu">::</span><span class="fu"><a href="../reference/smooth_predictions.html">smooth_predictions</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="va">preds</span><span class="op">$</span><span class="va">predictions</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span> <span class="op">&gt;</span> <span class="fl">0.5</span><span class="op">)</span>,
-                                        minsize <span class="op">=</span> <span class="fl">8</span><span class="op">)</span>
-                                        
-<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">preds</span><span class="op">$</span><span class="va">predictions</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span>, type <span class="op">=</span> <span class="st">"l"</span>, lwd <span class="op">=</span> <span class="fl">.5</span>, las <span class="op">=</span> <span class="fl">1</span>, 
-     main <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"Predictions for protein"</span>, <span class="va">myprot</span><span class="op">$</span><span class="va">UID</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>,
-     xlab <span class="op">=</span> <span class="st">"Protein position"</span>,
-     ylab <span class="op">=</span> <span class="st">"Probability / Prediction"</span>,
-     ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.05</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/points.html">points</a></span><span class="op">(</span><span class="va">myclass</span>, type <span class="op">=</span> <span class="st">"p"</span>, pch <span class="op">=</span> <span class="fl">20</span>, col <span class="op">=</span> <span class="va">myclass</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/points.html">points</a></span><span class="op">(</span><span class="va">myclass</span>, type <span class="op">=</span> <span class="st">"l"</span>, lwd <span class="op">=</span> <span class="fl">.3</span>, col <span class="op">=</span> <span class="st">"#77777777"</span><span class="op">)</span></code></pre></div>
-<p><img src="preds.png"></p>
-</div>
+<div class="section level2">
+<h2 id="exporting-data">Exporting data<a class="anchor" aria-label="anchor" href="#exporting-data"></a>
+</h2>
+<p>Function <code><a href="../reference/save_peptide_list.html">save_peptide_list()</a></code> is available to to export the full information from objects of type <code>peptide.list</code> (e.g., output of <code><a href="../reference/extract_peptides.html">extract_peptides()</a></code>, <code><a href="../reference/make_data_splits.html">make_data_splits()</a></code> or <code><a href="../reference/calc_features.html">calc_features()</a></code>) to a set of CSV files (plus a single RDS file with the clustering structure calculated in <code><a href="../reference/make_data_splits.html">make_data_splits()</a></code>) for easier sharing and cross-platform use.</p>
 </div>
   </div>
 
@@ -286,11 +187,13 @@
 
 
       <footer><div class="copyright">
-  <p>Developed by Felipe Campelo.</p>
+  <p></p>
+<p>Developed by Felipe Campelo.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
 </div>
 
       </footer>
@@ -298,6 +201,8 @@
 
   
 
+
+  
 
   </body>
 </html>
