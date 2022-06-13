@@ -126,7 +126,6 @@ calc_features <- function(peptides.list,
   # ========================================================================== #
   # Sanity checks and initial definitions
   assertthat::assert_that(is.list(peptides.list),
-                          all(c("df", "proteins") %in% names(peptides.list)),
                           is.character(local.features),
                           is.character(global.features))
   # ========================================================================== #
