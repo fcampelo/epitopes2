@@ -186,7 +186,11 @@ fit_model <- function(peptides.list,
                      as.data.frame(x)
                    }) %>%
       dplyr::bind_rows() %>%
-      dplyr::summarise(dplyr::across(dplyr::everything(), mean)) %>%
+      dplyr::mutate(N = TP+TN+FP+FN) %>%
+      dplyr::summarise(dplyr::across(dplyr::everything(),
+                                     function(x) {
+                                       sum(.data$N * x) / sum(.data$N)})) %>%
+      dplyr::select(-c("N")) %>%
       as.list()
 
     if (return.model == "partial"){
