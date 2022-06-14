@@ -42,9 +42,10 @@ calc_performance <- function(truth, pred, prob = NULL,
                           assertthat::is.count(roc.points),
                           roc.points >= 10)
 
-  idx   <- which(is.na(truth) | is.na(pred))
-  nPos  <- sum(pred == posValue)
-  nNeg  <- sum(pred == negValue)
+  idx     <- which(is.na(truth) | is.na(pred))
+  nPos    <- sum(pred == posValue)
+  nNeg    <- sum(pred == negValue)
+  truePos
   if(length(idx) > 0){
     truth <- truth[-idx]
     pred  <- pred[-idx]
@@ -103,9 +104,9 @@ calc_performance <- function(truth, pred, prob = NULL,
     #   }
     # }
   } else {
-    auc <- NULL
-    tpr <- NULL
-    fpr <- NULL
+    auc <- NA
+    tpr <- NA
+    fpr <- NA
   }
 
   out  <- data.frame(

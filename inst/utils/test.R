@@ -30,6 +30,7 @@ res <- vector("list", length(trIDs))
 for (i in seq_along(trIDs)){
   X <- epitopes %>%
     filter_epitopes(orgIDs        = trIDs[i],
+                    removeIDs     = mpID,
                     orgID_column  = "sourceOrg_id",
                     hostID_column = "host_id",
                     tax_list      = taxonomy) %>%
@@ -48,8 +49,9 @@ for (i in seq_along(trIDs)){
               ncpus = ncpus, return.model = "full")
 
   res[[i]]$X <- X
-
-  res[[i]]$preds <- predict(X$model, data = mpdata)
+  res[[i]]$preds <- predict(X$model, data = mpdata$df)
+  res[[i]]$ho_perf <- calc_performance(truth = mpdata$df$Class,
+                                       pred  = -1 + 2*round(res[[i]]$preds$predictions[, 2]))
 }
 
 
