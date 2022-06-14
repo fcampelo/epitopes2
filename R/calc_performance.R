@@ -45,7 +45,8 @@ calc_performance <- function(truth, pred, prob = NULL,
   idx     <- which(is.na(truth) | is.na(pred))
   nPos    <- sum(pred == posValue)
   nNeg    <- sum(pred == negValue)
-  truePos
+  #truePos
+  #trueNeg
   if(length(idx) > 0){
     truth <- truth[-idx]
     pred  <- pred[-idx]

@@ -54,7 +54,9 @@ for (i in seq_along(trIDs)){
                                        pred  = -1 + 2*round(res[[i]]$preds$predictions[, 2]))
 }
 
+saveRDS(res, "~/Dropbox/000_Work/MONKEYPOX.rds")
 
+# TODO: update calc_performance to not calculate SENS/SPEC/TPR/NPR when one of the classes is absent
 
 # x <- peptides.list$Info_type
 # a <- grepl("Exact Epitope", x)
