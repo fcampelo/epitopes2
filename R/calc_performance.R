@@ -45,8 +45,9 @@ calc_performance <- function(truth, pred, prob = NULL,
   idx     <- which(is.na(truth) | is.na(pred))
   nPos    <- sum(pred == posValue)
   nNeg    <- sum(pred == negValue)
-  #truePos
-  #trueNeg
+  truePos <- sum(pred == posValue)
+  trueNeg <- sum(truth == negValue)
+
   if(length(idx) > 0){
     truth <- truth[-idx]
     pred  <- pred[-idx]
@@ -62,6 +63,13 @@ calc_performance <- function(truth, pred, prob = NULL,
   mccDen  <- sqrt((TP + FP) * (TP + FN) * (TN + FP) * (TN + FN))
   sens    <- TP / ifelse(TP + FN == 0, 1, TP + FN)
   spec    <- TN / ifelse(TN + FP == 0, 1, TN + FP)
+  ppv     <- TP / ifelse(TP + FP == 0, 1, TP + FP)
+  npv     <- TN / ifelse(TN + FN == 0, 1, TN + FN)
+  f1      <- 2 * TP / ifelse(2 * TP + FP + FN == 0, 1, 2 * TP + FP + FN)
+
+  if (truePos == 0) sens <- ppv <- f1 <- NA
+  if (trueNeg == 0) spec <- npv <- NA
+
 
   if(!is.null(prob)){
     tr <- sort(unique(prob), decreasing = TRUE)
@@ -117,9 +125,9 @@ calc_performance <- function(truth, pred, prob = NULL,
     FN        = FN,
     sens      = sens,
     spec      = spec,
-    ppv       = TP / ifelse(TP + FP == 0, 1, TP + FP),
-    npv       = TN / ifelse(TN + FN == 0, 1, TN + FN),
-    f1        = 2 * TP / ifelse(2 * TP + FP + FN == 0, 1, 2 * TP + FP + FN),
+    ppv       = ppv,
+    npv       = npv,
+    f1        = f1,
     mcc       = mccNum / ifelse(mccDen == 0, 1, mccDen),
     accuracy  =  (TP + TN) / (TP + TN + FP + FN),
     bal.acc   = .5 * (sens + spec),
