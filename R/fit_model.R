@@ -160,7 +160,7 @@ fit_model <- function(peptides.list,
       output.model <- res$RF.model
     } else if (return.model == "full"){
       if(is.null(holdout.split)) {
-        output.model <- res
+        output.model <- res$RF.model
       } else {
         output.model <- fit_RF(df = df,
                                sample.rebalancing = sample.rebalancing,
