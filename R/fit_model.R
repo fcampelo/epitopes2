@@ -159,11 +159,15 @@ fit_model <- function(peptides.list,
     if (return.model == "partial"){
       output.model <- res$RF.model
     } else if (return.model == "full"){
-      output.model <- fit_RF(df = df,
-                             sample.rebalancing = sample.rebalancing,
-                             threshold = threshold,
-                             ncpus = ncpus,
-                             ...)$RF.model
+      if(is.null(holdout.split)) {
+        output.model <- res
+      } else {
+        output.model <- fit_RF(df = df,
+                               sample.rebalancing = sample.rebalancing,
+                               threshold = threshold,
+                               ncpus = ncpus,
+                               ...)$RF.model
+      }
     }
 
   } else {
