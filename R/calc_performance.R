@@ -78,16 +78,16 @@ calc_performance <- function(truth, pred, prob = NULL,
       tr <- tr[ii]
     }
 
-    message("Calculating ROC curve:")
-    roc <- mypblapply(tr,
-                      function(tri, prob, truth, posValue, negValue){
-                        tpr  <- sum(prob >= tri & truth == posValue) / sum(truth == posValue)
-                        fpr  <- sum(prob >= tri & truth == negValue) / sum(truth == negValue)
-                        return(data.frame(tpr = tpr, fpr = fpr))
-                      },
-                      prob = prob, truth = truth,
-                      posValue = posValue, negValue = negValue,
-                      ncpus = ncpus) %>%
+    #message("Calculating ROC curve:")
+    roc <- lapply(tr,
+                  function(tri, prob, truth, posValue, negValue){
+                    tpr  <- sum(prob >= tri & truth == posValue) / sum(truth == posValue)
+                    fpr  <- sum(prob >= tri & truth == negValue) / sum(truth == negValue)
+                    return(data.frame(tpr = tpr, fpr = fpr))
+                  },
+                  prob = prob, truth = truth,
+                  posValue = posValue, negValue = negValue,
+                  ncpus = ncpus) %>%
       dplyr::bind_rows()
 
     auc <- roc %>%
