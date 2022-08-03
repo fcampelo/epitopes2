@@ -86,8 +86,7 @@ calc_performance <- function(truth, pred, prob = NULL,
                     return(data.frame(tpr = tpr, fpr = fpr))
                   },
                   prob = prob, truth = truth,
-                  posValue = posValue, negValue = negValue,
-                  ncpus = ncpus) %>%
+                  posValue = posValue, negValue = negValue) %>%
       dplyr::bind_rows()
 
     auc <- roc %>%
