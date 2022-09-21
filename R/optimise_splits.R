@@ -22,7 +22,7 @@
 #      \item `pj = sum_i{ yij * Ni+ } / sum_i{ yij * Ni }`
 # }
 
-optimise_splits <- function(Y, Nstar, alpha, SAopts, ncpus){
+optimise_splits <- function(Y, Nstar, alpha, SAopts, ncpus, id_force_splitting){
   # TODO: generalise to more than 2 classes.
 
   # === Initial definitions === #
@@ -32,7 +32,7 @@ optimise_splits <- function(Y, Nstar, alpha, SAopts, ncpus){
     sum(alpha * (tmp$Gj - Nstar)^2 + (1 - alpha) * (tmp$pj - tmp$Pstar)^2)
   }
 
-  # Auxiliary function for O.F.
+  # Auxiliary function for OF
   getstats <- function(x, Y, Nstar){
     Pstar <- sum(Y$nPos) / sum(Y$N)
     ymatr <- matrix(round(x), ncol = length(Nstar), nrow = length(x), byrow = FALSE)
@@ -114,6 +114,21 @@ optimise_splits <- function(Y, Nstar, alpha, SAopts, ncpus){
   }
 
   # === Run optimisation === #
+
+  if(!is.null(id_force_splitting)){
+    idx <- unique(unlist(sapply(id_force_splitting,
+                                function(x,ids){grep(x,ids)},
+                                ids = Y$txids)))
+
+    Yp <- Y[idx, ]
+    Np <- Nstar[1:min(length(Nstar), length(idx))]
+    Np <- Np / sum(Np)
+
+    x <- optimise_splits(Yp, Np, alpha, SAopts, ncpus, NULL)
+  }
+
+  # TODO: stopped here
+
   message("Optimising splits with alpha = ", alpha,
           "\n(Number of possibilities: ~", signif(length(Nstar) ^ nrow(Y), 3), ")")
   if(length(Nstar) ^ nrow(Y) < 1e6){
@@ -123,7 +138,7 @@ optimise_splits <- function(Y, Nstar, alpha, SAopts, ncpus){
                       lapply(1:nrow(Y), function(x){1:length(Nstar)}))
     states <- as.list(as.data.frame(t(states)))
     y <- unlist(mypblapply(states, objfun, ncpus = ncpus,
-                    alpha = alpha, Y = Y, Nstar = Nstar))
+                           alpha = alpha, Y = Y, Nstar = Nstar))
 
     assignment <- states[[which.min(y)]]
     cost       <- min(y)
