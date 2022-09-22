@@ -310,7 +310,7 @@ make_data_splits <- function(peptides.list,
                      nNeg  = sum(.data$Class == -1),
                      N     = dplyr::n(),
                      P     = .data$nPos / dplyr::n(),
-                     txids = paste(unique(txid), collapse = ","))
+                     txids = paste(unique(.data$txid), collapse = ","))
 
   # ========================================================================== #
   # Optimise split alllocations

@@ -190,7 +190,7 @@ fit_model <- function(peptides.list,
                      as.data.frame(x)
                    }) %>%
       dplyr::bind_rows() %>%
-      dplyr::mutate(N = TP+TN+FP+FN) %>%
+      dplyr::mutate(N = .data$TP + .data$TN + .data$FP + .data$FN) %>%
       dplyr::summarise(dplyr::across(dplyr::everything(),
                                      function(x) {
                                        sum(.data$N * x) / sum(.data$N)})) %>%
