@@ -62,6 +62,7 @@ mypblapply <- function(X, FUN, ncpus, toexport = list(), ...){
 }
 
 
+
 # ======================================================================
 # Progress bar function
 mypb <- function(i, max_i, t0, npos){
@@ -85,4 +86,97 @@ mypb <- function(i, max_i, t0, npos){
                 pbstr, perc_done, as.numeric(td), attr(td, "units")))
   }
   invisible(NULL)
+}
+
+
+
+
+
+# ======================================================================
+# auxiliary functions for optimise_splits()
+
+# Objective function
+objfun <- function(x, alpha, Y, Nstar, ...){
+  tmp <- getstats(x, Y, Nstar)
+  sum(alpha * (tmp$Gj - Nstar)^2 + (1 - alpha) * (tmp$pj - tmp$Pstar)^2)
+}
+
+# Auxiliary function for OF
+getstats <- function(x, Y, Nstar){
+  Pstar <- sum(Y$nPos) / sum(Y$N)
+  ymatr <- matrix(round(x), ncol = length(Nstar), nrow = length(x), byrow = FALSE)
+  ymatr <- ymatr == matrix(seq_along(Nstar), ncol = length(Nstar), nrow = length(x), byrow = TRUE)
+  Gj    <- colSums(ymatr * Y$N) / sum(Y$N)
+  pj    <- colSums(ymatr * Y$nPos) / (colSums(ymatr * Y$N) + 1e-12)
+  return(list(Gj = Gj, pj = pj, Pstar = Pstar))
+}
+
+# Movement function
+neighbour <- function(x, Nstar, Y, ...){
+  # Cast x as an allocation list
+  xl <- lapply(seq_along(Nstar), function(i){seq_along(x)[x == i]})
+  xl_movable <- lapply(xl,
+                       function(x){x[x %in% Y$Cluster[is.na(Y$split)]]})
+
+  # randomize which neighbourhood to use:
+  neighs <- c("taskmove", "swap")
+  move   <- sample(neighs, 1)
+
+  if (move == "taskmove"){
+    from <- sample(which(sapply(xl_movable, length) > 1), 1)
+    from <- c(from, xl_movable[[from]][sample.int(length(xl_movable[[from]]), 1)])
+    to   <- sample((1:length(xl_movable))[-from[1]], 1)
+    xl[[to]]   <- c(xl[[to]], from[2])
+    xl[[from[1]]] <- xl[[from[1]]][-which(xl[[from[1]]] == from[2])]
+  }
+
+  if (move == "swap"){
+    groups <- sample(which(sapply(xl_movable, length) > 0), 2)
+    ids    <- c(xl_movable[[groups[1]]][sample.int(length(xl_movable[[groups[1]]]), 1)],
+                xl_movable[[groups[2]]][sample.int(length(xl_movable[[groups[2]]]), 1)])
+    xl[[groups[1]]] <- c(xl[[groups[1]]], ids[2])
+    xl[[groups[1]]] <- xl[[groups[1]]][-which(xl[[groups[1]]] == ids[1])]
+    xl[[groups[2]]] <- c(xl[[groups[2]]], ids[1])
+    xl[[groups[2]]] <- xl[[groups[2]]][-which(xl[[groups[2]]] == ids[2])]
+  }
+
+  # Cast xl back to vector format
+  xnew <- unlist(xl)
+  names(xnew) <- unlist(mapply(rep, seq_along(xl), sapply(xl, length)))
+  xnew <- as.numeric(names(xnew)[order(xnew)])
+  names(xnew) <- names(x)
+
+  return(xnew)
+}
+
+# Constructive Heuristic
+makesol <- function(alpha, Y, Nstar){
+  P        <- sum(Y$nPos) / sum(Y$N)
+  x        <- ifelse(is.na(Y$split), 0, Y$split)
+  names(x) <- Y$Cluster
+  Y2       <- Y[is.na(Y$split), ]
+
+  Cap   <- (Nstar * sum(Y$N))
+  for (i in seq_along(Cap)){
+    Cap[i] <- Cap[i] - sum(Y$N[Y$split == i], na.rm = TRUE)
+  }
+
+  while(nrow(Y2) > 0){
+    # Get split with largest capacity:
+    split.idx <- which.max(Cap)
+    # Check which allocation would result in largest objfun reduction
+    tmpal <- c(0, 0, Inf)
+    for (i in seq_along(Y2$Cluster)){
+      tmpx <- x
+      tmpx[which(names(tmpx)==Y2$Cluster[i])] <- split.idx
+      tmpy <- objfun(tmpx, alpha, Y, Nstar)
+      if (tmpy < tmpal[3]){
+        tmpal <- c(i, Y2$Cluster[i], tmpy)
+      }
+    }
+    x[names(x)==tmpal[2]]   <- split.idx
+    Cap[split.idx] <- Cap[split.idx] - Y2$N[tmpal[1]]
+    Y2 <- Y2[-tmpal[1], ]
+  }
+  return(x)
 }

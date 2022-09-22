@@ -263,18 +263,21 @@ make_data_splits <- function(peptides.list,
 
   # Run Smith-Waterman local alignment and build similarity score matrix
   message("Calculating similarities (normalized Smith-Waterman scores)")
+  utils::data(list = substitution_matrix, package = "Biostrings")
   scores <- mypblapply(X   = seq_along(X$SEQs),
-                       FUN = function(i){
-                         patt <- rep(X$SEQs[i], times = 1 + length(X$SEQs) - i)
-                         subj <- X$SEQs[i:length(X$SEQs)]
+                       FUN = function(i, SEQs, SM){
+                         utils::data(list = SM, package = "Biostrings")
+                         patt <- rep(SEQs[i], times = 1 + length(SEQs) - i)
+                         subj <- SEQs[i:length(SEQs)]
                          vals <- Biostrings::pairwiseAlignment(pattern = patt,
                                                                subject = subj,
-                                                               substitutionMatrix = substitution_matrix,
+                                                               substitutionMatrix = SM,
                                                                type = "local",
                                                                scoreOnly = TRUE)
                          return(c(rep(NA, i - 1), vals))
-                       },
-                       ncpus = ncpus) %>%
+                       }, ncpus = ncpus,
+                       SEQs = X$SEQs, SM = substitution_matrix,
+                       toexport = list(substitution_matrix = substitution_matrix)) %>%
     do.call(what = cbind)
 
   # Build denominator matrix: D_{ij} = min(scores_{i,i}, scores{j,j})
