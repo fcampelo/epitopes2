@@ -123,11 +123,15 @@ neighbour <- function(x, Nstar, Y, ...){
   move   <- sample(neighs, 1)
 
   if (move == "taskmove"){
-    from <- sample(which(sapply(xl_movable, length) > 1), 1)
-    from <- c(from, xl_movable[[from]][sample.int(length(xl_movable[[from]]), 1)])
-    to   <- sample((1:length(xl_movable))[-from[1]], 1)
-    xl[[to]]   <- c(xl[[to]], from[2])
-    xl[[from[1]]] <- xl[[from[1]]][-which(xl[[from[1]]] == from[2])]
+    if (length(which(sapply(xl_movable, length) > 1)) == 0){
+      move <- "swap"
+    } else {
+      from <- sample(which(sapply(xl_movable, length) > 1), 1)
+      from <- c(from, xl_movable[[from]][sample.int(length(xl_movable[[from]]), 1)])
+      to   <- sample((1:length(xl_movable))[-from[1]], 1)
+      xl[[to]]   <- c(xl[[to]], from[2])
+      xl[[from[1]]] <- xl[[from[1]]][-which(xl[[from[1]]] == from[2])]
+    }
   }
 
   if (move == "swap"){

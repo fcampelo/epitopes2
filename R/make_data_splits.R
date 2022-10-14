@@ -320,7 +320,15 @@ make_data_splits <- function(peptides.list,
   if(length(unique(X$Cluster)) < length(target_props)){
     warning("Impossible to divide data into ", length(target_props),
             " splits at similarity level ", similarity_threshold,
-            ".\nTry a higher similarity threshold or a smaller number of splits.")
+            ".\nGenerating the maximum possible number of splits (",
+            length(unique(X$Cluster)),
+            ", equal sized).\nTry a higher similarity threshold if you require ",
+            length(target_props), ".")
+    target_props <- rep(1/length(unique(X$Cluster)), length(unique(X$Cluster)))
+    split_names <- sprintf("split_%02d_%02d",
+                           seq_along(target_props),
+                           round(100*target_props))
+
   }
   # Check how many positive / negative examples per group
   if (split_level == "protein") {
