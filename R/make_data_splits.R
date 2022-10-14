@@ -257,6 +257,9 @@ make_data_splits <- function(peptides.list,
   if(!is.null(diss_matrix)){
     assertthat::assert_that(all(X$IDs %in% colnames(diss_matrix)),
                             all(X$IDs %in% rownames(diss_matrix)))
+    idr <- which(rownames(diss_matrix) %in% X$IDs)
+    idc <- which(colnames(diss_matrix) %in% X$IDs)
+    diss_matrix <- diss_matrix[idr, idc]
   }
 
 
