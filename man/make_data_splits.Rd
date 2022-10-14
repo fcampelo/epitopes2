@@ -11,6 +11,7 @@ make_data_splits(
   target_props = c(0.75, 0.25),
   split_names = NULL,
   similarity_threshold = 0.7,
+  diss_matrix = NULL,
   substitution_matrix = "BLOSUM62",
   id_force_splitting = NULL,
   tax_list = NULL,
@@ -46,8 +47,14 @@ sum(pk) = 1).}
 \item{similarity_threshold}{similarity threshold for grouping observations.
 See \strong{Grouping strategy} for details.}
 
+\item{diss_matrix}{dissimilarity matrix between all relevant elements
+(all peptides if \code{split_level == "peptide"} or all proteins if
+\code{split_level == "protein"}. If \code{NULL} then it is calculated internally.
+See \strong{Grouping strategy} for details.}
+
 \item{substitution_matrix}{character string indicating the substitution
 matrix to be used to calculate the peptide / protein alignments.
+(If \code{diss_matrix} is \code{NULL}).
 Must be a matrix recognised by \code{\link[Biostrings:substitution_matrices]{Biostrings::substitution.matrices()}}
 (e.g., "BLOSUM45", "PAM30", etc.)}
 
@@ -127,13 +134,14 @@ each split.
 
 The first step of this routine is to group the observations at either the
 proteins or the peptide level (depending on input parameter \code{split_level}).
-Local alignment scores for all pairs of sequences are calculated using the
+
+If no \code{diss.matrix} is passed, local alignment scores for all pairs of
+sequences are calculated using the
 implementation of the Smith-Waterman algorithm available in function
 \code{\link[Biostrings:pairwiseAlignment]{Biostrings::pairwiseAlignment()}}, with default parameters and the scoring
 matrix defined in \code{substitution_matrix}. These scores are returned as
-element \strong{SW.scores} of the output list.
-
-The dissimilarity matrix is calculated based on \strong{SW.scores}, as:
+element \strong{SW.scores} of the output list. The dissimilarity matrix is
+then calculated based on \strong{SW.scores}, as:
 
 \code{diss[i,j] = 1 - SW.scores[i,j] / min(SW.scores[i,i], SW.scores[j,j])}
 
@@ -142,8 +150,7 @@ dissimilarity). \code{diss[i,j]} will be 0 if and only if the shorter sequence i
 fully and perfectly contained in the longer one; and will be 1 if and only
 if the Smith-Waterman alignment score is zero.
 
-The dissimilarity matrix (returned as element \strong{diss.matrix} of the output
-list) is used to calculate a hierarchical clustering of
+The dissimilarity matrix is used to calculate a hierarchical clustering of
 the sequences, and input parameter \code{similarity_threshold} is then used to
 define the resulting similarity clusters. Single-linkage is used, to
 guarantee that any pair of sequences with similarity

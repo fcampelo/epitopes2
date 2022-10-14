@@ -10,13 +10,14 @@
 #' @section **Grouping strategy**:
 #' The first step of this routine is to group the observations at either the
 #' proteins or the peptide level (depending on input parameter `split_level`).
-#' Local alignment scores for all pairs of sequences are calculated using the
+#'
+#' If no `diss.matrix` is passed, local alignment scores for all pairs of
+#' sequences are calculated using the
 #' implementation of the Smith-Waterman algorithm available in function
 #' [Biostrings::pairwiseAlignment()], with default parameters and the scoring
 #' matrix defined in `substitution_matrix`. These scores are returned as
-#' element **SW.scores** of the output list.
-#'
-#' The dissimilarity matrix is calculated based on **SW.scores**, as:
+#' element **SW.scores** of the output list. The dissimilarity matrix is
+#' then calculated based on **SW.scores**, as:
 #'
 #' `diss[i,j] = 1 - SW.scores[i,j] / min(SW.scores[i,i], SW.scores[j,j])`
 #'
@@ -25,8 +26,7 @@
 #' fully and perfectly contained in the longer one; and will be 1 if and only
 #' if the Smith-Waterman alignment score is zero.
 #'
-#' The dissimilarity matrix (returned as element **diss.matrix** of the output
-#' list) is used to calculate a hierarchical clustering of
+#' The dissimilarity matrix is used to calculate a hierarchical clustering of
 #' the sequences, and input parameter `similarity_threshold` is then used to
 #' define the resulting similarity clusters. Single-linkage is used, to
 #' guarantee that any pair of sequences with similarity
@@ -99,10 +99,15 @@
 #'        (i.e., a vector (p1, p2, ..., pK) such that 0 < pk < 1 for all k and
 #'        sum(pk) = 1).
 #' @param split_names optional, vector of names to be given to each split.
+#' @param diss_matrix dissimilarity matrix between all relevant elements
+#'        (all peptides if `split_level == "peptide"` or all proteins if
+#'        `split_level == "protein"`. If `NULL` then it is calculated internally.
+#'        See **Grouping strategy** for details.
 #' @param similarity_threshold similarity threshold for grouping observations.
 #'        See **Grouping strategy** for details.
 #' @param substitution_matrix character string indicating the substitution
 #'        matrix to be used to calculate the peptide / protein alignments.
+#'        (If `diss_matrix` is `NULL`).
 #'        Must be a matrix recognised by [Biostrings::substitution.matrices()]
 #'        (e.g., "BLOSUM45", "PAM30", etc.)
 #' @param id_force_splitting a single taxonomy id (integer or character; any
@@ -179,6 +184,7 @@ make_data_splits <- function(peptides.list,
                              target_props = c(.75, .25),
                              split_names  = NULL,
                              similarity_threshold = .7,
+                             diss_matrix = NULL,
                              substitution_matrix = "BLOSUM62",
                              id_force_splitting = NULL,
                              tax_list = NULL,
@@ -215,7 +221,14 @@ make_data_splits <- function(peptides.list,
                           is.list(SAopts),
                           is.null(save_folder) | (is.character(save_folder)),
                           is.null(save_folder) | length(save_folder) == 1,
-                          assertthat::is.count(ncpus))
+                          assertthat::is.count(ncpus),
+                          is.null(diss_matrix) | is.matrix(diss_matrix))
+
+  if(!is.null(diss_matrix)){
+    assertthat::assert_that(nrow(diss_matrix) == ncol(diss_matrix),
+                            is.numeric(diss_matrix))
+  }
+
 
   diss_t   <- 1 - similarity_threshold
 
@@ -241,6 +254,12 @@ make_data_splits <- function(peptides.list,
                     SEQs = .data$TSeq_sequence)
   }
 
+  if(!is.null(diss_matrix)){
+    assertthat::assert_that(all(X$IDs %in% colnames(diss_matrix)),
+                            all(X$IDs %in% rownames(diss_matrix)))
+  }
+
+
   if(!is.null(id_force_splitting)) {
     target_tx <- unique(peptides.list$peptides$Info_organism_id)
     txids     <- sapply(tax_list, function(x) x$UID)
@@ -261,36 +280,38 @@ make_data_splits <- function(peptides.list,
   # ========================================================================== #
   # Extract similarity-based clusters
 
-  # Run Smith-Waterman local alignment and build similarity score matrix
-  message("Calculating similarities (normalized Smith-Waterman scores)")
-  utils::data(list = substitution_matrix, package = "Biostrings")
-  scores <- mypblapply(X   = seq_along(X$SEQs),
-                       FUN = function(i, SEQs, SM){
-                         utils::data(list = SM, package = "Biostrings")
-                         patt <- rep(SEQs[i], times = 1 + length(SEQs) - i)
-                         subj <- SEQs[i:length(SEQs)]
-                         vals <- Biostrings::pairwiseAlignment(pattern = patt,
-                                                               subject = subj,
-                                                               substitutionMatrix = SM,
-                                                               type = "local",
-                                                               scoreOnly = TRUE)
-                         return(c(rep(NA, i - 1), vals))
-                       }, ncpus = ncpus,
-                       SEQs = X$SEQs, SM = substitution_matrix,
-                       toexport = list(substitution_matrix = substitution_matrix)) %>%
-    do.call(what = cbind)
+  if(is.null(diss_matrix)){
+    # Run Smith-Waterman local alignment and build similarity score matrix
+    message("Calculating similarities (normalized Smith-Waterman scores)")
+    utils::data(list = substitution_matrix, package = "Biostrings")
+    scores <- mypblapply(X   = seq_along(X$SEQs),
+                         FUN = function(i, SEQs, SM){
+                           utils::data(list = SM, package = "Biostrings")
+                           patt <- rep(SEQs[i], times = 1 + length(SEQs) - i)
+                           subj <- SEQs[i:length(SEQs)]
+                           vals <- Biostrings::pairwiseAlignment(pattern = patt,
+                                                                 subject = subj,
+                                                                 substitutionMatrix = SM,
+                                                                 type = "local",
+                                                                 scoreOnly = TRUE)
+                           return(c(rep(NA, i - 1), vals))
+                         }, ncpus = ncpus,
+                         SEQs = X$SEQs, SM = substitution_matrix,
+                         toexport = list(substitution_matrix = substitution_matrix)) %>%
+      do.call(what = cbind)
 
-  # Build denominator matrix: D_{ij} = min(scores_{i,i}, scores{j,j})
-  denom <- matrix(pmin(rep(diag(scores), times = nrow(scores)),
-                       rep(diag(scores), each = nrow(scores))),
-                  nrow  = nrow(scores), byrow = FALSE)
+    # Build denominator matrix: D_{ij} = min(scores_{i,i}, scores{j,j})
+    denom <- matrix(pmin(rep(diag(scores), times = nrow(scores)),
+                         rep(diag(scores), each = nrow(scores))),
+                    nrow  = nrow(scores), byrow = FALSE)
 
-  # Calculate normalized dissimilarity
-  rownames(scores) <- colnames(scores) <- X$IDs
-  diss <- 1 - scores / denom
+    # Calculate normalized dissimilarity
+    rownames(scores) <- colnames(scores) <- X$IDs
+    diss_matrix <- 1 - scores / denom
+  }
 
   message("Extracting clusters (Hierarchical, single linkage)")
-  clusters  <- stats::hclust(d = stats::as.dist(diss), method = "single")
+  clusters  <- stats::hclust(d = stats::as.dist(diss_matrix), method = "single")
   X$Cluster <- stats::cutree(clusters, h = diss_t)
 
   if(length(unique(X$Cluster)) < length(target_props)){
@@ -399,10 +420,10 @@ make_data_splits <- function(peptides.list,
     target_props         = target_props,
     target_balance       = y$solstats$Pstar,
     alpha                = alpha,
-    SW.scores            = scores,
-    diss.matrix          = diss,
+    SW_scores            = scores,
+    diss_matrix          = diss_matrix,
     clusters             = clusters,
-    cluster.alloc        = X)
+    cluster_alloc        = X)
 
   if(!is.null(return_front)){
     outlist$splits.attrs$tradeoffs <- tradeoffs
