@@ -431,7 +431,7 @@ make_data_splits <- function(peptides.list,
     target_props         = target_props,
     target_balance       = y$solstats$Pstar,
     alpha                = alpha,
-    SW_scores            = scores,
+    SW_scores            = ifelse(exists("scores"), scores, NA),
     diss_matrix          = diss_matrix,
     clusters             = clusters,
     cluster_alloc        = X)
@@ -449,7 +449,7 @@ make_data_splits <- function(peptides.list,
   }
 
   # Print resulting split statistics
-  cl_tbl <- outlist$splits.attrs$cluster.alloc %>%
+  cl_tbl <- outlist$splits.attrs$cluster_alloc %>%
     dplyr::group_by(.data$Split) %>%
     dplyr::summarise(Clusters = length(unique(.data$Cluster)))
 
