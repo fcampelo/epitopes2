@@ -361,11 +361,11 @@ make_data_splits <- function(peptides.list,
                         by = "Cluster") %>%
     dplyr::arrange(.data$Split, .data$Cluster)
   if(split_level == "peptide"){
-    names(X)[1] <- "Info_PepID"
+    names(X)[which(names(X) == "IDs")] <- "Info_PepID"
     df          <- dplyr::left_join(df, X, by = "Info_PepID")
     peptides    <- dplyr::left_join(peptides, X, by = "Info_PepID")
   } else if(split_level == "protein"){
-    names(X)[1] <- "Info_protein_id"
+    names(X)[which(names(X) == "IDs")] <- "Info_protein_id"
     df <- dplyr::left_join(df, X, by = "Info_protein_id")
     peptides <- dplyr::left_join(peptides, X, by = "Info_protein_id")
   }
