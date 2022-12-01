@@ -129,7 +129,9 @@ neighbour <- function(x, Nstar, Y, ...){
       tryCatch({
         from <- sample(which(sapply(xl_movable, length) > 1), 1)
         from <- c(from, xl_movable[[from]][sample.int(length(xl_movable[[from]]), 1)])
-        to   <- sample((1:length(xl_movable))[-from[1]], 1)
+        possible <- (1:length(xl))[-from[1]]
+        if(length(possible) > 1) to <- sample(possible, 1) else to <- possible
+
         xl[[to]]   <- c(xl[[to]], from[2])
         xl[[from[1]]] <- xl[[from[1]]][-which(xl[[from[1]]] == from[2])]
       },
@@ -140,12 +142,14 @@ neighbour <- function(x, Nstar, Y, ...){
 
   if (move == "swap"){
     groups <- sample(which(sapply(xl_movable, length) > 0), 2)
-    ids    <- c(xl_movable[[groups[1]]][sample.int(length(xl_movable[[groups[1]]]), 1)],
-                xl_movable[[groups[2]]][sample.int(length(xl_movable[[groups[2]]]), 1)])
-    xl[[groups[1]]] <- c(xl[[groups[1]]], ids[2])
-    xl[[groups[1]]] <- xl[[groups[1]]][-which(xl[[groups[1]]] == ids[1])]
-    xl[[groups[2]]] <- c(xl[[groups[2]]], ids[1])
-    xl[[groups[2]]] <- xl[[groups[2]]][-which(xl[[groups[2]]] == ids[2])]
+    if(length(groups) == 2 && !any(sapply(xl_movable, length)==0)){
+      ids    <- c(xl_movable[[groups[1]]][sample.int(length(xl_movable[[groups[1]]]), 1)],
+                  xl_movable[[groups[2]]][sample.int(length(xl_movable[[groups[2]]]), 1)])
+      xl[[groups[1]]] <- c(xl[[groups[1]]], ids[2])
+      xl[[groups[1]]] <- xl[[groups[1]]][-which(xl[[groups[1]]] == ids[1])]
+      xl[[groups[2]]] <- c(xl[[groups[2]]], ids[1])
+      xl[[groups[2]]] <- xl[[groups[2]]][-which(xl[[groups[2]]] == ids[2])]
+    }
   }
 
   # Cast xl back to vector format
@@ -153,6 +157,20 @@ neighbour <- function(x, Nstar, Y, ...){
   names(xnew) <- unlist(mapply(rep, seq_along(xl), sapply(xl, length)))
   xnew <- as.numeric(names(xnew)[order(xnew)])
   names(xnew) <- names(x)
+
+  # if(length(xnew) != length(x)) {
+  #   errl <- list(x=x, Nstar=Nstar, Y=Y,
+  #                xl = xl, xl_movable = xl_movable,
+  #                xnew = xnew, move = move)
+  #   if (move == "taskmove") {
+  #     errl$from = from
+  #     errl$to = to
+  #   } else {
+  #     errl$groups = groups
+  #     errl$ids = ids
+  #   }
+  #   saveRDS(errl, "tmp.rds")
+  # }
 
   return(xnew)
 }
