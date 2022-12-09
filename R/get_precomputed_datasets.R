@@ -14,8 +14,7 @@
 #' before giving up
 #' @param save_folder path to folder for saving the results.
 #'
-#' @return Either a `peptides.list` object with all data, or a named list
-#' of `peptides.list` objects.
+#' @return Returns `TRUE` invisibly upon successful completion.
 #'
 #' @author Felipe Campelo (\email{f.campelo@@aston.ac.uk})
 #'
@@ -64,7 +63,7 @@ get_precomputed_datasets <- function(taxonIDs,
 
     message("\nTaxonomy IDs under taxonID ",
             taxonIDs[i], "\nwith entries in the online repository:\n",
-            paste(files$txid[which(files$txid %in% target_org)], collapse = ", "))
+            paste(unique(files$txid[which(files$txid %in% target_org)]), collapse = ", "))
 
     tmplist <- vector("list", length(fn))
     for (j in seq_along(fn)){
@@ -109,6 +108,6 @@ get_precomputed_datasets <- function(taxonIDs,
     }
   }
 
-  return(reslist)
+  invisible(TRUE)
 }
 

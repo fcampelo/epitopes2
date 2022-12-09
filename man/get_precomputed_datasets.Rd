@@ -20,8 +20,7 @@ before giving up}
 \item{save_folder}{path to folder for saving the results.}
 }
 \value{
-Either a \code{peptides.list} object with all data, or a named list
-of \code{peptides.list} objects.
+Returns \code{TRUE} invisibly upon successful completion.
 }
 \description{
 This function can be used to retrieve pre-computed LBCE datasets
