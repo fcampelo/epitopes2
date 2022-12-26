@@ -32,7 +32,7 @@ applies to \strong{positive} observations.)}
 \item{save_folder}{path to folder for saving the results.}
 }
 \value{
-Returns \code{TRUE} invisibly upon successful completion.
+Returns list of retrieved datasets (invisibly).
 }
 \description{
 This function can be used to retrieve pre-computed LBCE datasets

@@ -18,7 +18,7 @@
 #' before giving up
 #' @param save_folder path to folder for saving the results.
 #'
-#' @return Returns `TRUE` invisibly upon successful completion.
+#' @return Returns list of retrieved datasets (invisibly).
 #'
 #' @author Felipe Campelo (\email{f.campelo@@aston.ac.uk})
 #'
