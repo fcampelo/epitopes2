@@ -131,7 +131,6 @@ get_precomputed_datasets <- function(taxonIDs,
       saveRDS(reslist[[k]], paste0(save_folder, "/txid", taxonIDs[k], "_dataset.rds"))
     }
   }
-
-  invisible(TRUE)
+  invisible(reslist)
 }
 
