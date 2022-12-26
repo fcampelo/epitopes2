@@ -7,7 +7,7 @@
 get_basic_data(
   save_folder,
   datasets = c("epitopes", "proteins", "taxonomy", "protein_dissimilarity"),
-  timeout = 60
+  timeout = 120
 )
 }
 \arguments{
