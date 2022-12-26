@@ -99,6 +99,9 @@ get_precomputed_datasets <- function(taxonIDs,
 
             tmplist[[j]]$peptides <- tmplist[[j]]$peptides[-toRM, ]
           }
+          tmplist[[j]]$peptide.attrs$min_peptide <- min_peptide
+          tmplist[[j]]$peptide.attrs$max_epitope <- max_epitope
+
         },
         warning = function(c) {errk <<- TRUE},
         error   = function(c) {errk <<- TRUE},
