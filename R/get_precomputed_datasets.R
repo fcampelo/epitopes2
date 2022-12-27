@@ -49,7 +49,7 @@ get_precomputed_datasets <- function(taxonIDs,
 
   baseURL <- "https://raw.githubusercontent.com/epitopes-dataset/ESM1b_IEDB_LBCE/main/data/"
 
-  files <- utils::read.csv(url("https://raw.githubusercontent.com/epitopes-dataset/ESM1b_IEDB_LBCE/main/filelist.csv"),
+  files <- utils::read.csv(url("https://raw.githubusercontent.com/epitopes-dataset/ESM1b_IEDB_LBCE/main/data/filelist.csv"),
                            quote = "")
 
   # Check save folder and create file names
