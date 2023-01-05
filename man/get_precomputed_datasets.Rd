@@ -4,7 +4,14 @@
 \alias{get_precomputed_datasets}
 \title{Retrieve linear B-cell data with ESM-1b features}
 \usage{
-get_precomputed_datasets(taxonIDs, tax_list, ntries = 3, save_folder = NULL)
+get_precomputed_datasets(
+  taxonIDs,
+  tax_list,
+  ntries = 3,
+  min_peptide = 5,
+  max_epitope = 30,
+  save_folder = NULL
+)
 }
 \arguments{
 \item{taxonIDs}{A numeric or character vector with taxonomy IDs.
@@ -17,10 +24,16 @@ using \code{\link[=get_basic_data]{get_basic_data()}}).}
 \item{ntries, }{number of times the routine will try to retrieve each dataset
 before giving up}
 
+\item{min_peptide}{positive integer, shortest peptide to be considered
+(applies to both \strong{positive} and \strong{negative} observations)}
+
+\item{max_epitope}{positive integer, longest peptide to be considered (only
+applies to \strong{positive} observations.)}
+
 \item{save_folder}{path to folder for saving the results.}
 }
 \value{
-Returns \code{TRUE} invisibly upon successful completion.
+Returns list of retrieved datasets (invisibly).
 }
 \description{
 This function can be used to retrieve pre-computed LBCE datasets
