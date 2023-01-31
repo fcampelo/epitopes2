@@ -157,6 +157,8 @@ neighbour <- function(x, Nstar, Y, ...){
   names(xnew) <- unlist(mapply(rep, seq_along(xl), sapply(xl, length)))
   xnew <- as.numeric(names(xnew)[order(xnew)])
   names(xnew) <- names(x)
+  tmp <- names(xnew)
+  if(any(is.na(tmp))) xnew <- xnew[-which(is.na(tmp))]
 
   # if(length(xnew) != length(x)) {
   #   errl <- list(x=x, Nstar=Nstar, Y=Y,
@@ -204,5 +206,8 @@ makesol <- function(alpha, Y, Nstar){
     Cap[split.idx] <- Cap[split.idx] - Y2$N[tmpal[1]]
     Y2 <- Y2[-tmpal[1], ]
   }
+
+  tmp <- names(x)
+  if(any(is.na(tmp))) x <- x[-which(is.na(tmp))]
   return(x)
 }
