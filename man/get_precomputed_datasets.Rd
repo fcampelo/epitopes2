@@ -10,7 +10,8 @@ get_precomputed_datasets(
   ntries = 3,
   min_peptide = 5,
   max_epitope = 30,
-  save_folder = NULL
+  save_folder = NULL,
+  closeconnections = FALSE
 )
 }
 \arguments{
@@ -31,6 +32,10 @@ before giving up}
 applies to \strong{positive} observations.)}
 
 \item{save_folder}{path to folder for saving the results.}
+
+\item{closeconnections}{flag: should this routine close all user connections?
+(Use with care - can help prevent errors with retrieval of large numbers of
+data sets)}
 }
 \value{
 Returns list of retrieved datasets (invisibly).

@@ -17,6 +17,9 @@
 #' @param ntries, number of times the routine will try to retrieve each dataset
 #' before giving up
 #' @param save_folder path to folder for saving the results.
+#' @param closeconnections flag: should this routine close all user connections?
+#' (Use with care - can help prevent errors with retrieval of large numbers of
+#' data sets)
 #'
 #' @return Returns list of retrieved datasets (invisibly).
 #'
@@ -33,7 +36,8 @@ get_precomputed_datasets <- function(taxonIDs,
                                      ntries = 3,
                                      min_peptide = 5,
                                      max_epitope = 30,
-                                     save_folder = NULL){
+                                     save_folder = NULL,
+                                     closeconnections = FALSE){
 
   # ========================================================================== #
   # Sanity checks and initial definitions
@@ -88,6 +92,7 @@ get_precomputed_datasets <- function(taxonIDs,
         tryCatch({
           # Retrieve from repository
           tmplist[[j]] <- readRDS(url(fn[j]))
+          if (closeconnections) closeAllConnections()
 
           # Filter by peptide size
           toRM <- c(which(tmplist[[j]]$peptides$Info_peptide_length < min_peptide),
