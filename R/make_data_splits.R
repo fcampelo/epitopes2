@@ -131,7 +131,9 @@
 #'        Usually 11 or 21 points are enough to give a good rough idea of the
 #'        tradeoffs.
 #' @param SAopts list of control parameters to be used by the simulated
-#'        annealing (SANN) algorithm. See [stats::optim()] for details.
+#'        annealing (SANN) algorithm. See [stats::optim()] for details. Option
+#'        `torun` regulates whether to run SA or to return the solution found
+#'        by the constructive heuristic.
 #' @param save_folder path to folder for saving the results. It will save the
 #' results as file *peptides_list.rds* (overwriting if necessary)
 #' @param ncpus positive integer, number of cores to use.
@@ -190,7 +192,7 @@ make_data_splits <- function(peptides.list,
                              tax_list = NULL,
                              alpha  = 0.5,
                              return_front = NULL,
-                             SAopts = list(),
+                             SAopts = list(torun = TRUE),
                              save_folder = NULL,
                              ncpus       = 1){
 

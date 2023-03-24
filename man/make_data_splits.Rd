@@ -17,7 +17,7 @@ make_data_splits(
   tax_list = NULL,
   alpha = 0.5,
   return_front = NULL,
-  SAopts = list(),
+  SAopts = list(torun = TRUE),
   save_folder = NULL,
   ncpus = 1
 )
@@ -80,7 +80,9 @@ Usually 11 or 21 points are enough to give a good rough idea of the
 tradeoffs.}
 
 \item{SAopts}{list of control parameters to be used by the simulated
-annealing (SANN) algorithm. See \code{\link[stats:optim]{stats::optim()}} for details.}
+annealing (SANN) algorithm. See \code{\link[stats:optim]{stats::optim()}} for details. Option
+\code{torun} regulates whether to run SA or to return the solution found
+by the constructive heuristic.}
 
 \item{save_folder}{path to folder for saving the results. It will save the
 results as file \emph{peptides_list.rds} (overwriting if necessary)}

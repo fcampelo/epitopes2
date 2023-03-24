@@ -40,7 +40,7 @@ optimise_splits <- function(Y, Nstar, alpha, SAopts, ncpus, id_force_splitting){
     Np <- Nstar[1:min(length(Nstar), length(idx))]
     Np <- Np / sum(Np)
     optp <- list(maxit = min(1e5,
-                            2000 * round(log10(length(Np) ^ nrow(Yp)))))
+                             2000 * round(log10(length(Np) ^ nrow(Yp)))))
 
     x0 <- makesol(alpha, Yp, Np)
 
@@ -66,20 +66,19 @@ optimise_splits <- function(Y, Nstar, alpha, SAopts, ncpus, id_force_splitting){
     assignment <- states[[which.min(y)]]
     cost       <- min(y)
   } else {
-    x0 <- makesol(alpha, Y, Nstar)
-    message("Initial solution built: Cost = ", signif(objfun(x0, alpha, Y, Nstar), 3))
-    message("Running Simulated Annealing (maxit = ", SAopts$maxit, ")")
-    y  <- stats::optim(par = x0, fn = objfun, gr = neighbour, method = "SANN",
-                       alpha = alpha, Y = Y, Nstar = Nstar,
-                       control = SAopts)
-    assignment <- y$par
-    cost       <- y$value
+    message("Running heuristic search...")
+    y <- makesol(alpha, Y, Nstar)
+    if(SAopts$torun == TRUE){
+      y  <- stats::optim(par = y, fn = objfun, gr = neighbour, method = "SANN",
+                         alpha = alpha, Y = Y, Nstar = Nstar,
+                         control = SAopts)
+      assignment <- y$par
+    }
   }
-  message("Done! Final cost = ", signif(cost, 3))
 
   # Cast x as an allocation list
   xl <- lapply(seq_along(Nstar), function(i){seq_along(assignment)[assignment == i]})
   solstats <- getstats(assignment, Y, Nstar)
 
-  return(list(x = assignment, cost = cost, solstats = solstats, xl = xl))
+  return(list(x = assignment, solstats = solstats, xl = xl))
 }
