@@ -68,6 +68,7 @@ optimise_splits <- function(Y, Nstar, alpha, SAopts, ncpus, id_force_splitting){
   } else {
     message("Running heuristic search...")
     y <- makesol(alpha, Y, Nstar)
+    assignment <- y
     if(SAopts$torun == TRUE){
       y  <- stats::optim(par = y, fn = objfun, gr = neighbour, method = "SANN",
                          alpha = alpha, Y = Y, Nstar = Nstar,
