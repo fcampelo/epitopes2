@@ -70,6 +70,7 @@ optimise_splits <- function(Y, Nstar, alpha, SAopts, ncpus, id_force_splitting){
     y <- makesol(alpha, Y, Nstar)
     assignment <- y
     if(SAopts$torun == TRUE){
+      SAopts$torun <- NULL
       y  <- stats::optim(par = y, fn = objfun, gr = neighbour, method = "SANN",
                          alpha = alpha, Y = Y, Nstar = Nstar,
                          control = SAopts)
