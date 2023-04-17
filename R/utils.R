@@ -211,3 +211,9 @@ makesol <- function(alpha, Y, Nstar){
   if(any(is.na(tmp))) x <- x[-which(is.na(tmp))]
   return(x)
 }
+
+mymessage <- function(verbose, msg){
+  if(verbose){
+    message(msg)
+  }
+}

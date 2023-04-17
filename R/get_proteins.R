@@ -1,9 +1,6 @@
 #' Retrieve protein sequences and data from GenBank and Uniprot
 #'
-#' This function is used to retrieve data from
-#' Genbank's protein database for
-#' given protein IDs. If an ID is not available from Genbank the function will
-#' try to retrieve it from Uniprot.
+#' This function is used to retrieve data from protein databases. IDs are checked on NCBI and UniprotKB.
 #'
 #' Queries are processed one by one (rather than in batch) to enable treatment
 #' of individual inconsistencies (e.g., wrong UIDs, queries that return a
