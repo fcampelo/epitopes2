@@ -1,11 +1,14 @@
-#' Retrieve protein data with ESM-1b features
+#' Retrieve protein data with pre-computed features
 #'
 #' This function can be used to retrieve pre-computed features for proteins
 #' containing at least one peptide labelled as a linear B-cell epitope (or
-#' non-LBCE) in IEDB. The features are calculated using the ESM-1b embedder
+#' non-LBCE) in IEDB. The features are calculated using the following feature embeddings:
+#'
+#' - ESM-1b embedder
 #' ([https://github.com/facebookresearch/esm](https://github.com/facebookresearch/esm))
 #'
 #' @param proteinIDs A character vector with protein IDs.
+#' @param model which embedding to retrieve. Currently accepts "esm1b".
 #' @param ntries, number of times the routine will try to retrieve each dataset
 #' before giving up
 #' @param save_folder path to folder for saving the results.
@@ -17,13 +20,15 @@
 #' @export
 #'
 
-get_precomputed_proteins <- function(proteinIDs,
+get_precalc_features <- function(proteinIDs,
+                                     model = "esm1b",
                                      save_folder,
                                      ntries = 3){
 
   # ========================================================================== #
   # Sanity checks and initial definitions
   assertthat::assert_that(is.character(save_folder), length(save_folder) == 1,
+                          is.character(model), length(model) == 1,
                           is.character(proteinIDs), length(proteinIDs) >= 1,
                           assertthat::is.count(ntries))
 
