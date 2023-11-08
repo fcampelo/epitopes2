@@ -14,7 +14,7 @@ extractBLOSUM <- function (x, ...)
   eig         <- eigen(protr::AABLOSUM62)
   A           <- eig$vectors
   B           <- eig$values
-  rownames(A) <- rownames(AABLOSUM62)
+  rownames(A) <- rownames(protr::AABLOSUM62)
 
   x.split <- strsplit(x, "")[[1]]
   for (i in 1:nchar(x)) accmat[, i] <- A[x.split[i], 1:k]
