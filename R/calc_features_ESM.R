@@ -2,12 +2,12 @@
 #' @importFrom dplyr %>%
 #' @importFrom rlang .data
 #'
-calc_ESM_features(proteins,
-                  py_script_path,
-                  model = "esm1b_t33_650M_UR50S",
-                  save_folder = "./",
-                  max_seq = 1022,
-                  step_size = 256){
+calc_ESM_features <- function(proteins,
+                              py_script_path,
+                              model = "esm1b_t33_650M_UR50S",
+                              save_folder = "./",
+                              max_seq = 1022,
+                              step_size = 256) {
 
   # ========================================================================== #
   # Sanity checks and initial definitions
@@ -71,9 +71,9 @@ calc_ESM_features(proteins,
 
   ### PART 2: invoke ESM model
 
-  cmdline <- paste0("python ", py_script_path, "/extract.py ", model, " ",
-                    save_folder, "/proteins_masked.fa ",
-                    save_folder, "/proteins_features_", model,
-                    "--include per_tok --nogpu --repr_layers 33")
+  # cmdline <- paste0("python ", py_script_path, "/extract.py ", model, " ",
+  #                   save_folder, "/proteins_masked.fa ",
+  #                   save_folder, "/proteins_features_", model,
+  #                   "--include per_tok --nogpu --repr_layers 33")
 
 }
