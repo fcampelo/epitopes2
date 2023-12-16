@@ -11,10 +11,10 @@ extractBLOSUM <- function (x, ...)
   lag    <- 3
   accmat <- matrix(0, k, nchar(x))
 
-  #eig         <- eigen(submat)
-  A           <- AABLOSUM62_eigvec # eig$vectors
-  B           <- AABLOSUM62_eigval # eig$values
-  rownames(A) <- rownames(AABLOSUM62)
+  eig         <- eigen(protr::AABLOSUM62)
+  A           <- eig$vectors
+  B           <- eig$values
+  rownames(A) <- rownames(protr::AABLOSUM62)
 
   x.split <- strsplit(x, "")[[1]]
   for (i in 1:nchar(x)) accmat[, i] <- A[x.split[i], 1:k]
