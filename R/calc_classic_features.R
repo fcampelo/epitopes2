@@ -1,7 +1,10 @@
-#' Calculate features for epitope prediction
+#' Calculate classic features for epitope prediction
 #'
 #' This function is used to calculate several distinct families of features for
-#' epitope prediction.
+#' epitope prediction. These are 'classic' features, based on statistical
+#' summaries and average physico-chemical characteristics of the local
+#' neighborhood of each residue in a protein sequence, or of the protein as a
+#' whole.
 #'
 #' Two major types of features can be calculated:
 #' \itemize{
@@ -15,7 +18,7 @@
 #'
 #' The following features are calculated based on the implementations available
 #' in package
-#' [**protr**](https://cran.r-project.org/package=protr). As of August 2021,
+#' [**protr**](https://cran.r-project.org/package=protr). As of December 2023,
 #' the following groups of features are supported by the **epitopes** package
 #' (see the [protr vignette](https://CRAN.R-project.org/package=protr/vignettes/protr.html#3_package_overview)
 #' for details on each of these):
@@ -54,7 +57,7 @@
 #' \itemize{
 #'     \item "Entropy" - the Shannon entropy of a sequence.
 #'     \item "Atoms" - the number of C, H, N, O, S atoms in the sequence
-#'     \item "MolWeight" - the total molecular weight of the sequence
+#'     \item "MolWeight" - the total molecular weight of the peptide
 #'     \item "AAtypes" - the proportion of AAs of each type (acidic, aliphatic,
 #'     acidic, etc.)
 #'     \item "BLOSUM" - BLOSUM-derived descriptors (same as
@@ -80,10 +83,10 @@
 #' `lambda` for "PAAC" must be smaller than the length of the shortest local
 #' string).
 #'
-#' **IMPORTANT**: if the splitting level intended to be used for modelling is
-#' "peptide" (this can be checked in `peptides.list$splits.attrs$split_level`)
-#' then global features should be avoided, as their use can result in
-#' data leakage across splits and contaminate performance calculations.
+#' **IMPORTANT**: if these features are to be used for epitope prediction,
+#' the **global** features should be avoided or approached with extreme care, as
+#' their use may result in accidental data leakage across splits and contaminate
+#' performance calculations.
 #'
 #' @section **Feature Vectors**:
 #' Input vectors `local.features` and `global.features` are used to define
@@ -100,7 +103,9 @@
 #' `peptides.list$proteins` (for global ones). All feature columns should have
 #' names starting with "feat_local_" or "feat_global_".
 #'
-#' @param peptides.list list object returned by [make_data_splits()].
+#' @param peptides.list list object containing a data frame `df` (with labelled
+#' peptides, 1 row per residue) and a data frame `proteins` (with protein
+#' information). Commonly returned by make_data_splits().
 #' @param local.features list of features to be calculated
 #' at the local neighbourhood (`peptides.list$df$Info_window`) level.
 #' @param global.features lists of features to be calculated
@@ -119,10 +124,10 @@
 #' @importFrom dplyr %>%
 #' @importFrom rlang .data
 #'
-calc_features <- function(peptides.list,
-                          local.features = character(),
-                          global.features = character(),
-                          ...){
+calc_classic_features <- function(peptides.list,
+                                  local.features = character(),
+                                  global.features = character(),
+                                  ...){
   # ========================================================================== #
   # Sanity checks and initial definitions
   assertthat::assert_that(is.list(peptides.list),

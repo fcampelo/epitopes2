@@ -1,4 +1,4 @@
-extractBLOSUM <- function (x, ...)
+extractBLOSUM <- function (x, eig, AABLOSUM62, ...)
 {
   ### adapted from package protr to use internal BLOSUM62 matrix (preventing
   ### errors emerging from matrix protr::AABLOSUM62 not being exported to
@@ -11,9 +11,8 @@ extractBLOSUM <- function (x, ...)
   lag    <- 3
   accmat <- matrix(0, k, nchar(x))
 
-  #eig         <- eigen(submat)
-  A           <- AABLOSUM62_eigvec # eig$vectors
-  B           <- AABLOSUM62_eigval # eig$values
+  A           <- eig$vectors
+  B           <- eig$values
   rownames(A) <- rownames(AABLOSUM62)
 
   x.split <- strsplit(x, "")[[1]]

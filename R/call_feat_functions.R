@@ -23,7 +23,10 @@ call_feat_functions <- function(SEQs, feat.name, txt.opts, dfnames){
 
   message("   ", txt.opts[1], ":", feat.name)
   myargs <- get_feature_args(feat.name)
+
   AABLOSUM62 <- protr::AABLOSUM62 # just to load the matrix into the search path
+
+
   y <- lapply(SEQs,
               function(x, fn, myargs){
                 myargs$x <- x

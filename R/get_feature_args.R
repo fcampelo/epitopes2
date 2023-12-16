@@ -18,7 +18,9 @@ get_feature_args <- function(feat.name){
                    Entropy = list(),
                    Atoms = list(),
                    MolWeight = list(),
-                   AAtypes = list())
+                   AAtypes = list(),
+                   BLOSUM = list(AABLOSUM62 = protr::AABLOSUM62,
+                                 eig = eigen(protr::AABLOSUM62)))
 
   return(myargs)
 }
