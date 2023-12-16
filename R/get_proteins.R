@@ -1,7 +1,6 @@
 #' Retrieve protein sequences and data from GenBank and Uniprot
 #'
-#' This function is used to retrieve data from
-#' Genbank's protein database for
+#' This function is used to retrieve data from Genbank's protein database for
 #' given protein IDs. If an ID is not available from Genbank the function will
 #' try to retrieve it from Uniprot.
 #'
@@ -72,7 +71,7 @@ get_proteins <- function(uids, save_folder = NULL){
         reslist[[idx]]$DB  <- "NCBI protein"
       }
       # Print progress bar
-      mypb(i = cc, max_i = length(errlist), t0 = t0, npos = 40)
+      mypb(i = cc, max_i = length(errlist), t0 = t0, npos = 50)
       cc <- cc + 1
 
       # save tmp results (if needed)
