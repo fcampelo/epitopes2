@@ -1,4 +1,4 @@
-call_feat_functions <- function(SEQs, feat.name, txt.opts, dfnames){
+call_feat_functions <- function(SEQs, feat.name){
 
   internal.functions <- c("extractAAtypes", "extractAtoms", "extractEntropy",
                           "extractLegacyFeatures", "extractMolWeight",
@@ -21,7 +21,6 @@ call_feat_functions <- function(SEQs, feat.name, txt.opts, dfnames){
     SEQs <- sapply(SEQs, function(x){gsub("[^ACDEFGHIKLMNPQRSTVWY]", "", x)})
   }
 
-  message("   ", txt.opts[1], ":", feat.name)
   myargs <- get_feature_args(feat.name)
 
   AABLOSUM62 <- protr::AABLOSUM62 # just to load the matrix into the search path
@@ -34,10 +33,10 @@ call_feat_functions <- function(SEQs, feat.name, txt.opts, dfnames){
                         args = myargs)},
               fn = fn, myargs = myargs) %>%
     unname() %>%
-    dplyr::bind_rows() %>%
-    dplyr::rename_with(~ ifelse(feat.name == .x,
-                                paste0("feat_", txt.opts[1], "_", .x),
-                                paste0("feat_", txt.opts[1], "_", feat.name, "_", .x)))
+    dplyr::bind_rows()
+    # dplyr::rename_with(~ ifelse(feat.name == .x,
+    #                             paste0("feat_", txt.opts[1], "_", .x),
+    #                             paste0("feat_", txt.opts[1], "_", feat.name, "_", .x)))
 
   return(y)
 }
