@@ -15,7 +15,7 @@
 #' @param save_folder path to folder for saving the results. It will save the
 #' results as file *peptides_list.rds* (overwriting if necessary)
 #'
-#' @return List containing two data frames:
+#' @return List containing three data frames:
 #'
 #' \itemize{
 #'    \item **df**:  data frame containing the labeled positions of `df`
@@ -24,6 +24,8 @@
 #'    (to be used for feature calculation)
 #'    \item **peptides**: data frame containing one peptides per row, together
 #'    with its calculated Class attribute value.
+#'    \item **proteins**: data frame containing one protein per row, with all
+#'    proteins that appear at least once in `df` and `peptides`.
 #' }
 #'
 #' @author Felipe Campelo (\email{f.campelo@@aston.ac.uk})
@@ -33,10 +35,10 @@
 #' @importFrom dplyr %>%
 #' @importFrom rlang .data
 
-extract_peptides <- function(df,
-                             min_peptide = 8, max_epitope = 30,
-                             window_size = (2 * min_peptide) - 1,
-                             save_folder = NULL){
+extract_labelled_data <- function(df,
+                                  min_peptide = 8, max_epitope = 30,
+                                  window_size = (2 * min_peptide) - 1,
+                                  save_folder = NULL){
 
   # ========================================================================== #
   # Sanity checks and initial definitions
@@ -53,6 +55,13 @@ extract_peptides <- function(df,
   consolidate.attrs <- my.attrs[names(my.attrs) %in% c("only_exact", "set_positive")]
 
   # ========================================================================== #
+
+  # Get proteins
+  proteins <- df %>%
+    dplyr::group_by(.data$Info_protein_id) %>%
+    dplyr::summarise(Info_protein_sequence = paste(Info_AA, collapse = ""),
+                     .groups = "drop")
+
   # Identify contiguous labelled peptides in each protein
   message("Identifying contiguous labeled regions...")
   df <- df %>%
@@ -66,8 +75,7 @@ extract_peptides <- function(df,
     dplyr::ungroup()
 
 
-  # Extract individual contiguous peptides of length between min_peptide and
-  # max_peptide
+  # Extract individual contiguous peptides
   message("Extracting labelled peptides...")
   peptides <- df %>%
     dplyr::filter(!is.na(.data$Class),
@@ -101,8 +109,11 @@ extract_peptides <- function(df,
     dplyr::ungroup()
 
 
+
+
   outlist <- list(df                = df,
                   peptides          = peptides,
+                  proteins          = proteins,
                   filter.attrs      = filter.attrs,
                   consolidate.attrs = consolidate.attrs,
                   peptide.attrs     = list(min_peptide = min_peptide,

@@ -2,6 +2,7 @@
 
 export(calc_features_classic)
 export(consolidate_data)
+export(extract_labelled_data)
 export(get_IEDB)
 export(get_LBCE)
 export(get_proteins)
