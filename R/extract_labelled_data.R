@@ -59,7 +59,7 @@ extract_labelled_data <- function(df,
   # Get proteins
   proteins <- df %>%
     dplyr::group_by(.data$Info_protein_id) %>%
-    dplyr::summarise(Info_protein_sequence = paste(Info_AA, collapse = ""),
+    dplyr::summarise(Info_protein_sequence = paste(.data$Info_AA, collapse = ""),
                      .groups = "drop")
 
   # Identify contiguous labelled peptides in each protein
@@ -104,11 +104,9 @@ extract_labelled_data <- function(df,
     dplyr::filter(!is.na(.data$Class),
                   .data$Info_peptide_length >= min_peptide,
                   (.data$Class == -1) | (.data$Info_peptide_length <= max_epitope)) %>%
-    dplyr::select(.data$Info_PepID, dplyr::everything(),
+    dplyr::select(.data$Info_PepID, dplyr::everything(), -.data$Class,
                   -.data$IsBreak, -.data$Info_peptide_length, .data$Class) %>%
     dplyr::ungroup()
-
-
 
 
   outlist <- list(df                = df,

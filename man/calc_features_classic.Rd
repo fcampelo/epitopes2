@@ -4,30 +4,21 @@
 \alias{calc_features_classic}
 \title{Calculate classic features for epitope prediction}
 \usage{
-calc_features_classic(
-  peptides.df = NULL,
-  proteins.df = NULL,
-  features = character()
-)
+calc_features_classic(df, seqs_column, features, ncpus = 1)
 }
 \arguments{
-\item{peptides.list}{list object containing a data frame \code{df} (with labelled
-peptides, 1 row per residue) and a data frame \code{proteins} (with protein
-information). Commonly returned by make_data_splits().}
+\item{df}{data frame containing one column with sequences for feature
+calculation.}
 
-\item{local.features}{list of features to be calculated
-at the local neighbourhood (\code{peptides.list$df$Info_window}) level.}
+\item{seqs_column}{name of the column containing the sequences}
 
-\item{global.features}{lists of features to be calculated
-at the global level (\code{peptides.list$proteins$TSeq_sequence}).
-See \strong{Feature Lists} for details.}
+\item{features}{vector of names of features to be calculated.
+See \strong{Feature Vector} for details.}
 
-\item{...}{any other parameters (currently unused)}
+\item{ncpus}{positive integer, number of cores to use}
 }
 \value{
-Updated \code{peptides.list} object, with local features added as columns
-to \code{peptides.list$df}, and global features added as columns to
-\code{peptides.list$proteins}.
+Updated \code{df} with features appended as columns.
 }
 \description{
 This function is used to calculate several distinct families of features for
@@ -37,16 +28,6 @@ neighborhood of each residue in a protein sequence, or of the protein as a
 whole.
 }
 \details{
-Two major types of features can be calculated:
-\itemize{
-\item \emph{local features}, which are calculated based on the local
-neighbourhood of each AA position (column \emph{Info_window} of the windowed
-data frame).
-\item \emph{global features}, which are calculated using the full sequence
-of the protein (listed in column \emph{TSeq_sequence}  of the protein
-data frame).
-}
-
 The following features are calculated based on the implementations available
 in package
 \href{https://cran.r-project.org/package=protr}{\strong{protr}}. As of December 2023,
@@ -98,32 +79,26 @@ acidic, etc.)
 \doi{10.1093/bioinformatics/btab536}
 }
 
-Each feature group may be used either at the local or global level -
-which does not mean it \emph{should} be. The \strong{protr} documentation provides
-the following warning: "\emph{Users need to intelligently evaluate the underlying}
+Each feature group may be used for peptides or full protein sequences
+Note, however, the warning from the \strong{protr} documentation:
+"\emph{Users need to intelligently evaluate the underlying}
 \emph{details of the descriptors provided, instead of using protr with their data}
 \emph{blindly, especially for the descriptor types with more flexibility. It}
 \emph{would be wise for the users to use some negative and positive control}
 \emph{comparisons where relevant to help guide interpretation of the results.}".
-Users should therefore be savvy when choosing which features to use for epitope
-prediction, and the choice should ideally be guided by domain expertise.
-Certain feature groups may not make sense as local features,
-as the (usually very short) local substrings will not allow the features to
-be informative (e.g., tripeptide composition, "TC"); or may require
-specific overriding of standard parameters (e.g., parameter
-\code{lambda} for "PAAC" must be smaller than the length of the shortest local
-string).
-
-\strong{IMPORTANT}: if these features are to be used for epitope prediction,
-the \strong{global} features should be avoided or approached with extreme care, as
-their use may result in accidental data leakage across splits and contaminate
-performance calculations.
+Users should therefore be savvy when choosing which features to use for
+epitope prediction, and the choice should ideally be guided by domain
+expertise. Certain feature groups may not make sense for short peptides,
+as they may be almost completely uninformative (e.g., tripeptide composition,
+"TC"); or may require specific overriding of standard parameters (e.g.,
+parameter \code{lambda} for "PAAC" must be smaller than the length of the shortest
+peptide).
 }
 \section{\strong{Feature Vectors}}{
 
-Input vectors \code{local.features} and \code{global.features} are used to define
-which features are calculated at either level. These input parameters must be
-character vectors, where each element is one of the names listed in
+Input vector \code{features} is used to define which features are calculated
+for proteins or peptides. This input parameter must be a
+character vector, where each element is one of the names listed in
 \strong{Details}. For more information on the features calculated by \strong{protr},
 check \code{?protr::extractXYZ}, replacing \code{XYZ} by the group abbreviation (see
 \strong{Details} or the documentation of the \strong{protr} package for the list of
@@ -131,9 +106,10 @@ available feature groups). Notice that, for consistency purposes, the user
 parameters of all \strong{protr} features are kept fixed in this routine.
 If the user wishes to add other features (or the same features with distinct
 parameters) they can calculate those separately
-and bind them to \code{peptides.list$df} (for local features) or
-\code{peptides.list$proteins} (for global ones). All feature columns should have
-names starting with "feat_local_" or "feat_global_".
+and bind them to \code{df}. All feature columns calculated in this function
+will have names starting with "feat_", and if externally-calculated features
+are added they should follow the same pattern (for compatibility with the
+other functions in this package).
 }
 
 \author{
