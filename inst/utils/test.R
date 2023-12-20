@@ -1,7 +1,7 @@
 library(dplyr)
-library(epitopes)
+# library(epitopes)
 
-ncpus <- 6#parallel::detectCores() - 1
+ncpus <- parallel::detectCores() - 2
 
 orgID  <- 10242
 

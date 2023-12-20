@@ -1,4 +1,4 @@
-get_feature_args <- function(feat.name, M){
+get_feature_args <- function(feat.name){
 
   myargs <- switch(EXPR = feat.name,
                    AAC = list(),
@@ -19,8 +19,8 @@ get_feature_args <- function(feat.name, M){
                    Atoms = list(),
                    MolWeight = list(),
                    AAtypes = list(),
-                   BLOSUM = list(blnames = rownames(M),
-                                 eig = eigen(M)))
+                   BLOSUM = list(blnames = rownames(protr::AABLOSUM62),
+                                 eig = eigen(protr::AABLOSUM62)))
 
   return(myargs)
 }

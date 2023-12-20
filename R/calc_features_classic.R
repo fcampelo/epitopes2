@@ -125,17 +125,15 @@ calc_features_classic <- function(df,
     dplyr::select(dplyr::all_of(seqs_column)) %>%
     as.vector()
 
-  M <- protr::AABLOSUM62
-
   y <- mypblapply(X = features,
                   FUN = call_feat_functions,
                   SEQs = SEQs,
                   ncpus = ncpus,
-                  M = M,
-                  toexport = c("M", "get_feature_args",
+                  toexport = c("get_feature_args",
                                "extractAAtypes", "extractAtoms",
                                "extractEntropy", "extractLegacyFeatures",
-                               "extractMolWeight", "extractBLOSUM")) %>%
+                               "extractMolWeight", "extractBLOSUM"),
+                  pks = c("protr")) %>%
     dplyr::bind_cols()
 
   torm <- which(names(df) %in% names(y))

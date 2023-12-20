@@ -14,14 +14,15 @@
 
 
 
-calc_ESM_features(prot.df,
-                  py_script_path,
-                  id_column  = "Info_protein_id",
-                  seqs_column = "Info_protein_sequence",
-                  save_folder = "./esm_features",
-                  model = "esm1b_t33_650M_UR50S",
-                  max_seq = 1022,
-                  step_size = 50){
+calc_ESM_features <- function(prot.df,
+                              py_script_path,
+                              id_column  = "Info_protein_id",
+                              seqs_column = "Info_protein_sequence",
+                              save_folder = "./esm_features",
+                              model = "esm1b_t33_650M_UR50S",
+                              model.params = "--include per_tok --nogpu --repr_layers 33",
+                              max_seq = 1022,
+                              step_size = 50){
 
   # ========================================================================== #
   # Sanity checks and initial definitions
@@ -31,9 +32,9 @@ calc_ESM_features(prot.df,
                           is.character(py_script_path),
                           length(py_script_path) == 1,
                           file.exists(py_script_path),
-                          is.character(save_folder),
-                          length(save_folder) == 1,
+                          is.character(save_folder), length(save_folder) == 1,
                           is.character(model), length(model) == 1,
+                          is.character(model.params), length(model.params) == 1,
                           assertthat::is.count(max_seq),
                           assertthat::is.count(step_size),
                           all(c(seqs_column, id_column) %in% names(prot.df)))
@@ -116,6 +117,10 @@ calc_ESM_features(prot.df,
   cmdline <- paste0("python ", py_script_path, " ", model, " ",
                     save_folder, "/proteins_masked.fa ",
                     save_folder, "/proteins_features_", model,
-                    "--include per_tok --nogpu --repr_layers 33")
+                    " ", model.params)
+
+  system(cmdline)
+
+  return(TRUE)
 
 }

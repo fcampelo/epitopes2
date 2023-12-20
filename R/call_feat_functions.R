@@ -1,4 +1,4 @@
-call_feat_functions <- function(feat.name, SEQs, M){
+call_feat_functions <- function(feat.name, SEQs){
 
   internal.functions <- c("extractAAtypes", "extractAtoms", "extractEntropy",
                           "extractLegacyFeatures", "extractMolWeight",
@@ -21,7 +21,7 @@ call_feat_functions <- function(feat.name, SEQs, M){
     SEQs <- sapply(SEQs, function(x){gsub("[^ACDEFGHIKLMNPQRSTVWY]", "", x)})
   }
 
-  myargs <- get_feature_args(feat.name, M)
+  myargs <- get_feature_args(feat.name)
 
   y <- lapply(SEQs,
               function(x, fn, myargs){
