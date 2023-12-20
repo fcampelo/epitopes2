@@ -12,7 +12,7 @@ containing the XML files}
 
 \item{ncpus}{positive integer, number of cores to use}
 
-\item{save_folder}{path to folder saving the output.}
+\item{save_folder}{path to folder for saving the output.}
 }
 \value{
 A data frame containing the epitope data.

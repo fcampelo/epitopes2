@@ -12,7 +12,7 @@
 #' @param data_folder path (either relative or absolute) to the directory
 #'        containing the XML files
 #' @param ncpus positive integer, number of cores to use
-#' @param save_folder path to folder saving the output.
+#' @param save_folder path to folder for saving the output.
 #'
 #' @return A data frame containing the epitope data.
 #'
