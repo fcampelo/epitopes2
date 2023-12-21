@@ -8,7 +8,7 @@ cmdline <- paste0("python3", " ",
                   SAVE_FOLDER, " ",
                   MODEL_OPTS)
 
-system(cmdline, show.output.on.console = TRUE)
+system(cmdline)
 
 # Alternatively, run the line below (adapt as needed)
 # on the terminal
