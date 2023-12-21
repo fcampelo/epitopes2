@@ -103,8 +103,7 @@ def main(args):
                 contacts = out["contacts"].to(device="cpu")
 
             for i, label in enumerate(labels):
-                # args.output_file = args.output_dir / f"{label}.pt"
-                args.output_file2 = args.output_dir / f"{label}.pkl"
+                args.output_file = args.output_dir / f"{label}.pkl"
                 args.output_file.parent.mkdir(parents=True, exist_ok=True)
                 result = {"label": label}
                 truncate_len = min(args.truncation_seq_length, len(strs[i]))
@@ -133,7 +132,7 @@ def main(args):
                 #)
                 
                 tmp = pd.DataFrame(pd.DataFrame(result).representations[33].numpy())
-                tmp.to_pickle(args.output_file2)
+                tmp.to_pickle(args.output_file)
 
 
 if __name__ == "__main__":

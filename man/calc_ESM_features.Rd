@@ -9,7 +9,7 @@ calc_ESM_features(
   py_script_path,
   id_column = "Info_protein_id",
   seqs_column = "Info_protein_sequence",
-  save_folder = "./esm1b_features",
+  save_folder = "./output/esm1b_features",
   model = "esm1b_t33_650M_UR50S",
   model.params = "--include per_tok --nogpu --repr_layers 33",
   chunk_size = 1000,
