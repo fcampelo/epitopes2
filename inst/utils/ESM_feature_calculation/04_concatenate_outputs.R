@@ -2,7 +2,7 @@ require(reticulate)
 require(pbapply)
 require(dplyr)
 
-outdir <- paste0(save_folder, "/proteins_rds")
+outdir <- paste0(SAVE_FOLDER, "/proteins_rds")
 if(!dir.exists(outdir)) dir.create(outdir, recursive = TRUE)
 
 if(!reticulate::py_module_available("pandas"))
@@ -10,36 +10,34 @@ if(!reticulate::py_module_available("pandas"))
 
 pd <- reticulate::import("pandas")
 
-fl    <- dir(save_folder, pattern = ".pkl", full.names = TRUE)
+fl    <- dir(SAVE_FOLDER, pattern = ".pkl", full.names = TRUE)
 fn    <- paste0("/",
-                unname(sapply(dir(save_folder,
+                unname(sapply(dir(SAVE_FOLDER,
                                   pattern = ".pkl"),
                               function(x)
                                 strsplit(x,
                                          split = "\\/|\\_\\_|\\.pkl")[[1]][1])))
 fn_un <- unique(fn)
 
-.ignore <- pbapply::pblapply(
-  X   = seq_along(fn_un),
-  FUN = function(i, fn, fl, fn_un){
-    idx <- grep(paste0(gsub(".", "\\.", fn_un[i], fixed = TRUE), "$"), fn)
-    X   <- lapply(fl[idx], X <- reticulate::py_load_object)
-    if (length(X) == 1){
-      X <- X[[1]]
-    } else {
-      for(k in seq_along(idx)){
-        rng <- strsplit(fl[idx][k], split = "\\_\\_")[[1]][2]
-        rng <- as.numeric(strsplit(rng, split = "\\_|\\.")[[1]][1:2])
-        X[[k]]$pos <- seq(rng[1], rng[2])
-      }
-      X <- dplyr::bind_rows(X) %>%
-        dplyr::group_by(.data$pos) %>%
-        dplyr::summarise(dplyr::across(dplyr::everything(), mean))
-      X$pos <- NULL
+for (i in seq_along(fn_un)){
+  cat(sprintf("\rConcatenating %04d of %04d", i, length(fn_un)))
+  idx <- grep(paste0(gsub(".", "\\.", fn_un[i], fixed = TRUE), "$"), fn)
+  X   <- lapply(fl[idx], X <- reticulate::py_load_object)
+  if (length(X) == 1){
+    X <- X[[1]]
+  } else {
+    for(k in seq_along(idx)){
+      cat(".")
+      rng <- strsplit(fl[idx][k], split = "\\_\\_")[[1]][2]
+      rng <- as.numeric(strsplit(rng, split = "\\_|\\.")[[1]][1:2])
+      X[[k]]$pos <- seq(rng[1], rng[2])
     }
-    names(X) <- paste0(feat_prefix, names(X))
-    saveRDS(X, paste0(outdir, fn[idx[1]], ".rds"))
-    invisible(TRUE)
-  },
-  fn = fn, fl = fl, fn_un = fn_un,
-  cl = ncpus)
+    X <- dplyr::bind_rows(X) %>%
+      dplyr::group_by(.data$pos) %>%
+      dplyr::summarise(dplyr::across(dplyr::everything(), mean)) %>%
+      dplyr::select(-pos)
+  }
+  names(X) <- paste0(feat_prefix, names(X))
+  saveRDS(X, paste0(outdir, fn[idx[1]], ".rds"))
+}
+

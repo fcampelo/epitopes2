@@ -74,7 +74,7 @@ IDs <- prot1 %>%
   dplyr::select(dplyr::all_of(id_column)) %>%
   unlist() %>% unname()
 
-SEQs <- gsub("[^ACDEFGHIKLMNPQRSTVWY]", "<mask>", SEQs)
+SEQs <- gsub("[^ABCDEFGHIKLMNOPQRSTUVWXYZ]", "-", SEQs)
 
 
 seqinr::write.fasta(as.list(SEQs),

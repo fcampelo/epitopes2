@@ -33,5 +33,5 @@ is to break longer sequences in smaller overlapping windows, predict
 independently and then aggregate in post-processing, averaging where needed.
 We follow this strategy here.
 
-NOTE: For the feature calculation, any non-standard AA character is replaced by the `<mask>` placeholder.
+NOTE: For the feature calculation, any non-standard AA character is replaced by `-`, which is internally interpreted by ESM-1b as the `<unk>` token (see https://github.com/facebookresearch/esm/issues/13).
 
