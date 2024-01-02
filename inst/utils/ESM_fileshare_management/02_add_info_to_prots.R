@@ -46,9 +46,9 @@ for (i in seq_along(dirs)){
   }
 }
 
-myerrors <- read.csv("add_info_errors.csv")
-myerrors
-
+# myerrors <- read.csv("add_info_errors.csv")
+# myerrors
+#
 #
 # for (i in seq_along(dirs)){
 #   cat("\n")
