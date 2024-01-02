@@ -42,7 +42,10 @@ get_proteins <- function(uids, save_folder = NULL){
   reslist <- vector("list", length = length(uids))
   nerr    <- Inf
 
-  # First try retrieving from NCBI/protein
+
+
+
+  ## ============ First try retrieving from NCBI/protein
   message("\nTrying to retrieve ", length(reslist), " proteins",
           "\nStarted at ", as.character(t0),
           "\nThis may take a while...")
@@ -81,6 +84,7 @@ get_proteins <- function(uids, save_folder = NULL){
                 file = tmpf)
       }
     }
+    cat("\n")
     errlist <- which(sapply(reslist, function(x) {is.null(x$UID)}))
   }
 
@@ -91,8 +95,12 @@ get_proteins <- function(uids, save_folder = NULL){
             file = tmpf)
   }
 
+
+
+
+  ## ============ Try retrieving remaining ids from Uniprot
   if (length(errlist) > 0){
-    # Try retrieving remaining ids from Uniprot
+
     nerr <- Inf
     while(length(errlist) < nerr && length(errlist) > 0){
       nerr <- length(errlist)
@@ -138,9 +146,62 @@ get_proteins <- function(uids, save_folder = NULL){
         mypb(i = cc, max_i = length(errlist), t0 = t0, npos = 30)
         cc <- cc + 1
       }
+      cat("\n")
       errlist <- which(sapply(reslist, function(x) {is.null(x$UID)}))
     }
   }
+
+
+
+  # ======== Try retrieving remaining ids from Uniprot (archived)
+  ntries <- 0
+  if (length(errlist) > 0){
+
+    nerr <- Inf
+    while(length(errlist) < nerr && length(errlist) > 0 & ntries <= 5){
+      ntries <- ntries + 1
+      nerr <- length(errlist)
+      message("\nTrying to retrieve ", length(errlist), " entries from Uniprot (archived)")
+      cc <- 0
+      for (idx in errlist){
+        # Try fetching data
+        errk <- FALSE
+        tryCatch({
+          myurl <- paste0("https://rest.uniprot.org/unisave/",
+                          uids[idx], "?format=fasta&versions=1")
+          x     <- utils::read.csv(myurl, header = FALSE, sep = ";")
+        },
+        warning = function(c) {errk <<- TRUE},
+        error   = function(c) {errk <<- TRUE},
+        finally = NULL)
+
+        if(!errk){
+          ntries <- 0
+          seq   <- paste0(x[-1, 1], collapse = "")
+          reslist[[idx]]$TSeq_seqtype  <- "protein"
+          reslist[[idx]]$TSeq_accver   <- NA
+          reslist[[idx]]$TSeq_taxid    <- "Archived Entry"
+          reslist[[idx]]$TSeq_orgname  <- "Archived Entry"
+          reslist[[idx]]$TSeq_defline  <- "Archived Entry"
+          reslist[[idx]]$TSeq_length   <- nchar(seq)
+          reslist[[idx]]$TSeq_sequence <- seq
+
+          reslist[[idx]]$UID <- uids[idx]
+          reslist[[idx]]$DB  <- "UniprotKB-ARCHIVED/DELETED"
+
+        }
+        # Print progress bar
+        mypb(i = cc, max_i = length(errlist), t0 = t0, npos = 30)
+        cc <- cc + 1
+      }
+      cat("\n")
+      errlist <- which(sapply(reslist, function(x) {is.null(x$UID)}))
+    }
+  }
+
+
+
+
 
   if(length(errlist) > 0) reslist <- reslist[-errlist]
   errlist <- uids[errlist]
