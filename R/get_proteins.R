@@ -158,8 +158,8 @@ get_proteins <- function(uids, save_folder = NULL){
   if (length(errlist) > 0){
 
     nerr <- Inf
-    while(length(errlist) < nerr && length(errlist) > 0 & ntries <= 5){
-      ntries <- ntries + 1
+    while(length(errlist) < nerr && length(errlist) > 0 && ntries <= 5){
+      if(length(errlist) == nerr) ntries <- ntries + 1
       nerr <- length(errlist)
       message("\nTrying to retrieve ", length(errlist), " entries from Uniprot (archived)")
       cc <- 0
@@ -176,7 +176,6 @@ get_proteins <- function(uids, save_folder = NULL){
         finally = NULL)
 
         if(!errk){
-          ntries <- 0
           seq   <- paste0(x[-1, 1], collapse = "")
           reslist[[idx]]$TSeq_seqtype  <- "protein"
           reslist[[idx]]$TSeq_accver   <- NA
