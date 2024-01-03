@@ -10,6 +10,9 @@
 #' but considerably more robust to errors.
 #'
 #' @param uids A character vector with protein IDs.
+#' @param DBs A character vector listing the databases to be searched.
+#' Valid entries are "ncbi", "uniprot" and "uniprot-archived". Anything else is
+#' ignored.
 #' @param save_folder path to folder for saving the results.
 #'
 #' @return A data frame with the extracted proteins.
@@ -19,14 +22,19 @@
 #' @export
 #'
 
-get_proteins <- function(uids, save_folder = NULL){
+get_proteins <- function(uids,
+                         DBs = c("ncbi", "uniprot", "uniprot-archived"),
+                         save_folder = NULL){
 
   # ========================================================================== #
   # Sanity checks and initial definitions
   t0 <- Sys.time()
+  DBs <- tolower(DBs)
   assertthat::assert_that(is.null(save_folder) | is.character(save_folder),
                           length(save_folder) <= 1,
                           is.character(uids),
+                          is.character(DBs), length(DBs) >= 1,
+                          any(DBs %in% c("ncbi", "uniprot", "uniprot-archived")),
                           length(uids) >= 1)
 
   # Check save folder and create file names
@@ -43,63 +51,63 @@ get_proteins <- function(uids, save_folder = NULL){
   nerr    <- Inf
 
 
-
-
-  ## ============ First try retrieving from NCBI/protein
   message("\nTrying to retrieve ", length(reslist), " proteins",
           "\nStarted at ", as.character(t0),
           "\nThis may take a while...")
-  while(length(errlist) < nerr && length(errlist) > 0){
-    nerr <- length(errlist)
-    message("Trying to retrieve ", length(errlist),
-        " entries from NCBI (db = protein)")
-    cc <- 0
-    for (idx in errlist){
-      # Try fetching data
-      tryCatch({
-        x <- reutils::efetch(uid = uids[idx],
-                             db      = "protein",
-                             rettype = "fasta",
-                             retmode = "xml")
 
-        reslist[idx] <- XML::xmlToList(x$get_content())
-      },
-      warning = function(c) {errk <<- TRUE},
-      error   = function(c) {errk <<- TRUE},
-      finally = NULL)
 
-      if(!is.null(reslist[[idx]]) &
-         !("ERROR" %in% names(reslist[[idx]]))){
-        reslist[[idx]]$UID <- uids[idx]
-        reslist[[idx]]$DB  <- "NCBI protein"
+  ## ============ Try retrieving from NCBI/protein
+  if("ncbi" %in% DBs && length(errlist) > 0){
+    while(length(errlist) < nerr && length(errlist) > 0){
+      nerr <- length(errlist)
+      message("Trying to retrieve ", length(errlist),
+              " entries from NCBI (db = protein)")
+      cc <- 0
+      for (idx in errlist){
+        # Try fetching data
+        tryCatch({
+          x <- reutils::efetch(uid = uids[idx],
+                               db      = "protein",
+                               rettype = "fasta",
+                               retmode = "xml")
+
+          reslist[idx] <- XML::xmlToList(x$get_content())
+        },
+        warning = function(c) {errk <<- TRUE},
+        error   = function(c) {errk <<- TRUE},
+        finally = NULL)
+
+        if(!is.null(reslist[[idx]]) &
+           !("ERROR" %in% names(reslist[[idx]]))){
+          reslist[[idx]]$UID <- uids[idx]
+          reslist[[idx]]$DB  <- "NCBI protein"
+        }
+        # Print progress bar
+        mypb(i = cc, max_i = length(errlist), t0 = t0, npos = 50)
+        cc <- cc + 1
+
+        # save tmp results (if needed)
+        if(!is.null(save_folder) && !(cc %% 100)){
+          saveRDS(object = list(reslist = reslist, errlist = errlist,
+                                idx = idx, uids = uids),
+                  file = tmpf)
+        }
       }
-      # Print progress bar
-      mypb(i = cc, max_i = length(errlist), t0 = t0, npos = 50)
-      cc <- cc + 1
-
-      # save tmp results (if needed)
-      if(!is.null(save_folder) && !(cc %% 100)){
-        saveRDS(object = list(reslist = reslist, errlist = errlist,
-                              idx = idx, uids = uids),
-                file = tmpf)
-      }
+      cat("\n")
+      errlist <- which(sapply(reslist, function(x) {is.null(x$UID)}))
     }
-    cat("\n")
-    errlist <- which(sapply(reslist, function(x) {is.null(x$UID)}))
+
+    # save tmp results (if needed)
+    if(!is.null(save_folder)){
+      saveRDS(object = list(reslist = reslist, errlist = errlist,
+                            idx = idx, uids = uids),
+              file = tmpf)
+    }
   }
-
-  # save tmp results (if needed)
-  if(!is.null(save_folder)){
-    saveRDS(object = list(reslist = reslist, errlist = errlist,
-                          idx = idx, uids = uids),
-            file = tmpf)
-  }
-
-
 
 
   ## ============ Try retrieving remaining ids from Uniprot
-  if (length(errlist) > 0){
+  if ("uniprot" %in% DBs && length(errlist) > 0){
 
     nerr <- Inf
     while(length(errlist) < nerr && length(errlist) > 0){
@@ -149,14 +157,18 @@ get_proteins <- function(uids, save_folder = NULL){
       cat("\n")
       errlist <- which(sapply(reslist, function(x) {is.null(x$UID)}))
     }
+
+    if(!is.null(save_folder)){
+      saveRDS(object = list(reslist = reslist, errlist = errlist,
+                            idx = idx, uids = uids),
+              file = tmpf)
+    }
   }
 
 
-
   # ======== Try retrieving remaining ids from Uniprot (archived)
-  ntries <- 0
-  if (length(errlist) > 0){
-
+  if ("uniprot" %in% DBs && length(errlist) > 0){
+    ntries <- 0
     nerr <- Inf
     while(length(errlist) < nerr && length(errlist) > 0 && ntries <= 5){
       if(length(errlist) == nerr) ntries <- ntries + 1
@@ -196,10 +208,13 @@ get_proteins <- function(uids, save_folder = NULL){
       cat("\n")
       errlist <- which(sapply(reslist, function(x) {is.null(x$UID)}))
     }
+
+    if(!is.null(save_folder)){
+      saveRDS(object = list(reslist = reslist, errlist = errlist,
+                            idx = idx, uids = uids),
+              file = tmpf)
+    }
   }
-
-
-
 
 
   if(length(errlist) > 0) reslist <- reslist[-errlist]
@@ -221,7 +236,7 @@ get_proteins <- function(uids, save_folder = NULL){
   }
 
   message("\nDone!\n", nrow(df), " proteins retrieved.\n",
-      length(errlist), " retrieval errors.")
+          length(errlist), " retrieval errors.")
 
   invisible(df)
 }

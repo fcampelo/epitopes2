@@ -4,10 +4,18 @@
 \alias{get_proteins}
 \title{Retrieve protein sequences and data from GenBank and Uniprot}
 \usage{
-get_proteins(uids, save_folder = NULL)
+get_proteins(
+  uids,
+  DBs = c("ncbi", "uniprot", "uniprot-archived"),
+  save_folder = NULL
+)
 }
 \arguments{
 \item{uids}{A character vector with protein IDs.}
+
+\item{DBs}{A character vector listing the databases to be searched.
+Valid entries are "ncbi", "uniprot" and "uniprot-archived". Anything else is
+ignored.}
 
 \item{save_folder}{path to folder for saving the results.}
 }

@@ -1,8 +1,8 @@
 Package: epitopes
 Type: Package
 Title: Data Retrieval, Consolidation and Mining for Linear Epitope Prediction
-Version: 0.9.9102
-Date: 2023-12-20
+Version: 0.9.9105
+Date: 2024-01-03
 Authors@R: c(person(given = "Felipe", family = "Campelo",
                     email = "f.campelo@aston.ac.uk",
                     role = c("aut", "cre")),
