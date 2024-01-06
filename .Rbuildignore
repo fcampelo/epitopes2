@@ -7,10 +7,10 @@
 ^data$
 ^CRAN-RELEASE$
 ^.*\.rds$
-
 results$
 ^\.github$
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
 ^tmp$
+^~/\.boxr-oauth$
