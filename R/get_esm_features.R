@@ -3,10 +3,12 @@
 #' This function retrieves pre-calculated ESM-1b features given a
 #' list of protein IDs.
 #'
-#' @param uids vector of protein IDs.
+#' @param Info_protein_id vector of protein IDs.
 #' @param path string containing the path to the folder where the feature
-#' files are located. There must be a file in this folder called
-#' `filemap.csv`.
+#' files are located. There must be a tab-separated file in this folder called
+#' `filemap.tsv` with columns `Info_protein_id` (protein ids), `folder`
+#' (relative subfolder containing that protein) and `Info_organism_id`
+#' (comma-separated string .
 #' @param save_folder path to folder for saving the results.
 #'
 #' @return A list vector containing the data frames with the ESM features
@@ -18,7 +20,7 @@
 #' @export
 #'
 
-get_esm_features <- function(uids, path, save_folder = NULL){
+get_esm_features <- function(Info_protein_id, path, save_folder = NULL){
 
   # ========================================================================== #
   # Sanity checks and initial definitions

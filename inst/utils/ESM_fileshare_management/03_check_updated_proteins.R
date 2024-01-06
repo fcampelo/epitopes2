@@ -21,7 +21,8 @@ for (j in seq_along(dirs)){
   filelist <- rbind(filelist,
                     data.frame(Info_protein_id = gsub("\\.rds", "", fn),
                                folder  = sprintf("Folder%02d", j)))
-  write.csv(filelist, "filemap.csv", row.names = FALSE, quote = FALSE)
+  write.table(filelist, "filemap.tsv",
+              row.names = FALSE, quote = FALSE, sep = "\t")
   for (i in seq_along(fl)){
     cat(sprintf("\rFolder %02d/%02d file %03d/%03d",
                 j, length(dirs), i, length(fl)))
@@ -31,7 +32,8 @@ for (j in seq_along(dirs)){
       errlist <- rbind(errlist,
                        data.frame(folder = sprintf("Folder%02d", j),
                                   file   = fn[i]))
-      write.csv(errlist, "errlist.csv", row.names = FALSE, quote = FALSE)
+      write.table(errlist, "errlist.tsv",
+                  row.names = FALSE, quote = FALSE, sep = "\t")
     }
   }
   a <- difftime(Sys.time(), t0)
@@ -58,4 +60,5 @@ X <- epitopes %>%
 filelist <- filelist %>%
   left_join(X, by = "Info_protein_id")
 
-write.csv(filelist, "filemap.csv", row.names = FALSE, quote = FALSE)
+write.table(filelist, "filemap.tsv",
+            row.names = FALSE, quote = FALSE, sep = "\t")
