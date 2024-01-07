@@ -37,17 +37,24 @@ taxonomy_filter <- function(df,
   # ========================================================================== #
   # Sanity checks and initial definitions
   id_classes <- c("NULL", "numeric", "integer", "character")
-  if(!is.null(orgIDs)    && is.na(orgIDs))    orgIDs    <- NULL
-  if(!is.null(hostIDs)   && is.na(hostIDs))   hostIDs   <- NULL
-  if(!is.null(removeIDs) && is.na(removeIDs)) removeIDs <- NULL
+  checkIDs <- function(ids){
+    if(!is.null(ids) && any(is.na(ids))) {
+      ids <- ids[-is.na(ids)]
+      if(length(ids) == 0) ids <- NULL
+    }
+    return(ids)
+  }
+
+  orgIDs    <- checkIDs(orgIDs)
+  hostIDs   <- checkIDs(hostIDs)
+  removeIDs <- checkIDs(removeIDs)
 
   assertthat::assert_that(is.data.frame(df),
                           class(orgIDs)    %in% id_classes,
                           class(hostIDs)   %in% id_classes,
                           class(removeIDs) %in% id_classes,
                           is.character(orgID_column), length(orgID_column) == 1,
-                          is.character(hostID_column),
-                          length(hostID_column) == 1,
+                          is.character(hostID_column), length(hostID_column) == 1,
                           is.list(tax_list))
 
   # Standardise relevant variables:
