@@ -111,6 +111,10 @@ consolidate_data <- function(epitopes, proteins,
                                                             split = "")[[1]])},
                    ncpus = ncpus) %>%
     dplyr::bind_rows()
+  idx <- which(is.na(df$TSeq_taxid))
+  for(i in seq_along(idx)){
+    df$TSeq_taxid[idx[i]] <- epitopes$sourceOrg_id[which(epitopes$protein_id == df$UID[idx[i]])][1]
+  }
 
   # Build long epitope data frame
   message("Building long data frame: epitopes")
