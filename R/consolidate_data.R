@@ -76,10 +76,10 @@ consolidate_data <- function(epitopes, proteins,
 
   # Filter epitopes
   message("Cleaning epitopes dataset...")
-  epitopes <- dplyr::filter(epitopes,
-                            .data$protein_id %in% unique(proteins$UID),         # must have a corresponding protein
-                            !is.na(.data$epit_seq),                             # must have an epit_seq
-                            !is.na(.data$epit_struc_def)) %>%                   # must have a valid epit_struc_def
+  epits <- dplyr::filter(epitopes,
+                         .data$protein_id %in% unique(proteins$UID),         # must have a corresponding protein
+                         !is.na(.data$epit_seq),                             # must have an epit_seq
+                         !is.na(.data$epit_struc_def)) %>%                   # must have a valid epit_struc_def
     dplyr::mutate(prot_substr = mapply(function(id, st, en){                    # filter by correct sequence in protein
       substr(proteins[which(proteins$UID == id), "TSeq_sequence"], st, en)},
       id = .data$protein_id, st = .data$start_pos, en = .data$end_pos)) %>%
@@ -87,15 +87,20 @@ consolidate_data <- function(epitopes, proteins,
     dplyr::select(-"prot_substr")
 
   if (only_exact){
-    epitopes <- dplyr::filter(epitopes, .data$epit_struc_def == "Exact Epitope")
+    epits <- dplyr::filter(epits, .data$epit_struc_def == "Exact Epitope")
   }
 
   # Filter proteins
   message("Cleaning proteins datset...")
   df <- dplyr::filter(proteins,
-                      .data$UID %in% unique(epitopes$protein_id),
+                      .data$UID %in% unique(epits$protein_id),
                       .data$TSeq_seqtype == "protein",
                       !is.na(.data$TSeq_sequence))
+
+  idx <- which(is.na(df$TSeq_taxid))
+  for(i in seq_along(idx)){
+    df$TSeq_taxid[idx[i]] <- epits$sourceOrg_id[which(epits$protein_id == df$UID[idx[i]])][1]
+  }
 
   # ========================================================================== #
   # Build long data frame
@@ -111,14 +116,11 @@ consolidate_data <- function(epitopes, proteins,
                                                             split = "")[[1]])},
                    ncpus = ncpus) %>%
     dplyr::bind_rows()
-  idx <- which(is.na(df$TSeq_taxid))
-  for(i in seq_along(idx)){
-    df$TSeq_taxid[idx[i]] <- epitopes$sourceOrg_id[which(epitopes$protein_id == df$UID[idx[i]])][1]
-  }
+
 
   # Build long epitope data frame
   message("Building long data frame: epitopes")
-  epit_summary <- mypblapply(split(epitopes, seq(nrow(epitopes))),
+  epit_summary <- mypblapply(split(epits, seq(nrow(epits))),
                              FUN = function(x){
                                data.frame(Info_protein_id   = x$protein_id,
                                           Info_pos          = x$start_pos:x$end_pos,
@@ -170,7 +172,7 @@ consolidate_data <- function(epitopes, proteins,
     dplyr::ungroup()
 
   # Propagate original attributes from epitopes onto df
-  tmp1 <- attributes(epitopes)
+  tmp1 <- attributes(epits)
   idx <- which(!(names(tmp1) %in% names(attributes(df))))
   for (i in idx){
     attr(df, names(tmp1)[i]) <- tmp1[[i]]
