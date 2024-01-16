@@ -36,7 +36,7 @@ for (i in seq_along(dirs)){
     } else {
       X <- X %>%
         mutate(Info_pos = 1:nrow(X),
-               Info_AA  = strsplit(prot$TSeq_sequence, split = "")) %>%
+               Info_AA  = strsplit(prot$TSeq_sequence, split = "")[[1]]) %>%
         select(starts_with("Info"), everything())
       names(X) <- gsub("[\\ ]+$", "", names(X))
 
