@@ -412,6 +412,8 @@ get_proteins <- function(uids,
 
   errlist <- prots$Info_protein_id[which(is.na(prots$Info_protein_sequence))]
 
+  if(any(is.na(prots$Info_protein_sequence))) prots <- prots[-which(is.na(prots$Info_protein_sequence)), ]
+
   if(!is.null(save_folder)) {
     saveRDS(object = prots, file = df_file)
     if(length(errlist) > 0) saveRDS(object = errlist, file = errfile)
