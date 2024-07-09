@@ -7,7 +7,9 @@
 get_proteins(
   uids,
   DBs = c("ncbi", "uniprot", "uniprot-archived"),
-  save_folder = NULL
+  blocksize = 250,
+  save_folder = NULL,
+  block.timeout = max(60, blocksize)
 )
 }
 \arguments{
@@ -17,7 +19,12 @@ get_proteins(
 Valid entries are "ncbi", "uniprot" and "uniprot-archived". Anything else is
 ignored.}
 
+\item{blocksize}{size of the retrieval blocks. Needs to be kept below 500.}
+
 \item{save_folder}{path to folder for saving the results.}
+
+\item{block.timeout}{positive integer: timeout for trying to retrieve each
+block}
 }
 \value{
 A data frame with the extracted proteins.

@@ -13,7 +13,10 @@
 #' @param DBs A character vector listing the databases to be searched.
 #' Valid entries are "ncbi", "uniprot" and "uniprot-archived". Anything else is
 #' ignored.
+#' @param blocksize size of the retrieval blocks. Needs to be kept below 500.
 #' @param save_folder path to folder for saving the results.
+#' @param block.timeout positive integer: timeout for trying to retrieve each
+#' block
 #'
 #' @return A data frame with the extracted proteins.
 #'
@@ -24,219 +27,397 @@
 
 get_proteins <- function(uids,
                          DBs = c("ncbi", "uniprot", "uniprot-archived"),
-                         save_folder = NULL){
+                         blocksize = 250, save_folder = NULL,
+                         block.timeout = max(60, blocksize)){
 
   # ========================================================================== #
   # Sanity checks and initial definitions
-  t0 <- Sys.time()
   DBs <- tolower(DBs)
   assertthat::assert_that(is.null(save_folder) | is.character(save_folder),
                           length(save_folder) <= 1,
                           is.character(uids),
+                          length(uids) >= 1,
                           is.character(DBs), length(DBs) >= 1,
                           any(DBs %in% c("ncbi", "uniprot", "uniprot-archived")),
-                          length(uids) >= 1)
+                          assertthat::is.count(blocksize),
+                          assertthat::is.count(block.timeout),
+                          blocksize < 500)
 
   # Check save folder and create file names
   if(!is.null(save_folder)) {
     if(!dir.exists(save_folder)) dir.create(save_folder, recursive = TRUE)
-    df_file <- paste0(normalizePath(save_folder), "/proteins.rds")
+    df_file <- paste0(normalizePath(save_folder), "/proteins_", as.character(Sys.Date()), ".rds")
     errfile <- paste0(normalizePath(save_folder),
-                      "/proteins_retrieval_errlist.rds")
-    tmpf    <- tempfile(fileext = ".rds", tmpdir = save_folder)
-  }
+                      "/protein_retrieval_errors_", as.character(Sys.Date()), ".rds")
+    tmpf    <- tempfile(pattern = "get_proteins_tmpfile_", fileext = ".rds", tmpdir = save_folder)
 
-  errlist <- seq_along(uids)
-  reslist <- vector("list", length = length(uids))
-  nerr    <- Inf
-
-
-  message("\nTrying to retrieve ", length(reslist), " proteins",
-          "\nStarted at ", as.character(t0),
-          "\nThis may take a while...")
-
-
-  ## ============ Try retrieving from NCBI/protein
-  if("ncbi" %in% DBs && length(errlist) > 0){
-    while(length(errlist) < nerr && length(errlist) > 0){
-      nerr <- length(errlist)
-      message("Trying to retrieve ", length(errlist),
-              " entries from NCBI (db = protein)")
-      cc <- 0
-      for (idx in errlist){
-        # Try fetching data
-        tryCatch({
-          x <- reutils::efetch(uid = uids[idx],
-                               db      = "protein",
-                               rettype = "fasta",
-                               retmode = "xml")
-
-          reslist[idx] <- XML::xmlToList(x$get_content())
-        },
-        warning = function(c) {errk <<- TRUE},
-        error   = function(c) {errk <<- TRUE},
-        finally = NULL)
-
-        if(!is.null(reslist[[idx]]) &
-           !("ERROR" %in% names(reslist[[idx]]))){
-          reslist[[idx]]$UID <- uids[idx]
-          reslist[[idx]]$DB  <- "NCBI protein"
-        }
-        # Print progress bar
-        mypb(i = cc, max_i = length(errlist), t0 = t0, npos = 50)
-        cc <- cc + 1
-
-        # save tmp results (if needed)
-        if(!is.null(save_folder) && !(cc %% 100)){
-          saveRDS(object = list(reslist = reslist, errlist = errlist,
-                                idx = idx, uids = uids),
-                  file = tmpf)
-        }
-      }
-      cat("\n")
-      errlist <- which(sapply(reslist, function(x) {is.null(x$UID)}))
-    }
-
-    # save tmp results (if needed)
-    if(!is.null(save_folder)){
-      saveRDS(object = list(reslist = reslist, errlist = errlist,
-                            idx = idx, uids = uids),
-              file = tmpf)
-    }
-  }
-
-
-  ## ============ Try retrieving remaining ids from Uniprot
-  if ("uniprot" %in% DBs && length(errlist) > 0){
-
-    nerr <- Inf
-    while(length(errlist) < nerr && length(errlist) > 0){
-      nerr <- length(errlist)
-      message("\nTrying to retrieve ", length(errlist), " entries from Uniprot")
-      cc <- 0
-      for (idx in errlist){
-        # Try fetching data
-        errk <- FALSE
-        tryCatch({
-          myurl <- paste0("https://www.uniprot.org/uniprot/",
-                          uids[idx], ".fasta")
-          x     <- utils::read.csv(myurl, header = FALSE, sep = ";")
-        },
-        warning = function(c) {errk <<- TRUE},
-        error   = function(c) {errk <<- TRUE},
-        finally = NULL)
-
-        if(!errk){
-          seq   <- paste0(x[-1, 1], collapse = "")
-          #>db|UniqueIdentifier|EntryName ProteinName OS=OrganismName OX=OrganismIdentifier [GN=GeneName ]PE=ProteinExistence SV=SequenceVersion
-          mystr <- strsplit(paste(x[1, ], collapse = ";"), "|", fixed = TRUE)[[1]][3]
-          reslist[[idx]]$TSeq_seqtype  <- "protein"
-          reslist[[idx]]$TSeq_accver   <- NA
-          reslist[[idx]]$TSeq_taxid    <- strsplit(strsplit(mystr, " OX=")[[1]][2],
-                                                   " ")[[1]][1]
-          reslist[[idx]]$TSeq_orgname  <- strsplit(strsplit(mystr, " OS=")[[1]][2],
-                                                   " OX=")[[1]][1]
-          reslist[[idx]]$TSeq_defline  <- strsplit(mystr, " OS=")[[1]][1]
-          reslist[[idx]]$TSeq_length   <- nchar(seq)
-          reslist[[idx]]$TSeq_sequence <- seq
-
-          reslist[[idx]]$UID <- uids[idx]
-
-          dbstr <- strsplit(paste(x[1, ], collapse = ";"), "|", fixed = TRUE)[[1]][1]
-          reslist[[idx]]$DB  <- ifelse(dbstr == ">tr",
-                                       yes = "UniProtKB/TrEMBL",
-                                       no = ifelse(dbstr == ">sp",
-                                                   yes = "UniProtKB/Swiss-Prot",
-                                                   no  = "Uniprot/other"))
-
-        }
-        # Print progress bar
-        mypb(i = cc, max_i = length(errlist), t0 = t0, npos = 30)
-        cc <- cc + 1
-      }
-      cat("\n")
-      errlist <- which(sapply(reslist, function(x) {is.null(x$UID)}))
-    }
-
-    if(!is.null(save_folder)){
-      saveRDS(object = list(reslist = reslist, errlist = errlist,
-                            idx = idx, uids = uids),
-              file = tmpf)
-    }
-  }
-
-
-  # ======== Try retrieving remaining ids from Uniprot (archived)
-  if ("uniprot" %in% DBs && length(errlist) > 0){
-    ntries <- 0
-    nerr <- Inf
-    while(length(errlist) < nerr && length(errlist) > 0 && ntries <= 5){
-      if(length(errlist) == nerr) ntries <- ntries + 1
-      nerr <- length(errlist)
-      message("\nTrying to retrieve ", length(errlist), " entries from Uniprot (archived)")
-      cc <- 0
-      for (idx in errlist){
-        # Try fetching data
-        errk <- FALSE
-        tryCatch({
-          myurl <- paste0("https://rest.uniprot.org/unisave/",
-                          uids[idx], "?format=fasta&versions=1")
-          x     <- utils::read.csv(myurl, header = FALSE, sep = ";")
-        },
-        warning = function(c) {errk <<- TRUE},
-        error   = function(c) {errk <<- TRUE},
-        finally = NULL)
-
-        if(!errk){
-          seq   <- paste0(x[-1, 1], collapse = "")
-          reslist[[idx]]$TSeq_seqtype  <- "protein"
-          reslist[[idx]]$TSeq_accver   <- NA
-          reslist[[idx]]$TSeq_taxid    <- "Archived Entry"
-          reslist[[idx]]$TSeq_orgname  <- "Archived Entry"
-          reslist[[idx]]$TSeq_defline  <- "Archived Entry"
-          reslist[[idx]]$TSeq_length   <- nchar(seq)
-          reslist[[idx]]$TSeq_sequence <- seq
-
-          reslist[[idx]]$UID <- uids[idx]
-          reslist[[idx]]$DB  <- "UniprotKB-ARCHIVED/DELETED"
-
-        }
-        # Print progress bar
-        mypb(i = cc, max_i = length(errlist), t0 = t0, npos = 30)
-        cc <- cc + 1
-      }
-      cat("\n")
-      errlist <- which(sapply(reslist, function(x) {is.null(x$UID)}))
-    }
-
-    if(!is.null(save_folder)){
-      saveRDS(object = list(reslist = reslist, errlist = errlist,
-                            idx = idx, uids = uids),
-              file = tmpf)
-    }
-  }
-
-
-  if(length(errlist) > 0) reslist <- reslist[-errlist]
-  errlist <- uids[errlist]
-
-  reslist <- lapply(reslist,
-                    function(x) {
-                      x <- lapply(x, as.character)
-                      x$TSeq_length <- as.numeric(x$TSeq_length)
-                      return(x)})
-
-  df <- dplyr::bind_rows(reslist)
-
-  # Save results to file
-  if(!is.null(save_folder)){
-    saveRDS(object = df,      file = df_file)
-    saveRDS(object = errlist, file = errfile)
     if(file.exists(tmpf)) file.remove(tmpf)
   }
 
-  message("\nDone!\n", nrow(df), " proteins retrieved.\n",
-          length(errlist), " retrieval errors.")
+  if(any(is.na(uids))) uids <- uids[-which(is.na(uids))]
+  uids <- unique(uids)
+  prots <- data.frame(Info_protein_id           = uids,
+                      Info_protein_id_clean     = gsub("\\.[0-9]+$", "", uids),
+                      Info_protein_version      = NA,
+                      Info_protein_all_ids      = NA,
+                      Info_protein_sequence     = NA,
+                      Info_protein_database     = NA)
 
-  invisible(df)
+  queries <- unique(prots$Info_protein_id_clean)
+  nq <- length(queries) + 1
+  idx <- lapply((0:floor(length(queries) / blocksize)),
+                function(i){
+                  unique(pmin(length(queries), (i*blocksize + 1):((i+1)*blocksize)))})
+  if(!(length(queries) %% blocksize)) idx <- idx[-length(idx)]
+
+  # ========================================================================== #
+
+  ## Try retrieving from NCBI/protein
+  if("ncbi" %in% DBs && length(queries) > 0){
+    while(nq > length(queries)){
+      reslist <- vector("list", length(idx))
+      nq <- length(queries)
+      message("\nNCBI-Protein: Trying to retrieve ", nq, " proteins in ", length(idx), " blocks\n")
+
+      for (i in seq_along(idx)){
+        t0 <- Sys.time()
+        message(sprintf("\rBlock %03d of %03d: Started on %s", i, length(idx), as.character(t0)))
+        # Try fetching data
+        tryCatch({
+          R.utils::withTimeout(
+            {
+              x <- reutils::efetch(uid = queries[idx[[i]]],
+                                   db      = "protein",
+                                   rettype = "gp",
+                                   retmode = "xml")
+
+              x <- XML::xmlToList(x$get_content())
+              reslist[[i]] <- data.frame(
+                Info_protein_id_clean = sapply(x, function(c) {c$`GBSeq_primary-accession`}),
+                Info_protein_version  = sapply(x, function(c) {c$`GBSeq_accession-version`}),
+                Info_protein_all_ids  = sapply(x, function(c) {paste(c$`GBSeq_other-seqids`, collapse = ";")}),
+                Info_protein_sequence = sapply(x, function(c) {toupper(c$GBSeq_sequence)})
+              )
+            }, timeout = block.timeout)
+        },
+        TimeoutException  = function(c) message("\n\nTimeout - consider increasing block.timeout"),
+        warning = function(c) message("Warning happened"),
+        error   = function(c) message("Error happened"),
+        finally = NULL)
+      }
+
+      retrieved <- dplyr::bind_rows(reslist)
+      if(nrow(retrieved) == 0) break
+
+      # Remove duplicates
+      ii <- which(duplicated(retrieved))
+      if(length(ii) > 0) retrieved <- retrieved[-ii, ]
+
+      # Remove NAs
+      ii <- which(is.na(retrieved$Info_protein_sequence))
+      if(length(ii) > 0) retrieved <- retrieved[-ii, ]
+
+      if(nrow(retrieved) == 0) break
+
+      # Get indices of each query on the retrieved dataframe
+      ii <- sapply(queries,
+                   function(id) {
+                     k <- grep(id, retrieved$Info_protein_all_ids, fixed = TRUE)
+                     ifelse(length(k) == 1, k, NA)
+                   },
+                   simplify = TRUE)
+
+      # Remove NAs
+      if(any(is.na(ii))) ii <- ii[-which(is.na(ii))]
+
+      # Build index map and merge retrieved dataframe
+      retdf <- dplyr::left_join(
+        data.frame(Info_protein_id_clean = names(ii),
+                   ret.id = retrieved$Info_protein_id_clean[ii]),
+        retrieved,
+        by = c("ret.id" = "Info_protein_id_clean"))
+
+      # Get indices for merging into final prots dataframe
+      ii <- sapply(prots$Info_protein_id_clean,
+                   function(id) {
+                     k <- grep(id, retdf$Info_protein_all_ids, fixed = TRUE)
+                     ifelse(length(k) == 1, k, NA)
+                   },
+                   simplify = TRUE)
+      ii <- data.frame(prots.idx = 1:nrow(prots),
+                       retdf.idx = ii)
+      if(any(is.na(ii$retdf.idx))) ii <- ii[!is.na(ii$retdf.idx), ]
+
+      # Update final prots dataframe
+      prots$Info_protein_version[ii$prots.idx]  <- retdf$Info_protein_version[ii$retdf.idx]
+      prots$Info_protein_all_ids[ii$prots.idx]  <- retdf$Info_protein_all_ids[ii$retdf.idx]
+      prots$Info_protein_sequence[ii$prots.idx] <- retdf$Info_protein_sequence[ii$retdf.idx]
+      prots$Info_protein_database[ii$prots.idx] <- "NCBI-Protein"
+
+      # Extract remaining (not retrieved) ids
+      queries <- unique(prots$Info_protein_id_clean[which(is.na(prots$Info_protein_sequence))])
+
+      # Update blocksizes
+      blocksize <- ceiling(blocksize * length(queries) / nq)
+      idx <- lapply((0:floor(length(queries) / blocksize)),
+                    function(i){
+                      unique(pmin(length(queries), (i*blocksize + 1):((i+1)*blocksize)))})
+      if(!(length(queries) %% blocksize)) idx <- idx[-length(idx)]
+
+      if(!is.null(save_folder)) saveRDS(object = prots, file = tmpf)
+    }
+    message("\rNCBI-Protein: Finished!\t\t\t\t\t\t\t\t")
+  }
+
+
+
+  ## ============ Try retrieving ids from Uniprot
+  if("uniprot" %in% DBs && length(queries) > 0){
+
+    blocksize <- min(25, blocksize)
+    idx <- lapply((0:floor(length(queries) / blocksize)),
+                  function(i){
+                    unique(pmin(length(queries), (i*blocksize + 1):((i+1)*blocksize)))})
+    if(!(length(queries) %% blocksize)) idx <- idx[-length(idx)]
+
+    nq <- length(queries) + 1
+
+    while(nq > length(queries)){
+      reslist <- vector("list", length(idx))
+      nq <- length(queries)
+      message("\nUniprotKB: Trying to retrieve ", nq, " proteins in ", length(idx), " blocks\n")
+
+      for (i in seq_along(idx)){
+        t0 <- Sys.time()
+        message(sprintf("\rBlock %03d of %03d: Started on %s", i, length(idx), as.character(t0)))
+        # Try fetching data
+        tryCatch({
+          R.utils::withTimeout(
+            {
+              tmp <- lapply(queries[idx[[i]]],
+                            function(id){
+                              tryCatch({
+                                myurl <- paste0("https://rest.uniprot.org/uniprotkb/",
+                                                id, ".fasta")
+                                seqs <- protr::readFASTA(myurl, seqonly = FALSE)
+                                data.frame(Info_protein_id_clean = id,
+                                           Info_protein_all_ids  = names(seqs),
+                                           Info_protein_sequence = unname(seqs)[[1]])},
+                                warning = function(c) cat("!"),
+                                error   = function(c) data.frame(Info_protein_id_clean = character(),
+                                                                 Info_protein_all_ids  = character(),
+                                                                 Info_protein_sequence = character()),
+                                finally = NULL)})
+
+              reslist[[i]] <- dplyr::bind_rows(tmp)
+            }, timeout = block.timeout)
+        },
+        TimeoutException  = function(c) message("\n\nTimeout - consider increasing block.timeout"),
+        warning = function(c) message("Warning(s) happened"),
+        error   = function(c) message("Error happened"),
+        finally = NULL)
+
+      }
+
+      retrieved <- dplyr::bind_rows(reslist)
+      if(nrow(retrieved) == 0) break
+
+      # Remove duplicates
+      ii <- which(duplicated(retrieved))
+      if(length(ii) > 0) retrieved <- retrieved[-ii, ]
+
+      # Remove NAs
+      ii <- which(is.na(retrieved$Info_protein_sequence))
+      if(length(ii) > 0) retrieved <- retrieved[-ii, ]
+
+      if(nrow(retrieved) == 0) break
+
+      # Get indices of each query on the retrieved dataframe
+      ii <- sapply(queries,
+                   function(id) {
+                     k <- grep(id, retrieved$Info_protein_all_ids, fixed = TRUE)
+                     ifelse(length(k) == 1, k, NA)
+                   },
+                   simplify = TRUE)
+
+      # Remove NAs
+      if(any(is.na(ii))) ii <- ii[-which(is.na(ii))]
+
+      # Build index map and merge retrieved dataframe
+      retdf <- dplyr::left_join(
+        data.frame(Info_protein_id_clean = names(ii),
+                   ret.id = retrieved$Info_protein_id_clean[ii]),
+        retrieved,
+        by = c("ret.id" = "Info_protein_id_clean"))
+
+      # Get indices for merging into final prots dataframe
+      ii <- sapply(prots$Info_protein_id_clean,
+                   function(id) {
+                     k <- grep(id, retdf$Info_protein_all_ids, fixed = TRUE)
+                     ifelse(length(k) == 1, k, NA)
+                   },
+                   simplify = TRUE)
+      ii <- data.frame(prots.idx = 1:nrow(prots),
+                       retdf.idx = ii)
+      if(any(is.na(ii$retdf.idx))) ii <- ii[!is.na(ii$retdf.idx), ]
+
+      # Update final prots dataframe
+      prots$Info_protein_version[ii$prots.idx]  <- retdf$Info_protein_id_clean[ii$retdf.idx]
+      prots$Info_protein_all_ids[ii$prots.idx]  <- retdf$Info_protein_all_ids[ii$retdf.idx]
+      prots$Info_protein_sequence[ii$prots.idx] <- retdf$Info_protein_sequence[ii$retdf.idx]
+      prots$Info_protein_database[ii$prots.idx] <- "UniprotKB"
+
+      # Extract remaining (not retrieved) ids
+      queries <- unique(prots$Info_protein_id_clean[which(is.na(prots$Info_protein_sequence))])
+
+      # Update blocksizes
+      blocksize <- ceiling(blocksize * length(queries) / nq)
+      idx <- lapply((0:floor(length(queries) / blocksize)),
+                    function(i){
+                      unique(pmin(length(queries), (i*blocksize + 1):((i+1)*blocksize)))})
+      if(!(length(queries) %% blocksize)) idx <- idx[-length(idx)]
+
+      if(!is.null(save_folder)) saveRDS(object = prots, file = tmpf)
+    }
+    message("\rUniprotKB: Finished!\t\t\t\t\t\t\t\t")
+  }
+
+  ## ============ Try retrieving ids from Uniprot-Archived
+  if("uniprot-archived" %in% DBs && length(queries) > 0){
+
+    blocksize <- min(25, blocksize)
+    idx <- lapply((0:floor(length(queries) / blocksize)),
+                  function(i){
+                    unique(pmin(length(queries), (i*blocksize + 1):((i+1)*blocksize)))})
+    if(!(length(queries) %% blocksize)) idx <- idx[-length(idx)]
+
+    nq <- length(queries) + 1
+
+    while(nq > length(queries)){
+      reslist <- vector("list", length(idx))
+      nq <- length(queries)
+      message("\nUniprotKB-Archived: Trying to retrieve ", nq, " proteins in ", length(idx), " blocks\n")
+
+      for (i in seq_along(idx)){
+        t0 <- Sys.time()
+        message(sprintf("\rBlock %03d of %03d: Started on %s", i, length(idx), as.character(t0)))
+        # Try fetching data
+        tryCatch({
+          R.utils::withTimeout(
+            {
+              tmp <- lapply(queries[idx[[i]]],
+                            function(id){
+                              tryCatch({
+                                myurl <- paste0("https://rest.uniprot.org/unisave/",
+                                                id, "?format=fasta&versions=1")
+                                seqs <- protr::readFASTA(myurl, seqonly = FALSE)
+                                data.frame(Info_protein_id_clean = id,
+                                           Info_protein_all_ids  = names(seqs),
+                                           Info_protein_sequence = unname(seqs)[[1]])},
+                                warning = function(c) cat("!"),
+                                error   = function(c) data.frame(Info_protein_id_clean = character(),
+                                                                 Info_protein_all_ids  = character(),
+                                                                 Info_protein_sequence = character()),
+                                finally = NULL)})
+
+              reslist[[i]] <- dplyr::bind_rows(tmp)
+            }, timeout = block.timeout)
+        },
+        TimeoutException  = function(c) message("\n\nTimeout - consider increasing block.timeout"),
+        warning = function(c) message("Warning(s) happened"),
+        error   = function(c) message("Error happened"),
+        finally = NULL)
+
+      }
+
+      retrieved <- dplyr::bind_rows(reslist)
+      if(nrow(retrieved) == 0) break
+
+      # Remove duplicates
+      ii <- which(duplicated(retrieved))
+      if(length(ii) > 0) retrieved <- retrieved[-ii, ]
+
+      # Remove NAs
+      ii <- which(is.na(retrieved$Info_protein_sequence))
+      if(length(ii) > 0) retrieved <- retrieved[-ii, ]
+
+      if(nrow(retrieved) == 0) break
+
+      # Get indices of each query on the retrieved dataframe
+      ii <- sapply(queries,
+                   function(id) {
+                     k <- grep(id, retrieved$Info_protein_all_ids, fixed = TRUE)
+                     ifelse(length(k) == 1, k, NA)
+                   },
+                   simplify = TRUE)
+
+      # Remove NAs
+      if(any(is.na(ii))) ii <- ii[-which(is.na(ii))]
+
+      # Build index map and merge retrieved dataframe
+      retdf <- dplyr::left_join(
+        data.frame(Info_protein_id_clean = names(ii),
+                   ret.id = retrieved$Info_protein_id_clean[ii]),
+        retrieved,
+        by = c("ret.id" = "Info_protein_id_clean"))
+
+      # Get indices for merging into final prots dataframe
+      ii <- sapply(prots$Info_protein_id_clean,
+                   function(id) {
+                     k <- grep(id, retdf$Info_protein_all_ids, fixed = TRUE)
+                     ifelse(length(k) == 1, k, NA)
+                   },
+                   simplify = TRUE)
+      ii <- data.frame(prots.idx = 1:nrow(prots),
+                       retdf.idx = ii)
+      if(any(is.na(ii$retdf.idx))) ii <- ii[!is.na(ii$retdf.idx), ]
+
+      # Update final prots dataframe
+      prots$Info_protein_version[ii$prots.idx]  <- retdf$Info_protein_id_clean[ii$retdf.idx]
+      prots$Info_protein_all_ids[ii$prots.idx]  <- retdf$Info_protein_all_ids[ii$retdf.idx]
+      prots$Info_protein_sequence[ii$prots.idx] <- retdf$Info_protein_sequence[ii$retdf.idx]
+      prots$Info_protein_database[ii$prots.idx] <- "UniprotKB-Archived/Deleted"
+
+      # Extract remaining (not retrieved) ids
+      queries <- unique(prots$Info_protein_id_clean[which(is.na(prots$Info_protein_sequence))])
+
+      # Update blocksizes
+      blocksize <- ceiling(blocksize * length(queries) / nq)
+      idx <- lapply((0:floor(length(queries) / blocksize)),
+                    function(i){
+                      unique(pmin(length(queries), (i*blocksize + 1):((i+1)*blocksize)))})
+      if(!(length(queries) %% blocksize)) idx <- idx[-length(idx)]
+
+      if(!is.null(save_folder)) saveRDS(object = prots, file = tmpf)
+    }
+
+    message("\rUniprotKB-Archived: Finished!\t\t\t\t\t\t\t\t")
+  }
+
+  # Give it one last try based on a common naming inconsistency
+  ii <- which(is.na(prots$Info_protein_sequence))
+  tmp <- prots[ii, ]
+  tmp$Info_protein_id_clean <- gsub("\\_.$", "", tmp$Info_protein_id)
+
+  if(any(tmp$Info_protein_id_clean != tmp$Info_protein_id)){
+    lasttry <- get_proteins(tmp$Info_protein_id_clean, blocksize = 1)
+    ii <- ii[which(!is.na(lasttry$Info_protein_sequence))]
+    lasttry <- lasttry[which(!is.na(lasttry$Info_protein_sequence)), ]
+
+    prots$Info_protein_version[ii]  <- lasttry$Info_protein_id_clean
+    prots$Info_protein_all_ids[ii]  <- lasttry$Info_protein_all_ids
+    prots$Info_protein_sequence[ii] <- lasttry$Info_protein_sequence
+    prots$Info_protein_database[ii] <- lasttry$Info_protein_database
+  }
+
+  errlist <- prots$Info_protein_id[which(is.na(prots$Info_protein_sequence))]
+
+  if(!is.null(save_folder)) {
+    saveRDS(object = prots, file = df_file)
+    if(length(errlist) > 0) saveRDS(object = errlist, file = errfile)
+    if(file.exists(tmpf)) file.remove(tmpf)
+  }
+
+  return(prots)
 }
+
