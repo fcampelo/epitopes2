@@ -59,9 +59,6 @@ entry in \code{proteins})
 corresponding sequence between \emph{start_pos} and \emph{end_pos} on the protein
 sequence.
 }
-
-Entries in the \code{proteins} data frame with a value of \emph{TSeq_seqtype} different
-from "protein" are also removed.
 }
 \author{
 Felipe Campelo (\email{f.campelo@aston.ac.uk})

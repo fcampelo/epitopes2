@@ -22,8 +22,6 @@
 #'   sequence.
 #' }
 #'
-#' Entries in the `proteins` data frame with a value of *TSeq_seqtype* different
-#' from "protein" are also removed.
 #'
 #' @param epitopes data frame of epitope data (returned by [get_LBCE()]).
 #' @param proteins data frame of protein data (returned by [get_proteins()]).
@@ -77,11 +75,11 @@ consolidate_data <- function(epitopes, proteins,
   # Filter epitopes
   message("Cleaning epitopes dataset...")
   epits <- dplyr::filter(epitopes,
-                         .data$protein_id %in% unique(proteins$UID),         # must have a corresponding protein
+                         .data$protein_id %in% unique(proteins$Info_protein_id), # must have a corresponding protein
                          !is.na(.data$epit_seq),                             # must have an epit_seq
                          !is.na(.data$epit_struc_def)) %>%                   # must have a valid epit_struc_def
     dplyr::mutate(prot_substr = mapply(function(id, st, en){                    # filter by correct sequence in protein
-      substr(proteins[which(proteins$UID == id), "TSeq_sequence"], st, en)},
+      substr(proteins[which(proteins$Info_protein_id == id), "Info_protein_sequence"], st, en)},
       id = .data$protein_id, st = .data$start_pos, en = .data$end_pos)) %>%
     dplyr::filter(toupper(.data$epit_seq) == toupper(.data$prot_substr)) %>%
     dplyr::select(-"prot_substr")
@@ -93,14 +91,13 @@ consolidate_data <- function(epitopes, proteins,
   # Filter proteins
   message("Cleaning proteins datset...")
   df <- dplyr::filter(proteins,
-                      .data$UID %in% unique(epits$protein_id),
-                      .data$TSeq_seqtype == "protein",
-                      !is.na(.data$TSeq_sequence))
+                      .data$Info_protein_id %in% unique(epits$protein_id),
+                      !is.na(.data$Info_protein_sequence))
 
-  idx <- which(is.na(df$TSeq_taxid))
-  for(i in seq_along(idx)){
-    df$TSeq_taxid[idx[i]] <- epits$sourceOrg_id[which(epits$protein_id == df$UID[idx[i]])][1]
-  }
+  # idx <- which(is.na(df$TSeq_taxid))
+  # for(i in seq_along(idx)){
+  #   df$TSeq_taxid[idx[i]] <- epits$sourceOrg_id[which(epits$protein_id == df$UID[idx[i]])][1]
+  # }
 
   # ========================================================================== #
   # Build long data frame
@@ -109,10 +106,9 @@ consolidate_data <- function(epitopes, proteins,
   message("Building long data frame: proteins")
   df <- mypblapply(split(df, seq(nrow(df))),
                    FUN = function(x){
-                     data.frame(Info_organism_id = x$TSeq_taxid,
-                                Info_protein_id  = x$UID,
-                                Info_pos         = 1:nchar(x$TSeq_sequence),
-                                Info_AA          = strsplit(x$TSeq_sequence,
+                     data.frame(Info_protein_id  = x$Info_protein_id,
+                                Info_pos         = 1:nchar(x$Info_protein_sequence),
+                                Info_AA          = strsplit(x$Info_protein_sequence,
                                                             split = "")[[1]])},
                    ncpus = ncpus) %>%
     dplyr::bind_rows()
@@ -143,7 +139,7 @@ consolidate_data <- function(epitopes, proteins,
     # Remove duplicated information from specific fields
     dplyr::mutate(Info_pubmed_id    = get_uniques(.data$Info_pubmed_id),
                   Info_epitope_id   = get_uniques(.data$Info_epitope_id),
-                  Info_sourceOrg_id = get_uniques(.data$Info_sourceOrg_id),
+                  Info_organism_id  = get_uniques(.data$Info_sourceOrg_id),
                   Info_host_id      = get_uniques(.data$Info_host_id),
                   Info_type         = get_uniques(.data$Info_type))
 
@@ -164,7 +160,7 @@ consolidate_data <- function(epitopes, proteins,
   message("Consolidating data...")
   df <- df %>%
     dplyr::left_join(epit_summary, by = c("Info_protein_id", "Info_pos")) %>%
-    dplyr::select(-c("Info_sourceOrg_id")) %>%
+    # dplyr::select(-c("Info_sourceOrg_id")) %>%
     dplyr::rowwise() %>%
     dplyr::mutate(Class = make_class(.data$Info_nPos,
                                      .data$Info_nNeg,
