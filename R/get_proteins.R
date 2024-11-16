@@ -92,11 +92,12 @@ get_proteins <- function(uids,
                                    retmode = "xml")
 
               x <- XML::xmlToList(x$get_content())
+
               reslist[[i]] <- data.frame(
-                Info_protein_id_clean = sapply(x, function(c) {c$`GBSeq_primary-accession`}),
-                Info_protein_version  = sapply(x, function(c) {c$`GBSeq_accession-version`}),
-                Info_protein_all_ids  = sapply(x, function(c) {paste(c$`GBSeq_other-seqids`, collapse = ";")}),
-                Info_protein_sequence = sapply(x, function(c) {toupper(c$GBSeq_sequence)})
+                Info_protein_id_clean = sapply(x, function(c) {nullcheck(c$`GBSeq_primary-accession`)}),
+                Info_protein_version  = sapply(x, function(c) {nullcheck(c$`GBSeq_accession-version`)}),
+                Info_protein_all_ids  = sapply(x, function(c) {nullcheck(paste(c$`GBSeq_other-seqids`, collapse = ";"))}),
+                Info_protein_sequence = sapply(x, function(c) {nullcheck(toupper(c$GBSeq_sequence))})
               )
             }, timeout = block.timeout)
         },
