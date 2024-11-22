@@ -120,25 +120,25 @@ calc_features_classic <- function(df,
                           assertthat::is.count(ncpus))
   # ========================================================================== #
 
-  message("Calculating features:")
   SEQs <- df %>%
     dplyr::select(dplyr::all_of(seqs_column)) %>%
-    as.vector()
+    unlist() %>% unname()
 
-  y <- mypblapply(X = features,
-                  FUN = call_feat_functions,
-                  SEQs = SEQs,
-                  ncpus = ncpus,
-                  toexport = c("get_feature_args",
-                               "extractAAtypes", "extractAtoms",
-                               "extractEntropy", "extractLegacyFeatures",
-                               "extractMolWeight", "extractBLOSUM"),
-                  pks = c("protr")) %>%
-    dplyr::bind_cols()
+  myres <- vector("list", length(features))
+  for (i in seq_along(features)){
+    message("Calculating features: ", features[i])
+    myres[[i]] <- mypblapply(X = SEQs,
+                             FUN = call_feat_functions,
+                             feat.name = features[i],
+                             myargs = get_feature_args(features[i]),
+                             ncpus = ncpus,
+                             toexport = c("extractAAtypes", "extractAtoms",
+                                          "extractEntropy", "extractLegacyFeatures",
+                                          "extractMolWeight")) %>%
+      dplyr::bind_rows()
+  }
 
-  torm <- which(names(df) %in% names(y))
-  if(length(torm) > 0) df <- df[, -torm]
-  df <- dplyr::bind_cols(df, y)
+  df <- dplyr::bind_cols(df, myres)
 
   attr(df, "features") <- features
 

@@ -27,49 +27,8 @@ mydata$df <- calc_features_classic(df = mydata$df,
 
 
 # TODO: update calc_performance to not calculate SENS/SPEC/TPR/NPR when one of the classes is absent
-
-# x <- peptides.list$Info_type
-# a <- grepl("Exact Epitope", x)
-# x[which(a)] <- "Exact Epitope"
-# x[which(!a & !is.na(x))] <- "Epitope-Containing Region"
-#
-# peptides.list$Info_type <- unname(x)
-#
-# X <- peptides.list %>%
-#   dplyr::select(Info_organism_id, Info_protein_id, Info_pos, Info_AA, Info_epitope_id,
-#                 Info_type, Class)
-#
-# table(X$Class, X$Info_type)
-
-
-
-# for (i in 1:20){
-#   message("Fitting for i = ", i)
-#   tmp <- peptides.list %>%
-#     fit_model(CV.folds = paste0("CV", 1:5),
-#               #holdout.split = "holdout",
-#               ncpus = ncpus,
-#               return.model = "none",
-#               min.node.size = i)
-#   res <- rbind(res,
-#                data.frame(min.node.size = i,
-#                           Var = names(tmp$model.perf[5:14]),
-#                           Value = unlist(tmp$model.perf[5:14])))
-# }
-#
-# library(ggplot2)
-# ggplot(res, aes(x = min.node.size, y = Value, group = Var)) + geom_line() + facet_grid(Var~., scales = "free_y")
-#
-
 # TODO:
 # - test splitting by peptides
-# - make sure make_splits(is protected against empty splits)
 # - add print/summary/plot routines
-# - update Lucid.app graphical description
 # - optional echoing mode
 # - test unbalanced data-specific splitting functions for RF
-
-
-# t1 <- Sys.time()
-# message("Elapsed time: ", signif(t1 - t0, 3), " ", units(t1 - t0))
-# saveRDS(peptides.list, savefile)

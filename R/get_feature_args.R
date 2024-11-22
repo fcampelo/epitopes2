@@ -15,12 +15,15 @@ get_feature_args <- function(feat.name){
                                     lag     = 3,
                                     scale   = TRUE,
                                     silent  = TRUE),
+                   BLOSUM = list(submat = "AABLOSUM62",
+                                 k = 3,
+                                 lag = 5,
+                                 scale   = TRUE,
+                                 silent  = TRUE),
                    Entropy = list(),
                    Atoms = list(),
                    MolWeight = list(),
-                   AAtypes = list(),
-                   BLOSUM = list(blnames = rownames(protr::AABLOSUM62),
-                                 eig = eigen(protr::AABLOSUM62)))
+                   AAtypes = list())
 
   return(myargs)
 }

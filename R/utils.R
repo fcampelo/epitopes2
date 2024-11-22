@@ -57,7 +57,14 @@ mypblapply <- function(X, FUN, ncpus,
   if(ncpus > 1 && length(toexport) > 0 && .Platform$OS.type == "windows"){
     parallel::clusterExport(cl = cl, varlist = toexport)
     if(!is.null(pks)){
-      parallel::clusterApply(cl = cl, x = "", fun = function(x) {library(protr)})
+      parallel::clusterExport(cl = cl, varlist = "pks")
+      for(i in seq_along(pks)){
+        .ignore <- parallel::clusterEvalQ(cl = cl,
+                                          expr = {
+                                            for (i in seq_along(pks)) {
+                                              library(pks[[i]], character.only = TRUE)
+                                              }})
+      }
     }
   }
 
