@@ -141,7 +141,7 @@ make_data_splits <- function(peptides.list,
     dplyr::summarise(nPos    = sum(.data$Class == 1),
                      nNeg    = sum(.data$Class == -1),
                      txids   = list(unique(sapply(.data$Info_sourceOrg_id, txid_boildown))),
-                     protids = list(unique(Info_protein_id)))
+                     protids = list(unique(.data$Info_protein_id)))
 
   # Build groups x classes matrix
   C <- as.matrix(Y[, 2:3])

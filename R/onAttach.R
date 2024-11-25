@@ -1,6 +1,13 @@
 .onAttach <- function(...) {
+
+  # Harmless invocation of package "protr" to silence CHECK warning
+  # (since calls to protr:: functions in this package are done using passed
+  # arguments, not explicitly)
+  ignore <- protr::AABLOSUM62
+
   # Check if Biostrings is installed
   bsp <- suppressWarnings(utils::packageDescription("Biostrings"))
+
 
   if(all(is.na(bsp))) {
     packageStartupMessage("\nPackage 'Biostrings' not detected.\n",

@@ -44,7 +44,7 @@ get_esm_features <- function(path,
                           assertthat::is.count(ncpus))
 
   # Read file map
-  filemap <- read.table(paste0(path, "/filemap.tsv"), sep = "\t", header = TRUE)
+  filemap <- utils::read.table(paste0(path, "/filemap.tsv"), sep = "\t", header = TRUE)
 
 
   # ====== Prepare protein ID list
