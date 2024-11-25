@@ -18,7 +18,6 @@ call_feat_functions <- function(feat.name, SEQ, myargs){
   myargs$x <- SEQ
 
   if(feat.name == "BLOSUM") {
-    require(protr)
     AABLOSUM62 <- protr::AABLOSUM62
   }
 
