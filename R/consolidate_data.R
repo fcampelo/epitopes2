@@ -73,7 +73,7 @@ consolidate_data <- function(epitopes, proteins,
   # Initial preprocessing
 
   # Filter epitopes
-  message("Cleaning epitopes dataset...")
+  message("Cleaning peptides dataset...")
   epits <- dplyr::filter(epitopes,
                          .data$protein_id %in% unique(proteins$Info_protein_id), # must have a corresponding protein
                          !is.na(.data$epit_seq),                             # must have an epit_seq
@@ -89,7 +89,7 @@ consolidate_data <- function(epitopes, proteins,
   }
 
   # Filter proteins
-  message("Cleaning proteins datset...")
+  message("Cleaning proteins dataset...")
   df <- dplyr::filter(proteins,
                       .data$Info_protein_id %in% unique(epits$protein_id),
                       !is.na(.data$Info_protein_sequence))
@@ -115,7 +115,7 @@ consolidate_data <- function(epitopes, proteins,
 
 
   # Build long epitope data frame
-  message("Building long data frame: epitopes")
+  message("Building long data frame: peptides")
   epit_summary <- mypblapply(split(epits, seq(nrow(epits))),
                              FUN = function(x){
                                data.frame(Info_protein_id   = x$protein_id,

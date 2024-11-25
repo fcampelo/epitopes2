@@ -224,3 +224,11 @@ makesol <- function(alpha, Y, Nstar){
   if(any(is.na(tmp))) x <- x[-which(is.na(tmp))]
   return(x)
 }
+
+is.peptide.list <- function(x){
+  if("peptide.list" %in% class(x)) return(TRUE) else return(FALSE)
+}
+
+txid_boildown <- function(x){
+  unname(unlist(unique(strsplit(x, split = ",")[[1]])))
+}

@@ -4,10 +4,11 @@
 \alias{calc_features_classic}
 \title{Calculate classic features for epitope prediction}
 \usage{
-calc_features_classic(df, seqs_column, features, ncpus = 1)
+calc_features_classic(X, seqs_column, features, ncpus = 1)
 }
 \arguments{
-\item{df}{data frame containing one column with sequences for feature
+\item{X}{a peptide.list object (returned by \code{\link[=extract_labelled_data]{extract_labelled_data()}} or a
+data frame containing one column with sequences for feature
 calculation.}
 
 \item{seqs_column}{name of the column containing the sequences}
@@ -18,7 +19,8 @@ See \strong{Feature Vector} for details.}
 \item{ncpus}{positive integer, number of cores to use}
 }
 \value{
-Updated \code{df} with features appended as columns.
+Updated \code{X} with features appended as columns
+(directly to \code{X} if it is a data.frame, or to \code{X$df} if it is a peptide.list object)
 }
 \description{
 This function is used to calculate several distinct families of features for
@@ -106,7 +108,8 @@ available feature groups). Notice that, for consistency purposes, the user
 parameters of all \strong{protr} features are kept fixed in this routine.
 If the user wishes to add other features (or the same features with distinct
 parameters) they can calculate those separately
-and bind them to \code{df}. All feature columns calculated in this function
+and bind them to \code{X} (or to \code{X$df}, if X is a peptide list).
+All feature columns calculated in this function
 will have names starting with "feat_", and if externally-calculated features
 are added they should follow the same pattern (for compatibility with the
 other functions in this package).

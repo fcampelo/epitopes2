@@ -83,19 +83,22 @@
 #' parameters of all **protr** features are kept fixed in this routine.
 #' If the user wishes to add other features (or the same features with distinct
 #' parameters) they can calculate those separately
-#' and bind them to `df`. All feature columns calculated in this function
+#' and bind them to `X` (or to `X$df`, if X is a peptide list).
+#' All feature columns calculated in this function
 #' will have names starting with "feat_", and if externally-calculated features
 #' are added they should follow the same pattern (for compatibility with the
 #' other functions in this package).
 #'
-#' @param df data frame containing one column with sequences for feature
+#' @param X a peptide.list object (returned by [extract_labelled_data()] or a
+#' data frame containing one column with sequences for feature
 #' calculation.
 #' @param seqs_column name of the column containing the sequences
 #' @param features vector of names of features to be calculated.
 #' See **Feature Vector** for details.
 #' @param ncpus positive integer, number of cores to use
 #'
-#' @return Updated `df` with features appended as columns.
+#' @return Updated `X` with features appended as columns
+#' (directly to `X` if it is a data.frame, or to `X$df` if it is a peptide.list object)
 #'
 #' @author Felipe Campelo (\email{f.campelo@@aston.ac.uk})
 #'
@@ -104,20 +107,28 @@
 #' @importFrom dplyr %>%
 #' @importFrom rlang .data
 #'
-calc_features_classic <- function(df,
+calc_features_classic <- function(X,
                                   seqs_column,
                                   features,
                                   ncpus = 1){
   # ========================================================================== #
   # Sanity checks and initial definitions
-  assertthat::assert_that(is.data.frame(df),
-                          nrow(df) > 0,
+  assertthat::assert_that(is.data.frame(X) | is.peptide.list(X),
                           is.character(seqs_column),
                           length(seqs_column) == 1,
-                          seqs_column %in% names(df),
                           is.character(features),
                           length(features) > 0,
                           assertthat::is.count(ncpus))
+
+  if(is.data.frame(X)){
+    assertthat::assert_that(nrow(X) > 0,
+                            seqs_column %in% names(X))
+  } else {
+    assertthat::assert_that(nrow(X$df) > 0,
+                            seqs_column %in% names(X$df))
+  }
+
+  if(is.peptide.list(X)) df <- X$df else df <- X
   # ========================================================================== #
 
   SEQs <- df %>%
@@ -138,9 +149,17 @@ calc_features_classic <- function(df,
       dplyr::bind_rows()
   }
 
-  df <- dplyr::bind_cols(df, myres)
+  y <- dplyr::bind_cols(myres)
+
+  idx <- which(names(df) %in% names(y))
+
+  if(length(idx) > 0) df <- df[, -idx]
+
+  df <- dplyr::bind_cols(df, y)
 
   attr(df, "features") <- features
 
-  return(df)
+  if(is.peptide.list(X)) X$df <- df else X <- df
+
+  return(X)
 }
