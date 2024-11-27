@@ -168,19 +168,27 @@ make_data_splits <- function(peptides.list,
     X0 <- matrix(0, nrow = length(delta), ncol = nrow(C))
     X0[, idx] <- X
 
+    alloc0 <- X0 %*% C
+    force_id_groups <- idx
+
   } else {
     X0 <- NULL
+    alloc0 <- NULL
+    force_id_groups <- NULL
   }
 
   # Get split allocations
-  x <- moses::constructive_heuristic(C = C, delta = delta, w = w, X0 = X0) %>%
-    apply(MARGIN = 2, FUN = function(x) which(x==1))
+  X <- moses::constructive_heuristic(C = C, delta = delta, w = w, X0 = X0)
 
+  allocF <- X %*% C
+
+  x <- apply(X, MARGIN = 2, FUN = function(z) which(z == 1))
   Y <- Y %>%
     dplyr::mutate(Info_split = split_names[x]) %>%
     dplyr::select("Info_split",
                   Info_group = "Group",
-                  "protids")
+                  "protids",
+                  "txids")
 
   Y <- lapply(1:nrow(Y), function(i, Y){
     data.frame(Info_split = Y$Info_split[i],
@@ -208,8 +216,14 @@ make_data_splits <- function(peptides.list,
     w                    = w,
     similarity_threshold = similarity_threshold,
     cdhit.par.list = cdhit.par.list,
-    id_force_splitting = id_force_splitting)
+    id_force_splitting = id_force_splittingF)
 
+  peptides.list$splits.summary <- list(
+    id_force_splitting = id_force_splitting,
+    force_id_groups = force_id_groups,
+    force_id_alloc_summary = alloc0,
+    final_alloc_summary    = alloc
+  )
 
   return(peptides.list)
 
