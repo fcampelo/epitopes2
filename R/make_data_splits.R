@@ -53,7 +53,7 @@
 
 make_data_splits <- function(peptides.list,
                              delta,
-                             w,
+                             w = c(.5, .4, .1),
                              split_names  = NULL,
                              similarity_threshold = .7,
                              id_force_splitting = NULL,
@@ -201,7 +201,9 @@ make_data_splits <- function(peptides.list,
 
   peptides.list$df <- df %>%
     dplyr::left_join(Y, by = "Info_protein_id") %>%
-    dplyr::select(dplyr::starts_with("Info"), "Class", dplyr::everything())
+    dplyr::select(dplyr::starts_with("Info"),
+                  "Class",
+                  dplyr::everything())
 
   peptides.list$peptides <- peptides %>%
     dplyr::left_join(Y, by = "Info_protein_id") %>%
@@ -209,20 +211,20 @@ make_data_splits <- function(peptides.list,
 
   peptides.list$proteins <- proteins %>%
     dplyr::left_join(Y, by = "Info_protein_id") %>%
-    dplyr::select(dplyr::starts_with("Info"), "Class", dplyr::everything())
+    dplyr::select(dplyr::starts_with("Info"), dplyr::everything())
 
   peptides.list$splits.attrs <- list(
     delta                = delta,
     w                    = w,
     similarity_threshold = similarity_threshold,
     cdhit.par.list = cdhit.par.list,
-    id_force_splitting = id_force_splittingF)
+    id_force_splitting = id_force_splitting)
 
   peptides.list$splits.summary <- list(
     id_force_splitting = id_force_splitting,
     force_id_groups = force_id_groups,
     force_id_alloc_summary = alloc0,
-    final_alloc_summary    = alloc
+    final_alloc_summary    = allocF
   )
 
   return(peptides.list)
