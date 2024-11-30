@@ -1,6 +1,7 @@
 library(dplyr)
-
 ncpus <- parallel::detectCores()
+
+# Generate datasets
 
 higherID <- 2732005
 lowerID  <- 10240
@@ -21,18 +22,22 @@ mydata <- epitopes %>%
                                      "BLOSUM", "SOCN", "QSO",
                                      "ScalesGap"),
                         ncpus = ncpus) %>%
-  make_data_splits(delta = c(.6, .2, .2),
+  make_data_splits(delta = rep(0.2, 5),
                    w     = c(.5, .4, .1),
                    similarity_threshold = .7,
-                   id_force_splitting = lowerID,
+                   target_id = lowerID,
                    tax_list = taxonomy,
                    ncpus = ncpus)
 
 
+# Generate models
 
-# TODO: update calc_performance to not calculate SENS/SPEC/TPR/NPR when one of the classes is absent
+library(tidymodels)
+
+
+
+
 # TODO:
-# - test splitting by peptides
 # - add print/summary/plot routines
 # - optional echoing mode
 # - test unbalanced data-specific splitting functions for RF
