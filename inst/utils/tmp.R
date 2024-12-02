@@ -3,6 +3,8 @@ library(tidymodels)
 library(recipes)
 library(praznik)
 library(doParallel)
+library(themis) # For random undersampling
+library(bonsai) # For LightGBM
 
 mydata <- readRDS("./data/processed_data_example.rds")
 
@@ -35,14 +37,14 @@ for (i in seq_along(top_p)){
                      threads = ncpus)
 
   MRMR   <- MRMR %>% prep()
-  Xfs <- MRMR %>% bake(new_data = NULL)
+  df <- MRMR %>% bake(new_data = NULL)
 
   cat("\nTuning model parameters...")
 
-  folds <- group_vfold_cv(Xfs, group = Info_variant_folds, v = length(unique(Xfs$Info_variant_folds)))
-  new.rec <- recipe(Binding ~ ., data = Xfs) %>%
-    step_upsample(matches("Binding"), over_ratio = 0.2) %>%
-    step_downsample(matches("Binding"), under_ratio = 1) %>%
+  folds <- group_vfold_cv(df, group = Info_split, v = length(unique(df$Info_split)))
+  new.rec <- recipe(Class ~ ., data = df) %>%
+    step_upsample(matches("Class"), over_ratio = 0.2) %>%
+    step_downsample(matches("Class"), under_ratio = 1) %>%
     step_range(all_numeric_predictors(), min = 0, max = 1, id = "Scaling")
 
   xb.mod <- boost_tree(tree_depth = tune(), trees = tune(), min_n = tune()) %>%
