@@ -34,7 +34,10 @@ Suggests:
     pkgdown,
     knitr,
     rmarkdown,
-    Peptides
+    Peptides,
+    praznik,
+    recipes,
+    dials
 Encoding: UTF-8
 LazyData: false
 RoxygenNote: 7.3.2
