@@ -17,10 +17,7 @@ mydata <- epitopes %>%
   extract_labelled_data(min_peptide = 6, max_epitope = 30, window_size = 15) %>%
   calc_features_classic(seqs_column = "Info_window",
                         features = c("Entropy","MolWeight",
-                                     "AAtypes", "Atoms", "AAC",
-                                     "CTDC", "CTDD", "CTDT",
-                                     "BLOSUM", "SOCN", "QSO",
-                                     "ScalesGap"),
+                                     "AAtypes", "Atoms", "AAC"),
                         ncpus = ncpus) %>%
   make_data_splits(delta = rep(0.2, 5),
                    w     = c(.5, .4, .1),
@@ -32,6 +29,7 @@ mydata <- epitopes %>%
 
 # Generate models
 
+library(tidymodels)
 
 
 

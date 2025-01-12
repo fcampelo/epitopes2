@@ -1,12 +1,10 @@
-#' Define data splits for machine learning.
+#' Define data splits for predictive modelling.
 #'
 #' Split the data returned by [extract_labelled_data()] into
 #' non-overlapping subsets. Proteins with similarities higher than
 #' a predefined threshold are always placed in the same split to prevent data
-#' leakage. This routine tries to simultaneously approximate
-#' the user-defined proportions, maintain the overall class balance within
-#' each split, and maximise within-splits diversity. See
-#' [moses::constructive_heuristic()] for details.
+#' leakage. See [moses::make_splits_constructive()] and
+#' [moses::make_splits_rand_refine()] for details.
 #'
 #' @param peptides.list list object returned by [extract_labelled_data()], containing
 #'        the data frame of windowed epitope data (**$df**), the data frame of
@@ -21,7 +19,15 @@
 #'          `w[1]`: weight of the objective to obey desired split proportions;
 #'          `w[2]`: weight of the objective to distribute classes proportionally between splits;
 #'          `w[3]`: weight of the objective to maximise within-splits diversity.
+#'          Notice that `w[3]` is ignored if `split_mode == "rand"` (in which case
+#'          `w[1]` and `w[2]` are scaled internally so that `w[1] + w[2] = 1`
+#'          while keeping their relative proportions).
 #' @param split_names optional, vector of names to be given to each split.
+#' @param split_mode mode of splitting. Use "constructive" for a deterministic
+#' constructive heuristic (calling [moses::make_splits_constructive()]) or
+#' "rand" for a randomised heuristic (calling [moses::make_splits_rand_refine()]).
+#' Using "rand" is necessary if you plan to use model development strategies in
+#' which some splits need to be redefined, e.g., in repeated cross-validation.
 #' @param similarity_threshold similarity threshold for grouping observations.
 #'        \eqn{1 - similarity_threshold} is passed to [CellaRepertorium::cdhit()] as
 #' @param target_id vector of lower-level taxonomy ids (integer or character)
@@ -56,6 +62,7 @@ make_data_splits <- function(peptides.list,
                              delta,
                              w = c(.5, .4, .1),
                              split_names  = NULL,
+                             split_mode   = "rand",
                              similarity_threshold = .7,
                              target_id = NULL,
                              tax_list = NULL,
@@ -73,6 +80,8 @@ make_data_splits <- function(peptides.list,
                           all(delta > 0), sum(delta) == 1,
                           is.null(split_names) || is.character(split_names),
                           is.null(split_names) || length(split_names) == length(delta),
+                          is.character(split_mode) && length(split_mode) == 1,
+                          split_mode %in% c("constructive", "rand"),
                           is.numeric(similarity_threshold),
                           length(similarity_threshold) == 1,
                           similarity_threshold > 0, similarity_threshold < 1,
@@ -163,8 +172,15 @@ make_data_splits <- function(peptides.list,
                         ids = ids))
 
     C0 <- C[idx, ]
+    colnames(C0) <- paste0("class.", colnames(C0))
 
-    X <- moses::constructive_heuristic(C = C0, delta = delta, w = w)
+    # Get split allocations
+    if(split_mode == "constructive"){
+      X0 <- moses::make_splits_constructive(C = C0, delta = delta, w = w)
+    } else {
+      w <- w[1:2] / sum(w[1:2])
+      X0 <- moses::make_splits_rand_refine(C = C0, delta = delta, w = w)
+    }
 
     X0 <- matrix(0, nrow = length(delta), ncol = nrow(C))
     X0[, idx] <- X
@@ -179,7 +195,12 @@ make_data_splits <- function(peptides.list,
   }
 
   # Get split allocations
-  X <- moses::constructive_heuristic(C = C, delta = delta, w = w, X0 = X0)
+  if(split_mode == "constructive"){
+    X <- moses::make_splits_constructive(C = C, delta = delta, w = w, X0 = X0)
+  } else {
+    w <- w[1:2] / sum(w[1:2])
+    X <- moses::make_splits_rand_refine(C = C, delta = delta, w = w, X0 = X0)
+  }
 
   allocF <- X %*% C
 

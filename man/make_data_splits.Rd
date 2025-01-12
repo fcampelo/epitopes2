@@ -2,13 +2,14 @@
 % Please edit documentation in R/make_data_splits.R
 \name{make_data_splits}
 \alias{make_data_splits}
-\title{Define data splits for machine learning.}
+\title{Define data splits for predictive modelling.}
 \usage{
 make_data_splits(
   peptides.list,
   delta,
   w = c(0.5, 0.4, 0.1),
   split_names = NULL,
+  split_mode = "rand",
   similarity_threshold = 0.7,
   target_id = NULL,
   tax_list = NULL,
@@ -32,9 +33,18 @@ length 3 and add to 1. All weights must be non-negative. See
 package \code{moses} for details.
 \code{w[1]}: weight of the objective to obey desired split proportions;
 \code{w[2]}: weight of the objective to distribute classes proportionally between splits;
-\code{w[3]}: weight of the objective to maximise within-splits diversity.}
+\code{w[3]}: weight of the objective to maximise within-splits diversity.
+Notice that \code{w[3]} is ignored if \code{split_mode == "rand"} (in which case
+\code{w[1]} and \code{w[2]} are scaled internally so that \code{w[1] + w[2] = 1}
+while keeping their relative proportions).}
 
 \item{split_names}{optional, vector of names to be given to each split.}
+
+\item{split_mode}{mode of splitting. Use "constructive" for a deterministic
+constructive heuristic (calling \code{\link[moses:make_splits_constructive]{moses::make_splits_constructive()}}) or
+"rand" for a randomised heuristic (calling \code{\link[moses:make_splits_rand_refine]{moses::make_splits_rand_refine()}}).
+Using "rand" is necessary if you plan to use model development strategies in
+which some splits need to be redefined, e.g., in repeated cross-validation.}
 
 \item{similarity_threshold}{similarity threshold for grouping observations.
 \eqn{1 - similarity_threshold} is passed to \code{\link[CellaRepertorium:cdhit]{CellaRepertorium::cdhit()}} as}
@@ -68,10 +78,8 @@ the list object returned by \code{\link[CellaRepertorium:cdhit]{CellaRepertorium
 Split the data returned by \code{\link[=extract_labelled_data]{extract_labelled_data()}} into
 non-overlapping subsets. Proteins with similarities higher than
 a predefined threshold are always placed in the same split to prevent data
-leakage. This routine tries to simultaneously approximate
-the user-defined proportions, maintain the overall class balance within
-each split, and maximise within-splits diversity. See
-\code{\link[moses:constructive_heuristic]{moses::constructive_heuristic()}} for details.
+leakage. See \code{\link[moses:make_splits_constructive]{moses::make_splits_constructive()}} and
+\code{\link[moses:make_splits_rand_refine]{moses::make_splits_rand_refine()}} for details.
 }
 \author{
 Felipe Campelo (\email{f.campelo@aston.ac.uk})
