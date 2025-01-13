@@ -32,6 +32,10 @@ process_individual_epitope_T <- function(idx, list_data){
     start_pos      = nullcheck(ep$EpitopeStructure$FragmentOfANaturalSequenceMolecule$StartingPosition),
     end_pos        = nullcheck(ep$EpitopeStructure$FragmentOfANaturalSequenceMolecule$EndingPosition))
 
+  if(is.na(protein_id)){
+    protein_id <- nullcheck(ep$EpitopeStructure$FragmentOfANaturalSequenceMolecule$SourceMolecule$GenBankId)
+  }
+
   # Double check start and end positions
   if(is.na(out$start_pos)) out$start_pos <- nullcheck(ep$ReferenceStartingPosition)
   if(is.na(out$end_pos))   out$end_pos   <- nullcheck(ep$ReferenceEndingPosition)
