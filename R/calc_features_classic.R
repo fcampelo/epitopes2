@@ -142,10 +142,7 @@ calc_features_classic <- function(X,
                              FUN = call_feat_functions,
                              feat.name = features[i],
                              myargs = get_feature_args(features[i]),
-                             ncpus = ncpus,
-                             toexport = c("extractAAtypes", "extractAtoms",
-                                          "extractEntropy", "extractLegacyFeatures",
-                                          "extractMolWeight")) %>%
+                             ncpus = ncpus) %>%
       dplyr::bind_rows()
   }
 

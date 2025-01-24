@@ -63,9 +63,7 @@ get_linear_epitopes <- function(data_folder,
   df <- mypblapply(ncpus = ncpus,
                    X     = filelist,
                    FUN   = process_xml_file,
-                   type  = epitope_type,
-                   toexport = list("process_individual_epitope_T",
-                                   "process_individual_epitope_B"))
+                   type  = epitope_type)
 
   td <- Sys.time() - t
   message("Ended at ", as.character(Sys.time()),
@@ -110,7 +108,7 @@ get_LBCE <- function(data_folder,
                       save_folder)
 }
 
-#' Exgtract LTCE data from IEDB export
+#' Extract LTCE data from IEDB export
 #'
 #' Alias function for [get_linear_epitopes()] with type = "T"
 #' @inheritParams get_linear_epitopes
