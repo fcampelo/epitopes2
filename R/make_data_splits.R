@@ -156,9 +156,11 @@ make_data_splits <- function(peptides.list,
   # Build groups x classes matrix
   C <- as.matrix(Y[, 2:3])
 
+
   # Initial splitting (target group only) first, if needed
   if(!is.null(target_id)){
 
+    # Get all ids under the target_id taxon
     ids <- tax_list[which(sapply(tax_list,
                                  function(a, id){
                                    any(c(a$Taxonomy$UID, a$UID) == id)
@@ -167,19 +169,21 @@ make_data_splits <- function(peptides.list,
     ids <- sapply(ids, function(a) a$UID)
 
 
+    # Get which groups have observations from target_id
     idx <- which(sapply(Y$txids,
                         function(x, ids) any(x %in% ids),
                         ids = ids))
 
+    # Get reduced matrix of class counts for only the selected groups
     C0 <- C[idx, ]
     colnames(C0) <- paste0("class.", colnames(C0))
 
-    # Get split allocations
+    # Get split allocations for reduced matrix C0
     if(split_mode == "constructive"){
-      X0 <- moses::make_splits_constructive(C = C0, delta = delta, w = w)
+      X <- moses::make_splits_constructive(C = C0, delta = delta, w = w)
     } else {
       w <- w[1:2] / sum(w[1:2])
-      X0 <- moses::make_splits_rand_refine(C = C0, delta = delta, w = w)
+      X <- moses::make_splits_rand_refine(C = C0, delta = delta, w = w)
     }
 
     X0 <- matrix(0, nrow = length(delta), ncol = nrow(C))
