@@ -138,12 +138,15 @@ calc_features_classic <- function(X,
   myres <- vector("list", length(features))
   for (i in seq_along(features)){
     message("Calculating features: ", features[i])
+
+    cl <- set_mc(ncpus)
     myres[[i]] <- mypblapply(X = SEQs,
                              FUN = call_feat_functions,
                              feat.name = features[i],
                              myargs = get_feature_args(features[i]),
                              ncpus = ncpus) %>%
       dplyr::bind_rows()
+    close_mc(cl)
   }
 
   y <- dplyr::bind_cols(myres)

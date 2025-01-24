@@ -104,10 +104,10 @@ make_data_splits <- function(peptides.list,
                   -dplyr::starts_with("Info_split"))
   peptides <- peptides.list$peptides %>%
     dplyr::select(-dplyr::starts_with("Info_group"),
-                  -dplyr::starts_with("Info_group"))
+                  -dplyr::starts_with("Info_split"))
   proteins <- peptides.list$proteins %>%
     dplyr::select(-dplyr::starts_with("Info_group"),
-                  -dplyr::starts_with("Info_group"))
+                  -dplyr::starts_with("Info_split"))
 
   # Build reduced dataset of proteins
   tmpPep <- peptides %>%

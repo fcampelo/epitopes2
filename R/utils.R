@@ -52,25 +52,34 @@ mypblapply <- function(X, FUN, ncpus,
                        toexport = list(),
                        pks = NULL,
                        ...){
-  cl  <- set_mc(ncpus)
 
-  if(ncpus > 1 && length(toexport) > 0 && .Platform$OS.type == "windows"){
-    parallel::clusterExport(cl = cl, varlist = toexport)
+  toclose <- FALSE
+  if(!any(c("SOCKcluster", "cluster") %in% class(ncpus))){
+    ncpus  <- set_mc(ncpus)
+    toclose <- TRUE
+  }
+
+  if(.Platform$OS.type == "windows"){
+    if (length(toexport) > 0) parallel::clusterExport(cl = ncpus,
+                                                      varlist = toexport)
+
     if(!is.null(pks)){
-      parallel::clusterExport(cl = cl, varlist = "pks")
+      parallel::clusterExport(cl = ncpus,
+                              varlist = "pks")
       for(i in seq_along(pks)){
-        .ignore <- parallel::clusterEvalQ(cl = cl,
+        .ignore <- parallel::clusterEvalQ(cl = ncpus,
                                           expr = {
                                             for (i in seq_along(pks)) {
                                               library(pks[[i]], character.only = TRUE)
-                                              }})
+                                            }})
       }
     }
   }
 
-  res <- pbapply::pblapply(cl = cl, X = X, FUN = FUN, ...)
+  res <- pbapply::pblapply(cl = ncpus, X = X, FUN = FUN, ...)
 
-  close_mc(cl)
+  if(toclose) close_mc(ncpus)
+
   return(res)
 }
 
