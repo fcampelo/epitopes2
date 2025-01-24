@@ -186,9 +186,11 @@ make_data_splits <- function(peptides.list,
       X <- moses::make_splits_rand_refine(C = C0, delta = delta, w = w)
     }
 
+    # Incorporate partial allocation into a full initial allocation matrix
     X0 <- matrix(0, nrow = length(delta), ncol = nrow(C))
     X0[, idx] <- X
 
+    # Summarise partial allocation
     alloc0 <- X0 %*% C
     target_id_groups <- idx
 
@@ -198,12 +200,14 @@ make_data_splits <- function(peptides.list,
     target_id_groups <- NULL
   }
 
-  # Get split allocations
+  # Get full split allocations
+  C1 <- C
+  colnames(C1) <- paste0("class.", colnames(C1))
   if(split_mode == "constructive"){
-    X <- moses::make_splits_constructive(C = C, delta = delta, w = w, X0 = X0)
+    X <- moses::make_splits_constructive(C = C1, delta = delta, w = w, X0 = X0)
   } else {
     w <- w[1:2] / sum(w[1:2])
-    X <- moses::make_splits_rand_refine(C = C, delta = delta, w = w, X0 = X0)
+    X <- moses::make_splits_rand_refine(C = C1, delta = delta, w = w, X0 = X0)
   }
 
   allocF <- X %*% C
