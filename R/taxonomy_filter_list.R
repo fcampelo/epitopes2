@@ -89,9 +89,9 @@ taxonomy_filter_list <- function(peptides.list = NULL,
 
   peptides.list$df <- df
   peptides.list$peptides <- peptides.list$peptides %>%
-    dplyr::filter(Info_PepID %in% unique(df$Info_PepID))
+    dplyr::filter(.data$Info_PepID %in% unique(df$Info_PepID))
   peptides.list$proteins <- peptides.list$proteins %>%
-    dplyr::filter(Info_protein_id %in% unique(df$Info_protein_id))
+    dplyr::filter(.data$Info_protein_id %in% unique(df$Info_protein_id))
 
   return(peptides.list)
 
