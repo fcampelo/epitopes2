@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_linear_epitopes.R
 \name{get_LBCE}
 \alias{get_LBCE}
-\title{Exgtract LBCE data from IEDB export}
+\title{Extract LBCE data from IEDB export}
 \usage{
 get_LBCE(data_folder, ncpus = 1, save_folder = NULL)
 }

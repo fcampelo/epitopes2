@@ -93,7 +93,7 @@ get_linear_epitopes <- function(data_folder,
   return(dplyr::as_tibble(df))
 }
 
-#' Exgtract LBCE data from IEDB export
+#' Extract LBCE data from IEDB export
 #'
 #' Alias function for [get_linear_epitopes()] with type = "B"
 #' @inheritParams get_linear_epitopes

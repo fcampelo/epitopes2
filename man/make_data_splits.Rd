@@ -15,6 +15,7 @@ make_data_splits(
   tax_list = NULL,
   save_folder = NULL,
   ncpus = 1,
+  seed = NULL,
   cdhit.par.list = list(s = 0.5)
 )
 }
@@ -35,8 +36,7 @@ package \code{moses} for details.
 \code{w[2]}: weight of the objective to distribute classes proportionally between splits;
 \code{w[3]}: weight of the objective to maximise within-splits diversity.
 Notice that \code{w[3]} is ignored if \code{split_mode == "rand"} (in which case
-\code{w[1]} and \code{w[2]} are scaled internally so that \code{w[1] + w[2] = 1}
-while keeping their relative proportions).}
+\code{w[1]} and \code{w[2]} are rescaled internally so that \code{w[1] + w[2] = 1}).}
 
 \item{split_names}{optional, vector of names to be given to each split.}
 
@@ -62,6 +62,9 @@ results as file \emph{peptides_list.rds} (overwriting if necessary)}
 
 \item{ncpus}{positive integer, number of cores to use.}
 
+\item{seed}{seed for pseudorandom number generator. Ignored if
+split_mode == "constructive".}
+
 \item{cdhit.par.list}{further parameters to be passed down to
 \code{\link[CellaRepertorium:cdhit]{CellaRepertorium::cdhit()}}. Please check that function for details.}
 }
@@ -78,7 +81,7 @@ the list object returned by \code{\link[CellaRepertorium:cdhit]{CellaRepertorium
 Split the data returned by \code{\link[=extract_labelled_data]{extract_labelled_data()}} into
 non-overlapping subsets. Proteins with similarities higher than
 a predefined threshold are always placed in the same split to prevent data
-leakage. See \code{\link[moses:make_splits_constructive]{moses::make_splits_constructive()}} and
+leakage. See \code{\link[moses:make_splits_constructive]{moses::make_splits_constructive()}} or
 \code{\link[moses:make_splits_rand_refine]{moses::make_splits_rand_refine()}} for details.
 }
 \author{

@@ -3,7 +3,7 @@
 #' Split the data returned by [extract_labelled_data()] into
 #' non-overlapping subsets. Proteins with similarities higher than
 #' a predefined threshold are always placed in the same split to prevent data
-#' leakage. See [moses::make_splits_constructive()] and
+#' leakage. See [moses::make_splits_constructive()] or
 #' [moses::make_splits_rand_refine()] for details.
 #'
 #' @param peptides.list list object returned by [extract_labelled_data()], containing
@@ -20,8 +20,7 @@
 #'          `w[2]`: weight of the objective to distribute classes proportionally between splits;
 #'          `w[3]`: weight of the objective to maximise within-splits diversity.
 #'          Notice that `w[3]` is ignored if `split_mode == "rand"` (in which case
-#'          `w[1]` and `w[2]` are scaled internally so that `w[1] + w[2] = 1`
-#'          while keeping their relative proportions).
+#'          `w[1]` and `w[2]` are rescaled internally so that `w[1] + w[2] = 1`).
 #' @param split_names optional, vector of names to be given to each split.
 #' @param split_mode mode of splitting. Use "constructive" for a deterministic
 #' constructive heuristic (calling [moses::make_splits_constructive()]) or
@@ -39,6 +38,8 @@
 #' @param save_folder path to folder for saving the results. It will save the
 #' results as file *peptides_list.rds* (overwriting if necessary)
 #' @param ncpus positive integer, number of cores to use.
+#' @param seed seed for pseudorandom number generator. Ignored if
+#' split_mode == "constructive".
 #' @param cdhit.par.list further parameters to be passed down to
 #' [CellaRepertorium::cdhit()]. Please check that function for details.
 #'
@@ -60,14 +61,15 @@
 
 make_data_splits <- function(peptides.list,
                              delta,
-                             w = c(.5, .4, .1),
-                             split_names  = NULL,
-                             split_mode   = "rand",
+                             w           = c(.5, .4, .1),
+                             split_names = NULL,
+                             split_mode  = "rand",
                              similarity_threshold = .7,
-                             target_id = NULL,
-                             tax_list = NULL,
+                             target_id   = NULL,
+                             tax_list    = NULL,
                              save_folder = NULL,
                              ncpus       = 1,
+                             seed        = NULL,
                              cdhit.par.list = list(s = 0.5)){
 
 
@@ -90,12 +92,14 @@ make_data_splits <- function(peptides.list,
                           is.numeric(w), length(w) == 3, all(w >= 0), sum(w) == 1,
                           is.null(save_folder) | (is.character(save_folder)),
                           is.null(save_folder) | length(save_folder) == 1,
-                          assertthat::is.count(ncpus))
+                          assertthat::is.count(ncpus),
+                          is.null(seed) | is.integer(seed))
 
   delta <- sort(delta, decreasing = TRUE)
   if (is.null(split_names)) split_names <- sprintf("split_%02d_%02d",
                                                    seq_along(delta),
                                                    round(100*delta))
+
   # ========================================================================== #
 
   # Remove pre-existing groupings
@@ -183,7 +187,7 @@ make_data_splits <- function(peptides.list,
       X <- moses::make_splits_constructive(C = C0, delta = delta, w = w)
     } else {
       w <- w[1:2] / sum(w[1:2])
-      X <- moses::make_splits_rand_refine(C = C0, delta = delta, w = w)
+      X <- moses::make_splits_rand_refine(C = C0, delta = delta, w = w, seed = seed)
     }
 
     # Incorporate partial allocation into a full initial allocation matrix
@@ -207,7 +211,7 @@ make_data_splits <- function(peptides.list,
     X <- moses::make_splits_constructive(C = C1, delta = delta, w = w, X0 = X0)
   } else {
     w <- w[1:2] / sum(w[1:2])
-    X <- moses::make_splits_rand_refine(C = C1, delta = delta, w = w, X0 = X0)
+    X <- moses::make_splits_rand_refine(C = C1, delta = delta, w = w, X0 = X0, seed = seed)
   }
 
   allocF <- X %*% C

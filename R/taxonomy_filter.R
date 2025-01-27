@@ -9,8 +9,11 @@
 #' orthopoxvirus (txID:10242) except Variola (txID:10255) we would make
 #' `orgIDs = 10242` and `removeIDs = 10255`.
 #'
-#' @param df a data frame containing peptide data (usually returned by
-#' [get_LBCE()] or [consolidate_data()]).
+#' @param df a data frame containing peptide data (returned by
+#' [get_LBCE()] or [consolidate_data()]). Only one of `df` or `peptides.list`
+#' should be provided.
+#' @param peptides.list list object returned by [extract_labelled_data()].
+#' Only one of `df` or `peptides.list` should be provided.
 #' @param orgIDs vector of organism taxon IDs to retain.
 #' @param hostIDs vector of host taxon IDs to retain.
 #' @param removeIDs vector of organism taxon IDs to remove.
@@ -26,13 +29,14 @@
 #' @export
 #'
 
-taxonomy_filter <- function(df,
-                            tax_list  = NULL,
-                            orgIDs    = NULL,
-                            hostIDs   = NULL,
-                            removeIDs = NULL,
-                            orgID_column = "sourceOrg_id",
-                            hostID_column = "host_id") {
+taxonomy_filter <- function(df            = NULL,
+                            peptides.list = NULL,
+                            tax_list      = NULL,
+                            orgIDs        = NULL,
+                            hostIDs       = NULL,
+                            removeIDs     = NULL,
+                            orgID_column  = ifelse(is.null(df), "Info_organism_id", "sourceOrg_id"),
+                            hostID_column = ifelse(is.null(df), "Info_host_id", "host_id")) {
 
   # ========================================================================== #
   # Sanity checks and initial definitions
@@ -49,13 +53,26 @@ taxonomy_filter <- function(df,
   hostIDs   <- checkIDs(hostIDs)
   removeIDs <- checkIDs(removeIDs)
 
-  assertthat::assert_that(is.data.frame(df),
-                          class(orgIDs)    %in% id_classes,
-                          class(hostIDs)   %in% id_classes,
-                          class(removeIDs) %in% id_classes,
-                          is.character(orgID_column), length(orgID_column) == 1,
-                          is.character(hostID_column), length(hostID_column) == 1,
-                          is.list(tax_list))
+  assertthat::assert_that(
+    xor(is.null(df), is.null(peptides.list)),
+    is.null(df) | is.data.frame(df),
+    is.null(peptides.list) | is.list(peptides.list),
+    is.null(peptides.list) | all(c("df", "peptides", "proteins") %in% names(peptides.list)),
+    class(orgIDs)    %in% id_classes,
+    class(hostIDs)   %in% id_classes,
+    class(removeIDs) %in% id_classes,
+    is.character(orgID_column), length(orgID_column) == 1,
+    is.character(hostID_column), length(hostID_column) == 1,
+    is.list(tax_list))
+
+  if(is.data.frame(df)) return(taxonomy_filter_df(df, tax_list,
+                                                  orgIDs, hostIDs, removeIDs,
+                                                  orgID_column, hostID_column))
+
+  if(is.list(peptides.list)) return(taxonomy_filter_list(peptides.list, tax_list,
+                                                       orgIDs, hostIDs, removeIDs,
+                                                       orgID_column, hostID_column))
+
 
   # Standardise relevant variables:
   ids <- data.frame(org  = as.character(df[, which(names(df) == orgID_column), drop = TRUE]),
