@@ -3,7 +3,7 @@
 #'
 #'
 #'
-#' @author Felipe Campelo (\email{f.campelo@@aston.ac.uk})
+#' @author Felipe Campelo (\email{fcampelo@@gmail.com})
 #'
 #' @export
 #'

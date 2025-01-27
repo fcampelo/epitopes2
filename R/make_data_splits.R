@@ -51,7 +51,7 @@
 #' than the desired number of splits) the function throws a warning and returns
 #' the list object returned by [CellaRepertorium::cdhit()].
 #'
-#' @author Felipe Campelo (\email{f.campelo@@aston.ac.uk})
+#' @author Felipe Campelo (\email{fcampelo@@gmail.com})
 #'
 #' @importFrom dplyr %>%
 #' @importFrom rlang .data

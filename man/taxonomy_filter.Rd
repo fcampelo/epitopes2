@@ -51,5 +51,5 @@ orthopoxvirus (txID:10242) except Variola (txID:10255) we would make
 \code{orgIDs = 10242} and \code{removeIDs = 10255}.
 }
 \author{
-Felipe Campelo (\email{f.campelo@aston.ac.uk})
+Felipe Campelo (\email{fcampelo@gmail.com})
 }

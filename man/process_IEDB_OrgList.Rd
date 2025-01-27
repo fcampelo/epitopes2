@@ -21,5 +21,5 @@ A data frame containing the taxonomic data.
 Process taxonomic information from IEDB OrganismList XML.
 }
 \author{
-Felipe Campelo (\email{f.campelo@aston.ac.uk})
+Felipe Campelo (\email{fcampelo@gmail.com})
 }

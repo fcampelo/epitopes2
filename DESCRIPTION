@@ -4,12 +4,12 @@ Title: Data Retrieval, Consolidation and Modelling for Linear Epitope Prediction
 Version: 0.9.9308
 Date: 2025-01-27
 Authors@R: c(person(given = "Felipe", family = "Campelo",
-                    email = "f.campelo@aston.ac.uk",
+                    email = "fcampelo@gmail.com",
                     role = c("aut", "cre")),
           person(given = "Francisco", family = "Lobo",
                     email = "franciscolobo@gmail.com",
                     role = c("ctb")))
-Maintainer: Felipe Campelo <f.campelo@aston.ac.uk>
+Maintainer: Felipe Campelo <fcampelo@gmail.com>
 Description: Routines for retrieval and preprocessing of epitope data from 
              <https://iedb.org/>, as well as feature calculation and 
              assessment of classification performance .

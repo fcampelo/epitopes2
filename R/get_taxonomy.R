@@ -8,7 +8,7 @@
 #'
 #' @return A list containing the information for each element of uids
 #'
-#' @author Felipe Campelo (\email{f.campelo@@aston.ac.uk})
+#' @author Felipe Campelo (\email{fcampelo@@gmail.com})
 #'
 #' @export
 #'

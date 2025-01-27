@@ -19,7 +19,7 @@
 #' empty list positions. This list vector has attributes `OK` (vector of
 #' ids of proteins successfully retrieved) and `FAIL` (unsuccessful ids).
 #'
-#' @author Felipe Campelo (\email{f.campelo@@aston.ac.uk})
+#' @author Felipe Campelo (\email{fcampelo@@gmail.com})
 #'
 #' @export
 #'

@@ -41,5 +41,5 @@ different identifier, etc.). This makes this routine substantially slower,
 but considerably more robust to errors.
 }
 \author{
-Felipe Campelo (\email{f.campelo@aston.ac.uk})
+Felipe Campelo (\email{fcampelo@gmail.com})
 }

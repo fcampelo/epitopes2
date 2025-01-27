@@ -32,5 +32,5 @@ This function is used to retrieve the full IEDB Organism List from
 \href{https://www.iedb.org}{IEDB} and extract it to a target folder.
 }
 \author{
-Felipe Campelo (\email{f.campelo@aston.ac.uk})
+Felipe Campelo (\email{fcampelo@gmail.com})
 }

@@ -48,5 +48,5 @@ Extract relevant peptides from the consolidated protein-epitope data
 of each labeled aminoacid residue.
 }
 \author{
-Felipe Campelo (\email{f.campelo@aston.ac.uk})
+Felipe Campelo (\email{fcampelo@gmail.com})
 }

@@ -40,5 +40,5 @@ epitopes <- get_linear_epitopes(my.dir)
 
 }
 \author{
-Felipe Campelo (\email{f.campelo@aston.ac.uk})
+Felipe Campelo (\email{fcampelo@gmail.com})
 }

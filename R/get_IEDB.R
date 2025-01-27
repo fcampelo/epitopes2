@@ -12,7 +12,7 @@
 #' @param timeout Timeout (in seconds) to be applied when downloading the IEDB
 #'        export. Increase for slow connections (the export is about 500Mb).
 #'
-#' @author Felipe Campelo (\email{f.campelo@@aston.ac.uk})
+#' @author Felipe Campelo (\email{fcampelo@@gmail.com})
 #'
 #' @return The function returns `TRUE` upon completion.
 #'

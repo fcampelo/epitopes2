@@ -28,7 +28,7 @@
 #'    proteins that appear at least once in `df` and `peptides`.
 #' }
 #'
-#' @author Felipe Campelo (\email{f.campelo@@aston.ac.uk})
+#' @author Felipe Campelo (\email{fcampelo@@gmail.com})
 #'
 #' @export
 #'

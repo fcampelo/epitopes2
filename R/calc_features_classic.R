@@ -100,7 +100,7 @@
 #' @return Updated `X` with features appended as columns
 #' (directly to `X` if it is a data.frame, or to `X$df` if it is a peptide.list object)
 #'
-#' @author Felipe Campelo (\email{f.campelo@@aston.ac.uk})
+#' @author Felipe Campelo (\email{fcampelo@@gmail.com})
 #'
 #' @export
 #'

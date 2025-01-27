@@ -20,7 +20,7 @@
 #'
 #' @return A data frame with the extracted proteins.
 #'
-#' @author Felipe Campelo (\email{f.campelo@@aston.ac.uk})
+#' @author Felipe Campelo (\email{fcampelo@@gmail.com})
 #'
 #' @export
 #'

@@ -8,7 +8,7 @@
 #'
 #' @return A data frame containing the taxonomic data.
 #'
-#' @author Felipe Campelo (\email{f.campelo@@aston.ac.uk})
+#' @author Felipe Campelo (\email{fcampelo@@gmail.com})
 #'
 #' @export
 #'

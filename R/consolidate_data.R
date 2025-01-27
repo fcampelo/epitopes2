@@ -39,7 +39,7 @@
 #' once in `epitopes$protein_id` (one row per aminoacid residue), containing
 #' the consolidated information extracted from `epitopes`.
 #'
-#' @author Felipe Campelo (\email{f.campelo@@aston.ac.uk})
+#' @author Felipe Campelo (\email{fcampelo@@gmail.com})
 #'
 #' @export
 #'

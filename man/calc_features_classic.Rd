@@ -116,5 +116,5 @@ other functions in this package).
 }
 
 \author{
-Felipe Campelo (\email{f.campelo@aston.ac.uk})
+Felipe Campelo (\email{fcampelo@gmail.com})
 }

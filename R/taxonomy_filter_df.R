@@ -14,7 +14,7 @@
 #' @return data frame with peptide data filtered by the criteria in **orgIDs**,
 #' **hostIDs** and **removeIDs**.
 #'
-#' @author Felipe Campelo (\email{f.campelo@@aston.ac.uk})
+#' @author Felipe Campelo (\email{fcampelo@@gmail.com})
 #'
 
 taxonomy_filter_df <- function(df            = NULL,

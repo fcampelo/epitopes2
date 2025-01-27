@@ -85,5 +85,5 @@ leakage. See \code{\link[moses:make_splits_constructive]{moses::make_splits_cons
 \code{\link[moses:make_splits_rand_refine]{moses::make_splits_rand_refine()}} for details.
 }
 \author{
-Felipe Campelo (\email{f.campelo@aston.ac.uk})
+Felipe Campelo (\email{fcampelo@gmail.com})
 }

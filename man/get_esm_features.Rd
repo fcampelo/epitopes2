@@ -39,5 +39,5 @@ This function retrieves pre-calculated ESM-1b features given a
 vector of protein IDs or a vector of taxonomy IDs.
 }
 \author{
-Felipe Campelo (\email{f.campelo@aston.ac.uk})
+Felipe Campelo (\email{fcampelo@gmail.com})
 }
