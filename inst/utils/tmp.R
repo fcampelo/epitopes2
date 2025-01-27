@@ -5,6 +5,7 @@ library(praznik)
 library(doParallel)
 library(themis) # For random undersampling
 library(bonsai) # For LightGBM
+library(colino)
 
 mydata <- readRDS("./data/processed_data_example.rds")
 
@@ -66,7 +67,7 @@ for (i in seq_along(top_p)){
                                       roc_auc, pr_auc),
       control = control_bayes(no_improve = 15,
                               parallel_over = "resamples",
-                              verbose = FALSE))
+                              verbose = TRUE))
 
   # Collect CV metrics and select best configuration according to MCC
   CV_metrics <- search_res %>% collect_metrics()

@@ -42,7 +42,7 @@ Taxonomic filtering works hierarchically - e.g., if a genus id is passed in
 \code{orgIDs}, all species under that genus are removed.
 \code{removeIDs} is generally used to censor out one or more subgroups under those
 listed in \code{orgIDs}. For instance, if we wanted to get data for all
-orthopoxvirus (txID:10242) except Variola (txID:10255) we would make
+orthopoxvirus (txID:10242) except the Variola virus (txID:10255) we would make
 \code{orgIDs = 10242} and \code{removeIDs = 10255}.
 }
 \author{

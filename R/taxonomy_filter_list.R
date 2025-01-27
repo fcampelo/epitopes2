@@ -6,7 +6,7 @@
 #' `orgIDs`, all species under that genus are removed.
 #' `removeIDs` is generally used to censor out one or more subgroups under those
 #' listed in `orgIDs`. For instance, if we wanted to get data for all
-#' orthopoxvirus (txID:10242) except Variola (txID:10255) we would make
+#' orthopoxvirus (txID:10242) except the Variola virus (txID:10255) we would make
 #' `orgIDs = 10242` and `removeIDs = 10255`.
 #'
 #' @inheritParams taxonomy_filter

@@ -30,7 +30,7 @@
 #' We follow this strategy here.
 #'
 #' For the feature calculation, any non-standard AA character is replaced by
-#' the `<mask>` placeholder.
+#' the `<unk>` placeholder.
 
 prot.df = prot.df # <---- data frame with sequences
 ncpus = 1
