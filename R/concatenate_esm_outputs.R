@@ -11,8 +11,10 @@
 #' @importFrom rlang .data
 #'
 
-concatenate_esm_outputs <- function(csv_folder, save_folder,
-                                    file_name = NULL,
+concatenate_esm_outputs <- function(csv_folder,
+                                    save_folder = NULL,
+                                    filenames = NULL,
+                                    save_file = NULL,
                                     feat_prefix = "feat_esm2_",
                                     ncpus = 1,
                                     delete_originals = TRUE){
@@ -21,16 +23,20 @@ concatenate_esm_outputs <- function(csv_folder, save_folder,
   # Sanity checks and initial definitions
   assertthat::assert_that(is.character(csv_folder), length(csv_folder) == 1,
                           dir.exists(csv_folder),
-                          is.character(save_folder), length(save_folder) == 1,
-                          is.null(file_name) | (is.character(file_name) & length(file_name) == 1),
+                          is.null(save_folder) | (is.character(save_folder) & length(save_folder) == 1),
+                          is.null(save_file) | (is.character(save_file) & length(save_file) == 1),
                           assertthat::is.count(ncpus),
                           is.logical(delete_originals), length(delete_originals) == 1)
 
 
 
-  if(!dir.exists(save_folder)) dir.create(save_folder, recursive = TRUE)
+  if(!is.null(save_folder) & !dir.exists(save_folder)) dir.create(save_folder, recursive = TRUE)
 
-  fl    <- dir(csv_folder, pattern = ".csv", full.names = TRUE)
+  if(is.null(filenames)) {
+    fl    <- dir(csv_folder, pattern = ".csv", full.names = TRUE)
+  } else {
+    fl <- paste0(csv_folder, "/", filenames)
+  }
   fn    <- paste0("/",
                   unname(sapply(dir(csv_folder, pattern = ".csv"),
                                 function(x)
@@ -53,17 +59,15 @@ concatenate_esm_outputs <- function(csv_folder, save_folder,
                             for(k in seq_along(idx)){
                               rng <- strsplit(fl[idx][k], split = "\\_\\_")[[1]][2]
                               rng <- as.numeric(strsplit(rng, split = "\\_|\\.")[[1]][1:2])
-                              X[[k]]$pos <- seq(rng[1], rng[2])
+                              X[[k]]$Info_pos <- seq(rng[1], rng[2])
                             }
                             X <- dplyr::bind_rows(X)
-                            X <- dplyr::group_by(X, .data$pos)
+                            X <- dplyr::group_by(X, .data$Info_pos)
                             X <- dplyr::summarise(X, dplyr::across(dplyr::everything(), mean))
-                            X <- dplyr::select(X, -pos)
                           }
 
                           names(X) <- paste0(feat_prefix, 1:ncol(X))
                           X$Info_protein_id <- gsub("/", "", fn_un[i], fixed = TRUE)
-                          X$Info_pos        <- 1:nrow(X)
                           return(X)
                         },
                         fn_un = fn_un, fn = fn, fl  = fl,
@@ -72,15 +76,16 @@ concatenate_esm_outputs <- function(csv_folder, save_folder,
 
   # Concatenate results
   X <- reslist %>%
-    bind_rows %>%
-    select(dplyr::starts_with("Info_"), dplyr::everything())
+    dplyr::bind_rows() %>%
+    dplyr::select(dplyr::starts_with("Info_"), dplyr::everything())
 
-  if(is.null(file_name)) {
-    file_name <- paste0(save_folder, "/esm_features_proteins.rds")
+  if(is.null(save_file)) {
+    save_file <- paste0(save_folder, "/esm_features_proteins.rds")
   } else {
-    file_name <- paste0(save_folder, "/", file_name)
+    save_file <- paste0(save_folder, "/", save_file)
   }
-  saveRDS(X, file_name)
+
+  if(!is.null(save_folder)) saveRDS(X, save_file)
 
   if(delete_originals) file.remove(fl)
   return(X)

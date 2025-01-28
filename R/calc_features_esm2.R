@@ -10,6 +10,10 @@
 #' @importFrom dplyr %>%
 #' @importFrom rlang .data
 #'
+#'
+
+# TODO: Check https://cran.r-project.org/web/packages/reticulate/vignettes/python_dependencies.html
+# to add Python environment configurations to package epitopes
 
 calc_features_esm2 <- function(X,
                                mode = "run",
@@ -47,12 +51,17 @@ calc_features_esm2 <- function(X,
 
   # ========================================================================== #
 
-  tmpfolder <- tempdir()
-  make_esm_fasta(prot.df, tmpfolder)
+  # Build FASTA file for ESM2 calculations. This breaks up
+  # proteins longer than 1022 AA into chunks of 1022 with a step size of 512.
+  # The results are later aggregated using concatenate_esm_outputs()
+  make_esm_fasta(prot.df,
+                 save_folder = save_folder,
+                 chunk_size  = 1022,
+                 step_size   = 512)
 
   scriptpath <- system.file("utils/Python/extract_ESM_pertoken.py", package = "epitopes")
 
-  cmdline1 <- paste0("python3 ", scriptpath, " ", model_spec, " ", tmpfolder,
+  cmdline1 <- paste0("python3 ", scriptpath, " ", model_spec, " ", save_folder,
                     "/proteins_masked_blocked.fa ", save_folder, "/csv ",
                     model_opts)
 
@@ -62,6 +71,7 @@ calc_features_esm2 <- function(X,
 
     message(sprintf("\nConcatenating ESM2 output.\nThis may take a while..."))
     protfeats <- concatenate_esm_outputs(csv_folder = paste0(save_folder, "/csv"),
+                                         filenames  = paste0(prot.df$IDs, ".csv"),
                                          save_folder = save_folder,
                                          ncpus = ncpus,
                                          delete_originals = delete_protein_csv_files)

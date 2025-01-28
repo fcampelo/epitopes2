@@ -1,8 +1,8 @@
 Package: epitopes
 Type: Package
 Title: Data Retrieval, Consolidation and Modelling for Linear Epitope Prediction
-Version: 0.9.9308
-Date: 2025-01-27
+Version: 0.9.9309
+Date: 2025-01-28
 Authors@R: c(person(given = "Felipe", family = "Campelo",
                     email = "fcampelo@gmail.com",
                     role = c("aut", "cre")),
@@ -26,6 +26,7 @@ Imports: assertthat (>= 0.2.1),
          BiocManager (>= 1.30.0),
          R.utils (>= 2.12.0),
          moses (>= 0.1.3),
+         seqinr (>= 4.0.0),
          parallel,
          utils
 Suggests: 
