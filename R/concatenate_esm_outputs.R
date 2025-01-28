@@ -17,7 +17,7 @@ concatenate_esm_outputs <- function(csv_folder,
                                     save_file = NULL,
                                     feat_prefix = "feat_esm2_",
                                     ncpus = 1,
-                                    delete_originals = TRUE){
+                                    delete_originals = FALSE){
 
   # ========================================================================== #
   # Sanity checks and initial definitions
@@ -83,6 +83,8 @@ concatenate_esm_outputs <- function(csv_folder,
   # Concatenate results
   X <- reslist %>%
     dplyr::bind_rows() %>%
+    dplyr::group_by(.data$Info_protein_id) %>%
+    dplyr::mutate(Info_pos = 1:dplyr::n()) %>%
     dplyr::select(dplyr::starts_with("Info_"), dplyr::everything())
 
   if(is.null(save_file)) {
