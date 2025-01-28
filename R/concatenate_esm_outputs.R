@@ -30,18 +30,24 @@ concatenate_esm_outputs <- function(csv_folder,
 
 
 
-  if(!is.null(save_folder) & !dir.exists(save_folder)) dir.create(save_folder, recursive = TRUE)
+  if(!is.null(save_folder) && !dir.exists(save_folder)) dir.create(save_folder, recursive = TRUE)
 
   if(is.null(filenames)) {
     fl    <- dir(csv_folder, pattern = ".csv", full.names = TRUE)
+    fn    <- paste0("/",
+                    unname(sapply(dir(csv_folder, pattern = ".csv"),
+                                  function(x)
+                                    strsplit(x,
+                                             split = "\\/|\\_\\_|\\.csv")[[1]][1])))
   } else {
     fl <- paste0(csv_folder, "/", filenames)
+    fn    <- paste0("/",
+                    unname(sapply(filenames,
+                                  function(x)
+                                    strsplit(x,
+                                             split = "\\/|\\_\\_|\\.csv")[[1]][1])))
   }
-  fn    <- paste0("/",
-                  unname(sapply(dir(csv_folder, pattern = ".csv"),
-                                function(x)
-                                  strsplit(x,
-                                           split = "\\/|\\_\\_|\\.csv")[[1]][1])))
+
   fn_un <- unique(fn)
 
   reslist <- mypblapply(seq_along(fn_un),
