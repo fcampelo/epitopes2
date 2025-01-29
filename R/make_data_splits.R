@@ -171,6 +171,7 @@ make_data_splits <- function(peptides.list,
                                  },
                                  id = target_id))]
     ids <- sapply(ids, function(a) a$UID)
+    target_id_list <- ids
 
 
     # Get which groups have observations from target_id
@@ -227,6 +228,8 @@ make_data_splits <- function(peptides.list,
   Y <- lapply(1:nrow(Y), function(i, Y){
     data.frame(Info_split = Y$Info_split[i],
                Info_group = Y$Info_group[i],
+               Info_has_target_in_group = ifelse(is.null(target_id_groups) | !(Y$Info_group[i] %in% target_id_groups),
+                                                 FALSE, TRUE),
                Info_protein_id = unlist(Y$protids[i]))},
     Y = Y) %>%
     dplyr::bind_rows()
@@ -235,12 +238,16 @@ make_data_splits <- function(peptides.list,
 
   peptides.list$df <- df %>%
     dplyr::left_join(Y, by = "Info_protein_id") %>%
+    dplyr::mutate(Info_is_target_id = ifelse(.data$Info_organism_id %in% target_id_list,
+                                             TRUE, FALSE)) %>%
     dplyr::select(dplyr::starts_with("Info"),
                   "Class",
                   dplyr::everything())
 
   peptides.list$peptides <- peptides %>%
     dplyr::left_join(Y, by = "Info_protein_id") %>%
+    dplyr::mutate(Info_is_target_id = ifelse(.data$Info_organism_id %in% target_id_list,
+                                             TRUE, FALSE)) %>%
     dplyr::select(dplyr::starts_with("Info"), "Class", dplyr::everything())
 
   peptides.list$proteins <- proteins %>%
