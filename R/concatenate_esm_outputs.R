@@ -70,6 +70,7 @@ concatenate_esm_outputs <- function(csv_folder,
                             X <- dplyr::bind_rows(X)
                             X <- dplyr::group_by(X, .data$Info_pos)
                             X <- dplyr::summarise(X, dplyr::across(dplyr::everything(), mean))
+                            X <- dplyr::select(X, -.data$Info_pos)
                           }
 
                           names(X) <- paste0(feat_prefix, 1:ncol(X))

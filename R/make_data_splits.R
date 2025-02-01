@@ -45,7 +45,10 @@
 #'
 #' @return Updated `peptides.list` with dataframes containing 2 additional columns,
 #' `Info_group` (cluster id returned by CDHIT) and `Info_split` (which allocates
-#' groups to different splits.
+#' groups to different splits. Dataframes `df` and `peptides` have an extra
+#' two columns indicating whether the observation group contains any observations
+#' from the target taxon (if applicable), and whether each observation's
+#' `Info_organism_id` is under the `target_id` taxon.
 #'
 #' If the splitting is impossible (e.g., if the number of clusters is smaller
 #' than the desired number of splits) the function throws a warning and returns
@@ -93,7 +96,7 @@ make_data_splits <- function(peptides.list,
                           is.null(save_folder) | (is.character(save_folder)),
                           is.null(save_folder) | length(save_folder) == 1,
                           assertthat::is.count(ncpus),
-                          is.null(seed) | is.integer(seed))
+                          is.null(seed) | assertthat::is.count(seed))
 
   delta <- sort(delta, decreasing = TRUE)
   if (is.null(split_names)) split_names <- sprintf("split_%02d_%02d",
@@ -104,11 +107,15 @@ make_data_splits <- function(peptides.list,
 
   # Remove pre-existing groupings
   df <- peptides.list$df %>%
-    dplyr::select(-dplyr::starts_with("Info_group"),
-                  -dplyr::starts_with("Info_split"))
+    dplyr::select(-dplyr::starts_with(c("Info_group",
+                                        "Info_split",
+                                        "Info_Info_is_target_id",
+                                        "Info_has_target_in_group")))
   peptides <- peptides.list$peptides %>%
-    dplyr::select(-dplyr::starts_with("Info_group"),
-                  -dplyr::starts_with("Info_split"))
+    dplyr::select(-dplyr::starts_with(c("Info_group",
+                                        "Info_split",
+                                        "Info_Info_is_target_id",
+                                        "Info_has_target_in_group")))
   proteins <- peptides.list$proteins %>%
     dplyr::select(-dplyr::starts_with("Info_group"),
                   -dplyr::starts_with("Info_split"))
@@ -188,6 +195,8 @@ make_data_splits <- function(peptides.list,
       X <- moses::make_splits_constructive(C = C0, delta = delta, w = w)
     } else {
       w <- w[1:2] / sum(w[1:2])
+
+      # TODO: investigate error source here
       X <- moses::make_splits_rand_refine(C = C0, delta = delta, w = w, seed = seed)
     }
 
@@ -216,6 +225,7 @@ make_data_splits <- function(peptides.list,
   }
 
   allocF <- X %*% C
+
 
   x <- apply(X, MARGIN = 2, FUN = function(z) which(z == 1))
   Y <- Y %>%

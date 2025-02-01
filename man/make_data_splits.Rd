@@ -71,7 +71,10 @@ split_mode == "constructive".}
 \value{
 Updated \code{peptides.list} with dataframes containing 2 additional columns,
 \code{Info_group} (cluster id returned by CDHIT) and \code{Info_split} (which allocates
-groups to different splits.
+groups to different splits. Dataframes \code{df} and \code{peptides} have an extra
+two columns indicating whether the observation group contains any observations
+from the target taxon (if applicable), and whether each observation's
+\code{Info_organism_id} is under the \code{target_id} taxon.
 
 If the splitting is impossible (e.g., if the number of clusters is smaller
 than the desired number of splits) the function throws a warning and returns
