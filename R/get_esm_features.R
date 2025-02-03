@@ -12,7 +12,8 @@
 #' (comma-separated string with the taxonomy IDs of pathogens associated with
 #' the protein in the IEDB records).
 #' @param save_folder path to folder for saving the results.
-#' @param ncpus positive integer, number of cores to use
+#' @param cl a SOCK cluster object created using [epitopes::set_mc_cluster()], or
+#'        `NULL` if parallel processing is not desired.
 #'
 #' @return A named list vector containing the data frames with the ESM features
 #' for each protein. IDs that are not available in `path` are returned as
@@ -28,7 +29,7 @@ get_esm_features <- function(path,
                              Info_protein_id = NULL,
                              Info_organism_id = NULL,
                              save_folder = NULL,
-                             ncpus = 1){
+                             cl = cl){
 
   # ========================================================================== #
   # Sanity checks and initial definitions
@@ -41,7 +42,7 @@ get_esm_features <- function(path,
                           is.null(Info_organism_id) || length(Info_organism_id) >= 1,
                           (is.null(Info_organism_id) + is.null(Info_protein_id)) <= 1,
                           is.character(path), length(path) == 1, dir.exists(path),
-                          assertthat::is.count(ncpus))
+                          is.null(cl) | "SOCKcluster" %in% class(cl))
 
   # Read file map
   filemap <- utils::read.table(paste0(path, "/filemap.tsv"), sep = "\t", header = TRUE)
@@ -72,18 +73,18 @@ get_esm_features <- function(path,
     df_file <- paste0(normalizePath(save_folder), "/esm_features.rds")
   }
 
-  reslist <- mypblapply(Info_protein_id,
-                        function(id, path, filemap){
-                          idx <- which(filemap$Info_protein_id == id)
-                          fp <- paste0(path, "/", filemap$folder[idx], "/", id, ".rds")
-                          if(file.exists(fp)){
-                            x <- readRDS(fp)
-                            x$Info_protein_id <- id
-                            return(cbind(x[, ncol(x), drop = FALSE], x[, -ncol(x)]))
-                          } else {
-                            return(NULL)
-                          }
-                        }, path = path, filemap = filemap, ncpus = ncpus)
+  reslist <- pbapply::pblapply(X = Info_protein_id,
+                               FUN = function(id, path, filemap){
+                                 idx <- which(filemap$Info_protein_id == id)
+                                 fp <- paste0(path, "/", filemap$folder[idx], "/", id, ".rds")
+                                 if(file.exists(fp)){
+                                   x <- readRDS(fp)
+                                   x$Info_protein_id <- id
+                                   return(cbind(x[, ncol(x), drop = FALSE], x[, -ncol(x)]))
+                                 } else {
+                                   return(NULL)
+                                 }
+                               }, path = path, filemap = filemap, cl = cl)
 
   names(reslist) <- Info_protein_id
 

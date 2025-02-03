@@ -43,61 +43,6 @@ make_windows <- function(x, Class, window_size){
   return(windows)
 }
 
-# Set multicore cluster
-set_mc <- function(ncpus){
-  if (ncpus > 1 && .Platform$OS.type == "windows"){
-    cl <- parallel::makeCluster(ncpus, setup_timeout = 2)
-  } else {
-    cl <- max(1, min(ncpus, parallel::detectCores() - 1))
-  }
-  return(cl)
-}
-
-# Close multicore cluster
-close_mc <- function(cl){
-  # Stop cluster
-  if("cluster" %in% class(cl)) parallel::stopCluster(cl)
-  invisible(TRUE)
-}
-
-# Bespoke parallel progress bar execution
-mypblapply <- function(X, FUN, ncpus,
-                       toexport = list(),
-                       pks = NULL,
-                       ...){
-
-  toclose <- FALSE
-  if(!any(c("SOCKcluster", "cluster") %in% class(ncpus))){
-    ncpus  <- set_mc(ncpus)
-    toclose <- TRUE
-  }
-
-  if(.Platform$OS.type == "windows"){
-    if (length(toexport) > 0) parallel::clusterExport(cl = ncpus,
-                                                      varlist = toexport)
-
-    if(!is.null(pks)){
-      parallel::clusterExport(cl = ncpus,
-                              varlist = "pks")
-      for(i in seq_along(pks)){
-        .ignore <- parallel::clusterEvalQ(cl = ncpus,
-                                          expr = {
-                                            for (i in seq_along(pks)) {
-                                              require(pks[[i]], character.only = TRUE)
-                                            }})
-      }
-    }
-  }
-
-  res <- pbapply::pblapply(cl = ncpus, X = X, FUN = FUN, ...)
-
-  if(toclose) close_mc(ncpus)
-
-  return(res)
-}
-
-
-
 # ======================================================================
 # Progress bar function (non-parallel)
 mypb <- function(i, max_i, t0, npos){

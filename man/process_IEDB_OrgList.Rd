@@ -4,13 +4,14 @@
 \alias{process_IEDB_OrgList}
 \title{Process taxonomic information from IEDB OrganismList XML.}
 \usage{
-process_IEDB_OrgList(file_path, ncpus = 1, save_folder = NULL)
+process_IEDB_OrgList(file_path, cl = NULL, save_folder = NULL)
 }
 \arguments{
 \item{file_path}{path (either relative or absolute) to the OrganismList.xml
 file retrieved from the IEDB database export (e.g., via \code{\link[=get_IEDB_OrgList]{get_IEDB_OrgList()}}).}
 
-\item{ncpus}{positive integer, number of cores to use.}
+\item{cl}{a SOCK cluster object created using \code{\link[=set_mc_cluster]{set_mc_cluster()}}, or
+\code{NULL} if parallel processing is not desired.}
 
 \item{save_folder}{path to folder for saving the output.}
 }

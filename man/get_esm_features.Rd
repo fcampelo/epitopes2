@@ -9,7 +9,7 @@ get_esm_features(
   Info_protein_id = NULL,
   Info_organism_id = NULL,
   save_folder = NULL,
-  ncpus = 1
+  cl = cl
 )
 }
 \arguments{
@@ -26,7 +26,8 @@ the protein in the IEDB records).}
 
 \item{save_folder}{path to folder for saving the results.}
 
-\item{ncpus}{positive integer, number of cores to use}
+\item{cl}{a SOCK cluster object created using \code{\link[=set_mc_cluster]{set_mc_cluster()}}, or
+\code{NULL} if parallel processing is not desired.}
 }
 \value{
 A named list vector containing the data frames with the ESM features

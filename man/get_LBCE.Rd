@@ -4,13 +4,14 @@
 \alias{get_LBCE}
 \title{Extract LBCE data from IEDB export}
 \usage{
-get_LBCE(data_folder, ncpus = 1, save_folder = NULL)
+get_LBCE(data_folder, cl = NULL, save_folder = NULL)
 }
 \arguments{
 \item{data_folder}{path (either relative or absolute) to the directory
 containing the XML files}
 
-\item{ncpus}{positive integer, number of cores to use}
+\item{cl}{a SOCK cluster object created using \code{\link[=set_mc_cluster]{set_mc_cluster()}}, or
+\code{NULL} if parallel processing is not desired.}
 
 \item{save_folder}{path to folder for saving the output.}
 }

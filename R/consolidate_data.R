@@ -33,9 +33,10 @@
 #'        as positive if $n_positive > 0$, "mode" to set it if
 #'        $n_positive >= n_negative$, or "all" to set it if $n_negative == 0$.
 #'        Defaults to "mode".
-#' @param ncpus positive integer, number of cores to use
+#' @param cl a SOCK cluster object created using [epitopes::set_mc_cluster()], or
+#'        `NULL` if parallel processing is not desired.
 #'
-#' @return Data frame containing all proteins mentioned that appear at least
+#' @return Data frame with all proteins mentioned that appear at least
 #' once in `epitopes$protein_id` (one row per aminoacid residue), containing
 #' the consolidated information extracted from `epitopes`.
 #'
@@ -50,7 +51,7 @@ consolidate_data <- function(epitopes, proteins,
                              save_folder     = NULL,
                              only_exact      = FALSE,
                              set_positive    = c("any", "mode", "all"),
-                             ncpus           = 1){
+                             cl              = NULL){
 
   # ========================================================================== #
   # Sanity checks and initial definitions
@@ -60,7 +61,7 @@ consolidate_data <- function(epitopes, proteins,
                           is.null(save_folder) | (is.character(save_folder)),
                           is.null(save_folder) | length(save_folder) == 1,
                           is.character(set_positive),
-                          assertthat::is.count(ncpus))
+                          is.null(cl) | "SOCKcluster" %in% class(cl))
 
   if(all(tolower(set_positive) == "any")) {
     set_positive <- "any"
@@ -104,30 +105,30 @@ consolidate_data <- function(epitopes, proteins,
 
   # Build long protein data frame
   message("Building long data frame: proteins")
-  df <- mypblapply(split(df, seq(nrow(df))),
-                   FUN = function(x){
-                     data.frame(Info_protein_id  = x$Info_protein_id,
-                                Info_pos         = 1:nchar(x$Info_protein_sequence),
-                                Info_AA          = strsplit(x$Info_protein_sequence,
-                                                            split = "")[[1]])},
-                   ncpus = ncpus) %>%
+  df <- pbapply::pblapply(X = split(df, seq(nrow(df))),
+                          FUN = function(x){
+                            data.frame(Info_protein_id  = x$Info_protein_id,
+                                       Info_pos         = 1:nchar(x$Info_protein_sequence),
+                                       Info_AA          = strsplit(x$Info_protein_sequence,
+                                                                   split = "")[[1]])},
+                          cl = cl) %>%
     dplyr::bind_rows()
 
 
   # Build long epitope data frame
   message("Building long data frame: peptides")
-  epit_summary <- mypblapply(split(epits, seq(nrow(epits))),
-                             FUN = function(x){
-                               data.frame(Info_protein_id   = x$protein_id,
-                                          Info_pos          = x$start_pos:x$end_pos,
-                                          Info_pubmed_id    = x$pubmed_id,
-                                          Info_epitope_id   = x$epitope_id,
-                                          Info_sourceOrg_id = x$sourceOrg_id,
-                                          Info_host_id      = x$host_id,
-                                          Info_nPos         = x$n_Positive,
-                                          Info_nNeg         = x$n_Negative,
-                                          Info_type         = x$epit_struc_def)},
-                             ncpus = ncpus) %>%
+  epit_summary <- pbapply::pblapply(X = split(epits, seq(nrow(epits))),
+                                    FUN = function(x){
+                                      data.frame(Info_protein_id   = x$protein_id,
+                                                 Info_pos          = x$start_pos:x$end_pos,
+                                                 Info_pubmed_id    = x$pubmed_id,
+                                                 Info_epitope_id   = x$epitope_id,
+                                                 Info_sourceOrg_id = x$sourceOrg_id,
+                                                 Info_host_id      = x$host_id,
+                                                 Info_nPos         = x$n_Positive,
+                                                 Info_nNeg         = x$n_Negative,
+                                                 Info_type         = x$epit_struc_def)},
+                                    cl = cl) %>%
     dplyr::bind_rows() %>%
     #
     # Consolidate information by protein-position

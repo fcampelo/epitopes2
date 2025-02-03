@@ -95,7 +95,8 @@
 #' @param seqs_column name of the column containing the sequences
 #' @param features vector of names of features to be calculated.
 #' See **Feature Vector** for details.
-#' @param ncpus positive integer, number of cores to use
+#' @param cl a SOCK cluster object created using [epitopes::set_mc_cluster()], or
+#'        `NULL` if parallel processing is not desired.
 #'
 #' @return Updated `X` with features appended as columns
 #' (directly to `X` if it is a data.frame, or to `X$df` if it is a peptide.list object)
@@ -110,7 +111,7 @@
 calc_features_classic <- function(X,
                                   seqs_column,
                                   features,
-                                  ncpus = 1){
+                                  cl = NULL){
   # ========================================================================== #
   # Sanity checks and initial definitions
   assertthat::assert_that(is.data.frame(X) | is.peptide.list(X),
@@ -118,7 +119,7 @@ calc_features_classic <- function(X,
                           length(seqs_column) == 1,
                           is.character(features),
                           length(features) > 0,
-                          assertthat::is.count(ncpus))
+                          is.null(cl) | "SOCKcluster" %in% class(cl))
 
   if(is.data.frame(X)){
     assertthat::assert_that(nrow(X) > 0,
@@ -139,14 +140,12 @@ calc_features_classic <- function(X,
   for (i in seq_along(features)){
     message("Calculating features: ", features[i])
 
-    cl <- set_mc(ncpus)
-    myres[[i]] <- mypblapply(X = SEQs,
-                             FUN = call_feat_functions,
-                             feat.name = features[i],
-                             myargs = get_feature_args(features[i]),
-                             ncpus = ncpus) %>%
+    myres[[i]] <- pbapply::pblapply(X = SEQs,
+                                    FUN = call_feat_functions,
+                                    feat.name = features[i],
+                                    myargs = get_feature_args(features[i]),
+                                    cl = cl) %>%
       dplyr::bind_rows()
-    close_mc(cl)
   }
 
   y <- dplyr::bind_cols(myres)

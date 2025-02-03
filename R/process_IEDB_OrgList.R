@@ -3,7 +3,8 @@
 #'
 #' @param file_path path (either relative or absolute) to the OrganismList.xml
 #' file retrieved from the IEDB database export (e.g., via [get_IEDB_OrgList()]).
-#' @param ncpus positive integer, number of cores to use.
+#' @param cl a SOCK cluster object created using [epitopes::set_mc_cluster()], or
+#'        `NULL` if parallel processing is not desired.
 #' @param save_folder path to folder for saving the output.
 #'
 #' @return A data frame containing the taxonomic data.
@@ -14,7 +15,7 @@
 #'
 
 process_IEDB_OrgList <- function(file_path,
-                                 ncpus = 1,
+                                 cl = NULL,
                                  save_folder = NULL){
 
   # ========================================================================== #
@@ -22,7 +23,7 @@ process_IEDB_OrgList <- function(file_path,
   assertthat::assert_that(is.character(file_path),
                           length(file_path) == 1,
                           file.exists(file_path),
-                          assertthat::is.count(ncpus),
+                          is.null(cl) | "SOCKcluster" %in% class(cl),
                           is.null(save_folder) | is.character(save_folder),
                           length(save_folder) <= 1)
 
@@ -52,11 +53,11 @@ process_IEDB_OrgList <- function(file_path,
 
   message("Reading nodes (", gsub("\\..+$", "", Sys.time()), ")")
   nodes <- XML::getNodeSet(xmlfile, "/OrganismList/Organism")
-  df    <- mypblapply(nodes,
-                      function(c){
-                        c <- XML::getChildrenStrings(c)
-                        data.frame(as.list(c))},
-                      ncpus = ncpus, pks = "XML")
+  df    <- pbapply::pblapply(nodes,
+                             function(c){
+                               c <- XML::getChildrenStrings(c)
+                               data.frame(as.list(c))},
+                             cl = cl)
 
   # ========stopped here
 

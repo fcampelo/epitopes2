@@ -7,7 +7,7 @@
 get_linear_epitopes(
   data_folder,
   epitope_type = "B",
-  ncpus = 1,
+  cl = NULL,
   save_folder = NULL
 )
 }
@@ -17,7 +17,8 @@ containing the XML files}
 
 \item{epitope_type}{type of linear epitope to retrieve ("T" or "B")}
 
-\item{ncpus}{positive integer, number of cores to use}
+\item{cl}{a SOCK cluster object created using \code{\link[=set_mc_cluster]{set_mc_cluster()}}, or
+\code{NULL} if parallel processing is not desired.}
 
 \item{save_folder}{path to folder for saving the output.}
 }

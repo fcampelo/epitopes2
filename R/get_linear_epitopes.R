@@ -12,7 +12,8 @@
 #' @param data_folder path (either relative or absolute) to the directory
 #'        containing the XML files
 #' @param epitope_type type of linear epitope to retrieve ("T" or "B")
-#' @param ncpus positive integer, number of cores to use
+#' @param cl a SOCK cluster object created using [epitopes::set_mc_cluster()], or
+#'        `NULL` if parallel processing is not desired.
 #' @param save_folder path to folder for saving the output.
 #'
 #' @return A data frame containing the epitope data.
@@ -28,7 +29,7 @@
 
 get_linear_epitopes <- function(data_folder,
                                 epitope_type = "B",
-                                ncpus = 1,
+                                cl = NULL,
                                 save_folder = NULL){
 
   # ========================================================================== #
@@ -39,7 +40,7 @@ get_linear_epitopes <- function(data_folder,
                           is.character(epitope_type),
                           length(epitope_type) == 1,
                           epitope_type %in% c("T", "B"),
-                          assertthat::is.count(ncpus),
+                          is.null(cl) | "SOCKcluster" %in% class(cl),
                           is.null(save_folder) | is.character(save_folder),
                           length(save_folder) <= 1)
 
@@ -57,13 +58,13 @@ get_linear_epitopes <- function(data_folder,
 
   # ==================================================
   t <- Sys.time()
-  message("Processing ", length(filelist), " files using ", ncpus, " cores",
+  message("Processing ", length(filelist), " files using ", length(cl), " cores",
           "\nStarted at ", as.character(t), "\n")
 
-  df <- mypblapply(ncpus = ncpus,
-                   X     = filelist,
-                   FUN   = process_xml_file,
-                   type  = epitope_type)
+  df <- pbapply::pblapply(cl = cl,
+                          X     = filelist,
+                          FUN   = process_xml_file,
+                          type  = epitope_type)
 
   td <- Sys.time() - t
   message("Ended at ", as.character(Sys.time()),
@@ -99,12 +100,12 @@ get_linear_epitopes <- function(data_folder,
 #' @inheritParams get_linear_epitopes
 #' @export
 get_LBCE <- function(data_folder,
-                     ncpus = 1,
+                     cl = NULL,
                      save_folder = NULL){
 
   get_linear_epitopes(data_folder,
                       epitope_type = "B",
-                      ncpus,
+                      cl = cl,
                       save_folder)
 }
 
@@ -114,11 +115,11 @@ get_LBCE <- function(data_folder,
 #' @inheritParams get_linear_epitopes
 #' @export
 get_LTCE <- function(data_folder,
-                     ncpus = 1,
+                     cl = NULL,
                      save_folder = NULL){
 
   get_linear_epitopes(data_folder,
                       epitope_type = "T",
-                      ncpus,
+                      cl = cl,
                       save_folder)
 }

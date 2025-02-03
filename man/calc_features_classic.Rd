@@ -4,7 +4,7 @@
 \alias{calc_features_classic}
 \title{Calculate classic features for epitope prediction}
 \usage{
-calc_features_classic(X, seqs_column, features, ncpus = 1)
+calc_features_classic(X, seqs_column, features, cl = NULL)
 }
 \arguments{
 \item{X}{a peptide.list object (returned by \code{\link[=extract_labelled_data]{extract_labelled_data()}} or a
@@ -16,7 +16,8 @@ calculation.}
 \item{features}{vector of names of features to be calculated.
 See \strong{Feature Vector} for details.}
 
-\item{ncpus}{positive integer, number of cores to use}
+\item{cl}{a SOCK cluster object created using \code{\link[=set_mc_cluster]{set_mc_cluster()}}, or
+\code{NULL} if parallel processing is not desired.}
 }
 \value{
 Updated \code{X} with features appended as columns

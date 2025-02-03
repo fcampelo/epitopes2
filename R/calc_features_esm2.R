@@ -1,7 +1,8 @@
+#' Invoke model to calculate ESM2 features
 #'
 #'
-#'
-#'
+#' @param cl a SOCK cluster object created using [epitopes::set_mc_cluster()], or
+#'        `NULL` if parallel processing is not desired.
 #'
 #' @author Felipe Campelo (\email{fcampelo@@gmail.com})
 #'
@@ -19,7 +20,7 @@ calc_features_esm2 <- function(X,
                                mode = "run",
                                seqs_column = "Info_protein_sequence",
                                ids_column  = "Info_protein_id",
-                               ncpus = 1,
+                               cl = NULL,
                                save_folder = "./data",
                                model_spec  = "esm2_t33_650M_UR50D",
                                model_opts  = "--include per_tok --repr_layers 33",
@@ -30,7 +31,7 @@ calc_features_esm2 <- function(X,
   assertthat::assert_that(is.data.frame(X) | is.peptide.list(X),
                           is.character(seqs_column),
                           length(seqs_column) == 1,
-                          assertthat::is.count(ncpus))
+                          is.null(cl) | "SOCKcluster" %in% class(cl))
 
   if(is.data.frame(X)){
     assertthat::assert_that(nrow(X) > 0,
@@ -73,7 +74,7 @@ calc_features_esm2 <- function(X,
     protfeats <- concatenate_esm_outputs(csv_folder = paste0(save_folder, "/csv"),
                                          filenames  = paste0(prot1$IDs, ".csv"),
                                          save_folder = save_folder,
-                                         ncpus = ncpus,
+                                         cl = cl,
                                          delete_originals = delete_protein_csv_files)
 
     if(is.data.frame(X)){
