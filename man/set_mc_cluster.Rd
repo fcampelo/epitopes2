@@ -7,8 +7,13 @@
 set_mc_cluster(ncpus)
 }
 \arguments{
-\item{ncpus}{number of ores to use}
+\item{ncpus}{number of cores to use}
+}
+\value{
+a SOCK cluster object
 }
 \description{
-Set multicore cluster
+This function is a wrapper around \code{\link[parallel:makeCluster]{parallel::makePSOCKcluster()}} followed
+by \code{\link[parallel:clusterApply]{parallel::clusterEvalQ()}}, which loads all required packages in the
+individual cluster workers.
 }
