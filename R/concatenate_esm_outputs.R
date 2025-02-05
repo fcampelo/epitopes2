@@ -9,7 +9,6 @@
 #' @export
 #'
 #' @importFrom dplyr %>%
-#' @importFrom rlang .data
 #'
 
 concatenate_esm_outputs <- function(csv_folder,
@@ -69,9 +68,8 @@ concatenate_esm_outputs <- function(csv_folder,
                                      X[[k]]$Info_pos <- seq(rng[1], rng[2])
                                    }
                                    X <- dplyr::bind_rows(X)
-                                   X <- dplyr::group_by(X, .data$Info_pos)
                                    X <- dplyr::summarise(X, dplyr::across(dplyr::everything(), mean))
-                                   X <- dplyr::select(X, -.data$Info_pos)
+                                   X <- dplyr::select(X, -c("Info_pos"))
                                  }
 
                                  names(X) <- paste0(feat_prefix, 1:ncol(X))
@@ -85,17 +83,19 @@ concatenate_esm_outputs <- function(csv_folder,
   # Concatenate results
   X <- reslist %>%
     dplyr::bind_rows() %>%
-    dplyr::group_by(.data$Info_protein_id) %>%
+    dplyr::group_by("Info_protein_id") %>%
     dplyr::mutate(Info_pos = 1:dplyr::n()) %>%
     dplyr::select(dplyr::starts_with("Info_"), dplyr::everything())
 
-  if(is.null(save_file)) {
-    save_file <- paste0(save_folder, "/esm_features_proteins.rds")
-  } else {
-    save_file <- paste0(save_folder, "/", save_file)
-  }
 
-  if(!is.null(save_folder)) saveRDS(X, save_file)
+  if(!is.null(save_folder)) {
+    if(is.null(save_file)) {
+      save_file <- paste0(save_folder, "/esm_features_proteins.rds")
+    } else {
+      save_file <- paste0(save_folder, "/", save_file)
+    }
+    saveRDS(X, save_file)
+  }
 
   if(delete_originals) file.remove(fl)
   return(X)
