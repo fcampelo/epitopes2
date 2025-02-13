@@ -9,7 +9,6 @@
 #' @export
 #'
 #' @importFrom dplyr %>%
-#' @importFrom rlang .data
 #'
 #'
 

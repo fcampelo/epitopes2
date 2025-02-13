@@ -106,7 +106,6 @@
 #' @export
 #'
 #' @importFrom dplyr %>%
-#' @importFrom rlang .data
 #'
 calc_features_classic <- function(X,
                                   seqs_column,
