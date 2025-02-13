@@ -109,12 +109,12 @@ make_data_splits <- function(peptides.list,
   df <- peptides.list$df %>%
     dplyr::select(-dplyr::starts_with(c("Info_group",
                                         "Info_split",
-                                        "Info_Info_is_target_id",
+                                        "Info_is_target_id",
                                         "Info_has_target_in_group")))
   peptides <- peptides.list$peptides %>%
     dplyr::select(-dplyr::starts_with(c("Info_group",
                                         "Info_split",
-                                        "Info_Info_is_target_id",
+                                        "Info_is_target_id",
                                         "Info_has_target_in_group")))
   proteins <- peptides.list$proteins %>%
     dplyr::select(-dplyr::starts_with("Info_group"),
@@ -211,6 +211,7 @@ make_data_splits <- function(peptides.list,
   } else {
     X0 <- NULL
     alloc0 <- NULL
+    target_id_list <- NULL
     target_id_groups <- NULL
   }
 
