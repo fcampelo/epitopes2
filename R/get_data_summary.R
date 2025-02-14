@@ -15,7 +15,7 @@
 #'
 #' @export
 #'
-get_data_summary <- function(peptides.list, uid = NULL, tax_list = NULL){
+get_data_summary <- function(peptides.list, uid = NULL, tax_list = NULL, min_pept_grp = 1){
 
   # ========================================================================== #
   # Sanity checks and initial definitions
@@ -36,8 +36,8 @@ get_data_summary <- function(peptides.list, uid = NULL, tax_list = NULL){
 
   grps <- peptides.list$peptides %>%
     group_by(Info_group) %>%
-    summarise(HasPos = any(Class == 1),
-              HasNeg = any(Class == -1),
+    summarise(Pos = sum(Class == 1) > min_pept_grp,
+              Neg = sum(Class == -1) > min_pept_grp,
               .groups = "drop")
 
   data.frame(UID      = ifelse(is.null(uid), "All", uid),
