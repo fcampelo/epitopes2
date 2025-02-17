@@ -4,12 +4,16 @@
 \alias{get_taxonomy}
 \title{Retrieve taxonomic classification tables from NCBI.}
 \usage{
-get_taxonomy(uids, save_folder = NULL)
+get_taxonomy(uids, save_folder = NULL, consolidate = FALSE)
 }
 \arguments{
 \item{uids}{vector of organism IDs to retrieve taxonomical information.}
 
 \item{save_folder}{path to folder for saving the results.}
+
+\item{consolidate}{logical, should the results of each element of uid be
+consolidated into a single data frame? (defaults to \code{FALSE} for compatibility
+with older versions)}
 }
 \value{
 A list containing the information for each element of uids

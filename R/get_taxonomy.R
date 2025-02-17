@@ -5,6 +5,9 @@
 #'
 #' @param uids vector of organism IDs to retrieve taxonomical information.
 #' @param save_folder path to folder for saving the results.
+#' @param consolidate logical, should the results of each element of uid be
+#' consolidated into a single data frame? (defaults to `FALSE` for compatibility
+#' with older versions)
 #'
 #' @return A list containing the information for each element of uids
 #'
@@ -19,7 +22,7 @@
 #' tax <- get_taxonomy(uids)
 #'
 
-get_taxonomy <- function(uids, save_folder = NULL){
+get_taxonomy <- function(uids, save_folder = NULL, consolidate = FALSE){
 
   # ========================================================================== #
   # Sanity checks and initial definitions
@@ -28,7 +31,8 @@ get_taxonomy <- function(uids, save_folder = NULL){
   assertthat::assert_that(is.null(save_folder) | (is.character(save_folder)),
                           length(save_folder) <= 1,
                           any(class(uids) %in% ok_classes),
-                          length(uids) >= 1)
+                          length(uids) >= 1,
+                          is.logical(consolidate), length(consolidate) == 1)
 
   # Extract unique Taxonomy IDs for retrieval
   if(is.character(uids)){
@@ -44,7 +48,6 @@ get_taxonomy <- function(uids, save_folder = NULL){
     df_file <- paste0(normalizePath(save_folder), "/taxonomy.rds")
     errfile <- paste0(normalizePath(save_folder),
                       "/taxonomy_retrieval_errlist.rds")
-    tmpf    <- tempfile(fileext = ".rds", tmpdir = save_folder)
   }
 
   errlist <- seq_along(uids)
@@ -73,6 +76,16 @@ get_taxonomy <- function(uids, save_folder = NULL){
               UID  = XML::xpathSApply(ttp, "//TaxaSet/Taxon/LineageEx/Taxon/TaxId",
                                       XML::xmlValue),
               stringsAsFactors = FALSE)
+
+            reslist[[idx]]$Target <-  data.frame(
+              ScientificName = XML::xpathSApply(ttp,
+                                                "//TaxaSet/Taxon/ScientificName",
+                                                XML::xmlValue),
+              Rank = XML::xpathSApply(ttp, "//TaxaSet/Taxon/Rank",
+                                      XML::xmlValue),
+              UID  = XML::xpathSApply(ttp, "//TaxaSet/Taxon/TaxId",
+                                      XML::xmlValue),
+              stringsAsFactors = FALSE)
           }
         },
         warning = function(c) {errk <<- TRUE},
@@ -87,13 +100,6 @@ get_taxonomy <- function(uids, save_folder = NULL){
       mypb(i = cc, max_i = length(errlist), t0 = t0, npos = 30)
       cc <- cc + 1
 
-      # save tmp results (if needed)
-      if(!is.null(save_folder) && !(cc %% 10)){
-        saveRDS(object = list(reslist = reslist, errlist = errlist,
-                              idx = idx, uids = uids),
-                file = tmpf)
-      }
-
       # NCBI limits requests to three per second
       Sys.sleep(0.3)
     }
@@ -103,11 +109,20 @@ get_taxonomy <- function(uids, save_folder = NULL){
   if(length(errlist) > 0) reslist <- reslist[-errlist]
   errlist <- uids[errlist]
 
+  reslist <- lapply(reslist,
+                    \(x, consolidate){
+                      if(consolidate){
+                        x$Taxonomy <- rbind(x$Taxonomy, x$Target)
+                        x$Target   <- NULL
+                      }
+                      x$consolidated <- consolidate
+                      return(x)
+                    }, consolidate = consolidate)
+
   # Save results to file
   if(!is.null(save_folder)){
     saveRDS(object = reslist, file = df_file)
     saveRDS(object = errlist, file = errfile)
-    if(file.exists(tmpf)) file.remove(tmpf)
   }
 
   message("Done!\n", length(reslist), " taxonomies retrieved.\n",
