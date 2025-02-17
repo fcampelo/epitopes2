@@ -47,6 +47,8 @@ get_data_summary <- function(peptides.list, uid = NULL, tax_list = NULL, min_pep
              Pos.AA   = sum(peptides.list$df$Class == 1),
              Neg.AA   = sum(peptides.list$df$Class == -1),
              Groups   = length(unique(peptides.list$df$Info_group)),
-             Grp.HasPos = sum(grps$HasPos),
-             Grp.HasNeg = sum(grps$HasNeg))
+             LargeGrp.HasPos  = sum(grps$Pos),
+             LargeGrp.HasNeg  = sum(grps$Neg),
+             LargeGrp.HasBoth = sum(grps$Pos & grps$Neg))
 }
+
