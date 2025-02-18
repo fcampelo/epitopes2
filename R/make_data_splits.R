@@ -174,7 +174,7 @@ make_data_splits <- function(peptides.list,
     # Get all ids under the target_id taxon
     ids <- tax_list[which(sapply(tax_list,
                                  function(a, id){
-                                   any(c(a$Taxonomy$UID, a$UID) == id)
+                                   any(unique(c(a$Taxonomy$UID, a$UID)) == id)
                                  },
                                  id = target_id))]
     ids <- sapply(ids, function(a) a$UID)

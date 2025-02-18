@@ -32,7 +32,7 @@ taxonomy_filter_df <- function(df            = NULL,
 
   # Function to extract the relevant organism IDs using the taxonomy data
   fextr <- function(x, tid){
-    ul <- c(x$Taxonomy$UID, x$UID)
+    ul <- unique(c(x$Taxonomy$UID, x$UID))
     if(any(tid %in% ul)) return(x$UID)
   }
 

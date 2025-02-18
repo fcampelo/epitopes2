@@ -12,6 +12,9 @@
 #'
 #' @return 1-row data frame with summary information.
 #'
+#' @importFrom rlang .data
+#' @importFrom dplyr %>%
+#'
 #' @author Felipe Campelo (\email{fcampelo@@gmail.com})
 #'
 #' @export
@@ -36,10 +39,10 @@ get_data_summary <- function(peptides.list, uid = NULL, tax_list = NULL, min_pep
   }
 
   grps <- peptides.list$peptides %>%
-    group_by(Info_group) %>%
-    summarise(Pos = sum(Class == 1) > min_pept_grp,
-              Neg = sum(Class == -1) > min_pept_grp,
-              .groups = "drop")
+    dplyr::group_by(.data$Info_group) %>%
+    dplyr::summarise(Pos = sum(.data$Class == 1) > min_pept_grp,
+                     Neg = sum(.data$Class == -1) > min_pept_grp,
+                     .groups = "drop")
 
   data.frame(UID      = ifelse(is.null(uid), "All", uid),
              Pos.pept = sum(peptides.list$peptides$Class == 1),
@@ -47,8 +50,8 @@ get_data_summary <- function(peptides.list, uid = NULL, tax_list = NULL, min_pep
              Pos.AA   = sum(peptides.list$df$Class == 1),
              Neg.AA   = sum(peptides.list$df$Class == -1),
              Groups   = length(unique(peptides.list$df$Info_group)),
-             LargeGrp.HasPos  = sum(grps$Pos),
-             LargeGrp.HasNeg  = sum(grps$Neg),
-             LargeGrp.HasBoth = sum(grps$Pos & grps$Neg))
+             LargeGrp.HasOnlyPos  = sum(grps$Pos) - sum(grps$Pos & grps$Neg),
+             LargeGrp.HasOnlyNeg  = sum(grps$Neg) - sum(grps$Pos & grps$Neg),
+             LargeGrp.HasPosNeg   = sum(grps$Pos & grps$Neg))
 }
 

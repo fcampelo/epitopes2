@@ -1,14 +1,14 @@
 Package: epitopes
 Type: Package
 Title: Data Retrieval, Consolidation and Modelling for Linear Epitope Prediction
-Version: 0.9.9403
-Date: 2025-02-14
+Version: 0.9.9405
+Date: 2025-02-17
 Authors@R: c(person(given = "Felipe", family = "Campelo",
                     email = "fcampelo@gmail.com",
                     role = c("aut", "cre")),
           person(given = "Francisco", family = "Lobo",
                     email = "franciscolobo@gmail.com",
-                    role = c("ctb")))
+                    role = c("sad")))
 Maintainer: Felipe Campelo <fcampelo@gmail.com>
 Description: Routines for retrieval and preprocessing of epitope data from 
              <https://iedb.org/>, as well as feature calculation and 
