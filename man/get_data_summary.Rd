@@ -22,7 +22,7 @@ summarise the entire dataset}
 
 \item{min_pept_grp}{minimum number of peptides in a group to be considered}
 
-\item{redundancy_threshold}{similarity threshold in the \link{0-1} interval for
+\item{redundancy_threshold}{similarity threshold in the (0,1) interval for
 redundancy removal. If a nonzero value is passed, it uses
 \code{\link[moses:extract_clusters_cdhit]{moses::extract_clusters_cdhit()}} for clustering the peptides at the desired
 similarity threshold and uses only one representative example per cluster
