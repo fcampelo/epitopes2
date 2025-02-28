@@ -211,8 +211,8 @@ make_data_splits <- function(peptides.list,
   } else {
     X0 <- NULL
     alloc0 <- NULL
-    target_id_list <- NULL
-    target_id_groups <- NULL
+    target_id_list   <- NULL
+    target_id_groups <- Y$Group
   }
 
   # Get full split allocations
