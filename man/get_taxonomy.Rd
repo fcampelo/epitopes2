@@ -4,7 +4,7 @@
 \alias{get_taxonomy}
 \title{Retrieve taxonomic classification tables from NCBI.}
 \usage{
-get_taxonomy(uids, save_folder = NULL, consolidate = FALSE)
+get_taxonomy(uids, save_folder = NULL, consolidate = FALSE, IEDBOrgFile = NULL)
 }
 \arguments{
 \item{uids}{vector of organism IDs to retrieve taxonomical information.}
@@ -14,6 +14,12 @@ get_taxonomy(uids, save_folder = NULL, consolidate = FALSE)
 \item{consolidate}{logical, should the results of each element of uid be
 consolidated into a single data frame? (defaults to \code{FALSE} for compatibility
 with older versions)}
+
+\item{IEDBOrgFile}{path to the IEDB  OrganismList.XML file, if available.
+This can be retrieved using \code{\link[=get_IEDB_OrgList]{get_IEDB_OrgList()}} and is used to fix the
+taxonomy of some entries in the IEDB database that are not present in the
+NCBI taxononomy database (e.g., 10000253 - a lineage under 10090,
+\emph{Mus musculus}).}
 }
 \value{
 A list containing the information for each element of uids
@@ -25,7 +31,7 @@ IDs, from the NCBI Taxonomy data base.
 \examples{
 uids <- c("6282", # O. volvulus,
           "9606") # H. sapiens
-tax <- get_taxonomy(uids)
+get_taxonomy(uids, consolidate = TRUE)
 
 }
 \author{

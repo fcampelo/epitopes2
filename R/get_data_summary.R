@@ -90,6 +90,7 @@ get_data_summary <- function(peptides.list,
              Neg.AA   = sum(peptides.list$df$Class == -1),
              Groups   = length(unique(peptides.list$df$Info_group)),
              Prots    = length(unique(peptides.list$df$Info_protein_id)),
+             Hosts    = paste(unique(strsplit(paste(peptides.list$peptides$Info_host_id, collapse = ","), split = ",")[[1]]), collapse = ","),
              LargeGrp.HasOnlyPos  = sum(grps$Pos) - sum(grps$Pos & grps$Neg),
              LargeGrp.HasOnlyNeg  = sum(grps$Neg) - sum(grps$Pos & grps$Neg),
              LargeGrp.HasPosNeg   = sum(grps$Pos & grps$Neg))
