@@ -55,26 +55,27 @@ concatenate_esm_outputs <- function(csv_folder,
                                  idx <- paste0(gsub(".", "\\.", fn_un[i], fixed = TRUE), "$")
                                  idx <- gsub("+", "\\+", idx, fixed = TRUE)
                                  idx <- grep(idx, fn)
-                                 X   <- lapply(fl[idx], utils::read.csv)
-                                 if (length(X) == 1){
-                                   X <- X[[1]]
-                                   if(ncol(X) == 1) {
-                                     X <- as.data.frame(t(X))
+                                 xx   <- lapply(fl[idx], utils::read.csv)
+                                 if (length(xx) == 1){
+                                   xx <- xx[[1]]
+                                   if(ncol(xx) == 1) {
+                                     xx <- as.data.frame(t(xx))
                                    }
                                  } else {
                                    for(k in seq_along(idx)){
                                      rng <- strsplit(fl[idx][k], split = "\\_\\_")[[1]][2]
                                      rng <- as.numeric(strsplit(rng, split = "\\_|\\.")[[1]][1:2])
-                                     X[[k]]$Info_pos <- seq(rng[1], rng[2])
+                                     xx[[k]]$Info_pos <- seq(rng[1], rng[2])
                                    }
-                                   X <- dplyr::bind_rows(X)
-                                   X <- dplyr::summarise(X, dplyr::across(dplyr::everything(), mean))
-                                   X <- dplyr::select(X, -c("Info_pos"))
+                                   xx <- dplyr::bind_rows(xx) %>%
+                                     dplyr::group_by(dplyr::across(dplyr::all_of("Info_pos"))) %>%
+                                     dplyr::summarise(dplyr::across(dplyr::everything(), mean), .groups = "drop") %>%
+                                     dplyr::select(-c("Info_pos"))
                                  }
 
-                                 names(X) <- paste0(feat_prefix, 1:ncol(X))
-                                 X$Info_protein_id <- gsub("/", "", fn_un[i], fixed = TRUE)
-                                 return(X)
+                                 names(xx) <- paste0(feat_prefix, 1:ncol(xx))
+                                 xx$Info_protein_id <- gsub("/", "", fn_un[i], fixed = TRUE)
+                                 return(xx)
                                },
                                fn_un = fn_un, fn = fn, fl  = fl,
                                feat_prefix = feat_prefix,
@@ -83,7 +84,7 @@ concatenate_esm_outputs <- function(csv_folder,
   # Concatenate results
   X <- reslist %>%
     dplyr::bind_rows() %>%
-    dplyr::group_by("Info_protein_id") %>%
+    dplyr::group_by(dplyr::across(dplyr::all_of("Info_protein_id"))) %>%
     dplyr::mutate(Info_pos = 1:dplyr::n()) %>%
     dplyr::select(dplyr::starts_with("Info_"), dplyr::everything())
 
