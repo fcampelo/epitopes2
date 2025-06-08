@@ -52,7 +52,8 @@
 #'
 #' If the splitting is impossible (e.g., if the number of clusters is smaller
 #' than the desired number of splits) the function throws a warning and returns
-#' the list object returned by [CellaRepertorium::cdhit()].
+#' the list object updated with information about the clustering returned by
+#' [CellaRepertorium::cdhit()].
 #'
 #' @author Felipe Campelo (\email{fcampelo@@gmail.com})
 #'
@@ -120,6 +121,10 @@ make_data_splits <- function(peptides.list,
     dplyr::select(-dplyr::starts_with("Info_group"),
                   -dplyr::starts_with("Info_split"))
 
+  if("clustering_summary" %in% names(peptides.list)){
+    peptides.list$clustering_summary <- NULL
+  }
+
   # Build reduced dataset of proteins
   tmpPep <- peptides %>%
     dplyr::group_by(.data$Info_protein_id) %>%
@@ -151,7 +156,15 @@ make_data_splits <- function(peptides.list,
     warning("Impossible to divide data into ", length(delta),
             " splits at similarity level ", similarity_threshold,
             ".\nTry a higher similarity threshold.\nReturning NULL.")
-    return(mycl)
+
+    peptides.list$clustering_summary <- list(clustering = mycl,
+                                             delta = delta,
+                                             w = w,
+                                             split_mode = split_mode,
+                                             similarity_threshold = similarity_threshold,
+                                             target_id = target_id)
+
+    return(peptides.list)
   }
 
   # Check how many positive / negative examples per group

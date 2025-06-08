@@ -78,7 +78,8 @@ from the target taxon (if applicable), and whether each observation's
 
 If the splitting is impossible (e.g., if the number of clusters is smaller
 than the desired number of splits) the function throws a warning and returns
-the list object returned by \code{\link[CellaRepertorium:cdhit]{CellaRepertorium::cdhit()}}.
+the list object updated with information about the clustering returned by
+\code{\link[CellaRepertorium:cdhit]{CellaRepertorium::cdhit()}}.
 }
 \description{
 Split the data returned by \code{\link[=extract_labelled_data]{extract_labelled_data()}} into
