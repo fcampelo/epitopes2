@@ -1,5 +1,5 @@
 library(dplyr)
-library(epitopes) # Dev version
+# library(epitopes) # Dev version
 
 ncpus <- parallel::detectCores() - 1
 
