@@ -4,18 +4,35 @@
 \alias{get_proteins}
 \title{Retrieve protein sequences and data from GenBank and Uniprot}
 \usage{
-get_proteins(uids, save_folder = NULL)
+get_proteins(
+  uids,
+  DBs = c("ncbi", "uniprot", "uniprot-archived"),
+  blocksize = 250,
+  save_folder = NULL,
+  block.timeout = max(60, blocksize)
+)
 }
 \arguments{
 \item{uids}{A character vector with protein IDs.}
 
+\item{DBs}{A character vector listing the databases to be searched.
+Valid entries are "ncbi", "uniprot" and "uniprot-archived". Anything else is
+ignored.}
+
+\item{blocksize}{size of the retrieval blocks. Needs to be kept below 500.}
+
 \item{save_folder}{path to folder for saving the results.}
+
+\item{block.timeout}{positive integer: timeout for trying to retrieve each
+block}
 }
 \value{
 A data frame with the extracted proteins.
 }
 \description{
-This function is used to retrieve data from protein databases. IDs are checked on NCBI and UniprotKB.
+This function is used to retrieve data from Genbank's protein database for
+given protein IDs. If an ID is not available from Genbank the function will
+try to retrieve it from Uniprot.
 }
 \details{
 Queries are processed one by one (rather than in batch) to enable treatment
@@ -24,5 +41,5 @@ different identifier, etc.). This makes this routine substantially slower,
 but considerably more robust to errors.
 }
 \author{
-Felipe Campelo (\email{f.campelo@aston.ac.uk})
+Felipe Campelo (\email{fcampelo@gmail.com})
 }

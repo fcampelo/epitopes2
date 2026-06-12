@@ -22,8 +22,6 @@
 #'   sequence.
 #' }
 #'
-#' Entries in the `proteins` data frame with a value of *TSeq_seqtype* different
-#' from "protein" are also removed.
 #'
 #' @param epitopes data frame of epitope data (returned by [get_LBCE()]).
 #' @param proteins data frame of protein data (returned by [get_proteins()]).
@@ -31,16 +29,18 @@
 #' @param only_exact logical, should only sequences labelled as "Exact Epitope"
 #'        in variable *epit_struc_def* (within `epitopes`) be considered?
 #' @param set_positive how to decide whether an observation should be of the
-#'        "Positive" (+1) or "Negative" (-1) class? Use "any" to set a sequence as positive if
-#'        $n_positive > 0$, "mode" to set it if $n_positive >= n_negative$,
-#'        or "all" to set it if $n_negative == 0$. Defaults to "mode".
-#' @param ncpus positive integer, number of cores to use
+#'        "Positive" (+1) or "Negative" (-1) class? Use "any" to set a sequence
+#'        as positive if $n_positive > 0$, "mode" to set it if
+#'        $n_positive >= n_negative$, or "all" to set it if $n_negative == 0$.
+#'        Defaults to "mode".
+#' @param cl a SOCK cluster object created using [epitopes::set_mc_cluster()], or
+#'        `NULL` if parallel processing is not desired.
 #'
-#' @return Data frame containing all proteins mentioned that appear at least
+#' @return Data frame with all proteins mentioned that appear at least
 #' once in `epitopes$protein_id` (one row per aminoacid residue), containing
 #' the consolidated information extracted from `epitopes`.
 #'
-#' @author Felipe Campelo (\email{f.campelo@@aston.ac.uk})
+#' @author Felipe Campelo (\email{fcampelo@@gmail.com})
 #'
 #' @export
 #'
@@ -51,7 +51,7 @@ consolidate_data <- function(epitopes, proteins,
                              save_folder     = NULL,
                              only_exact      = FALSE,
                              set_positive    = c("any", "mode", "all"),
-                             ncpus           = 1){
+                             cl              = NULL){
 
   # ========================================================================== #
   # Sanity checks and initial definitions
@@ -61,7 +61,7 @@ consolidate_data <- function(epitopes, proteins,
                           is.null(save_folder) | (is.character(save_folder)),
                           is.null(save_folder) | length(save_folder) == 1,
                           is.character(set_positive),
-                          assertthat::is.count(ncpus))
+                          is.null(cl) | "SOCKcluster" %in% class(cl))
 
   if(all(tolower(set_positive) == "any")) {
     set_positive <- "any"
@@ -74,57 +74,61 @@ consolidate_data <- function(epitopes, proteins,
   # Initial preprocessing
 
   # Filter epitopes
-  message("Cleaning epitopes dataset...")
-  epitopes <- dplyr::filter(epitopes,
-                            .data$protein_id %in% unique(proteins$UID),         # must have a corresponding protein
-                            !is.na(.data$epit_seq),                             # must have an epit_seq
-                            !is.na(.data$epit_struc_def)) %>%                   # must have a valid epit_struc_def
+  message("Cleaning peptides dataset...")
+  epits <- dplyr::filter(epitopes,
+                         .data$protein_id %in% unique(proteins$Info_protein_id), # must have a corresponding protein
+                         !is.na(.data$epit_seq),                             # must have an epit_seq
+                         !is.na(.data$epit_struc_def)) %>%                   # must have a valid epit_struc_def
     dplyr::mutate(prot_substr = mapply(function(id, st, en){                    # filter by correct sequence in protein
-      substr(proteins[which(proteins$UID == id), "TSeq_sequence"], st, en)},
+      substr(proteins[which(proteins$Info_protein_id == id), "Info_protein_sequence"], st, en)},
       id = .data$protein_id, st = .data$start_pos, en = .data$end_pos)) %>%
     dplyr::filter(toupper(.data$epit_seq) == toupper(.data$prot_substr)) %>%
     dplyr::select(-"prot_substr")
 
   if (only_exact){
-    epitopes <- dplyr::filter(epitopes, .data$epit_struc_def == "Exact Epitope")
+    epits <- dplyr::filter(epits, .data$epit_struc_def == "Exact Epitope")
   }
 
   # Filter proteins
-  message("Cleaning proteins datset...")
+  message("Cleaning proteins dataset...")
   df <- dplyr::filter(proteins,
-                      .data$UID %in% unique(epitopes$protein_id),
-                      .data$TSeq_seqtype == "protein",
-                      !is.na(.data$TSeq_sequence))
+                      .data$Info_protein_id %in% unique(epits$protein_id),
+                      !is.na(.data$Info_protein_sequence))
+
+  # idx <- which(is.na(df$TSeq_taxid))
+  # for(i in seq_along(idx)){
+  #   df$TSeq_taxid[idx[i]] <- epits$sourceOrg_id[which(epits$protein_id == df$UID[idx[i]])][1]
+  # }
 
   # ========================================================================== #
   # Build long data frame
 
   # Build long protein data frame
   message("Building long data frame: proteins")
-  df <- mypblapply(split(df, seq(nrow(df))),
-                   FUN = function(x){
-                     data.frame(Info_organism_id = x$TSeq_taxid,
-                                Info_protein_id  = x$UID,
-                                Info_pos         = 1:nchar(x$TSeq_sequence),
-                                Info_AA          = strsplit(x$TSeq_sequence,
-                                                            split = "")[[1]])},
-                   ncpus = ncpus) %>%
+  df <- pbapply::pblapply(X = split(df, seq(nrow(df))),
+                          FUN = function(x){
+                            data.frame(Info_protein_id  = x$Info_protein_id,
+                                       Info_pos         = 1:nchar(x$Info_protein_sequence),
+                                       Info_AA          = strsplit(x$Info_protein_sequence,
+                                                                   split = "")[[1]])},
+                          cl = cl) %>%
     dplyr::bind_rows()
 
+
   # Build long epitope data frame
-  message("Building long data frame: epitopes")
-  epit_summary <- mypblapply(split(epitopes, seq(nrow(epitopes))),
-                             FUN = function(x){
-                               data.frame(Info_protein_id   = x$protein_id,
-                                          Info_pos          = x$start_pos:x$end_pos,
-                                          Info_pubmed_id    = x$pubmed_id,
-                                          Info_epitope_id   = x$epitope_id,
-                                          Info_sourceOrg_id = x$sourceOrg_id,
-                                          Info_host_id      = x$host_id,
-                                          Info_nPos         = x$n_Positive,
-                                          Info_nNeg         = x$n_Negative,
-                                          Info_type         = x$epit_struc_def)},
-                             ncpus = ncpus) %>%
+  message("Building long data frame: peptides")
+  epit_summary <- pbapply::pblapply(X = split(epits, seq(nrow(epits))),
+                                    FUN = function(x){
+                                      data.frame(Info_protein_id   = x$protein_id,
+                                                 Info_pos          = x$start_pos:x$end_pos,
+                                                 Info_pubmed_id    = x$pubmed_id,
+                                                 Info_epitope_id   = x$epitope_id,
+                                                 Info_sourceOrg_id = x$sourceOrg_id,
+                                                 Info_host_id      = x$host_id,
+                                                 Info_nPos         = x$n_Positive,
+                                                 Info_nNeg         = x$n_Negative,
+                                                 Info_type         = x$epit_struc_def)},
+                                    cl = cl) %>%
     dplyr::bind_rows() %>%
     #
     # Consolidate information by protein-position
@@ -136,7 +140,7 @@ consolidate_data <- function(epitopes, proteins,
     # Remove duplicated information from specific fields
     dplyr::mutate(Info_pubmed_id    = get_uniques(.data$Info_pubmed_id),
                   Info_epitope_id   = get_uniques(.data$Info_epitope_id),
-                  Info_sourceOrg_id = get_uniques(.data$Info_sourceOrg_id),
+                  Info_organism_id  = get_uniques(.data$Info_sourceOrg_id),
                   Info_host_id      = get_uniques(.data$Info_host_id),
                   Info_type         = get_uniques(.data$Info_type))
 
@@ -157,7 +161,7 @@ consolidate_data <- function(epitopes, proteins,
   message("Consolidating data...")
   df <- df %>%
     dplyr::left_join(epit_summary, by = c("Info_protein_id", "Info_pos")) %>%
-    dplyr::select(-c("Info_sourceOrg_id")) %>%
+    # dplyr::select(-c("Info_sourceOrg_id")) %>%
     dplyr::rowwise() %>%
     dplyr::mutate(Class = make_class(.data$Info_nPos,
                                      .data$Info_nNeg,
@@ -165,7 +169,7 @@ consolidate_data <- function(epitopes, proteins,
     dplyr::ungroup()
 
   # Propagate original attributes from epitopes onto df
-  tmp1 <- attributes(epitopes)
+  tmp1 <- attributes(epits)
   idx <- which(!(names(tmp1) %in% names(attributes(df))))
   for (i in idx){
     attr(df, names(tmp1)[i]) <- tmp1[[i]]

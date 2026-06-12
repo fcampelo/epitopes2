@@ -17,7 +17,7 @@
 #'
 #' @export
 #'
-smooth_predictions <- function(x, window_size = 15,
+smooth_predictions <- function(x, window_size = 7,
                                type = "mode",
                                minsize = 8){
 

@@ -1,7 +1,6 @@
 # History files
 .Rhistory
 .Rapp.history
-
 # Session Data files
 .RData
 # Example code in package build process
@@ -24,8 +23,8 @@
 # Rprof temporary files
 Rprof.out
 #*.rds
-
 #results/
 results/.DS_Store
 data/Tcruzi*
 data/Ov_fullprots.csv
+~/.boxr-oauth

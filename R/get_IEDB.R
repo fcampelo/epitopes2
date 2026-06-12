@@ -9,8 +9,10 @@
 #'        "iedb_yyyymmdd", where *yyyymmdd* is replaced by the current date.
 #' @param remove_zip logical flag: should the *.zip* file be deleted after
 #'        extraction?
+#' @param timeout Timeout (in seconds) to be applied when downloading the IEDB
+#'        export. Increase for slow connections (the export is about 500Mb).
 #'
-#' @author Felipe Campelo (\email{f.campelo@@aston.ac.uk})
+#' @author Felipe Campelo (\email{fcampelo@@gmail.com})
 #'
 #' @return The function returns `TRUE` upon completion.
 #'
@@ -19,7 +21,8 @@
 
 get_IEDB <- function(url = "https://www.iedb.org/downloader.php?file_name=doc/iedb_export.zip",
                      save_folder = NULL,
-                     remove_zip  = TRUE){
+                     remove_zip  = TRUE,
+                     timeout = 3600){
   # ========================================================================== #
   # Sanity checks and initial definitions
   if(is.null(save_folder)) save_folder <- paste0("iedb_",
@@ -27,7 +30,11 @@ get_IEDB <- function(url = "https://www.iedb.org/downloader.php?file_name=doc/ie
 
   assertthat::assert_that(is.character(url), length(url) == 1,
                           is.character(save_folder), length(save_folder) == 1,
-                          is.logical(remove_zip), length(remove_zip) == 1)
+                          is.logical(remove_zip), length(remove_zip) == 1,
+                          assertthat::is.count(timeout))
+
+  oldTO <- getOption("timeout")
+  options(timeout = timeout)
 
   # Download the file into save_folder and unzip it.
   if(!dir.exists(save_folder)) dir.create(save_folder)
@@ -43,6 +50,7 @@ get_IEDB <- function(url = "https://www.iedb.org/downloader.php?file_name=doc/ie
     file.remove(paste0(save_folder, "/iedb.zip"))
   }
 
+  options(timeout = oldTO)
 
   invisible(TRUE)
 }

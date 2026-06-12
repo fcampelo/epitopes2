@@ -10,7 +10,7 @@ consolidate_data(
   save_folder = NULL,
   only_exact = FALSE,
   set_positive = c("any", "mode", "all"),
-  ncpus = 1
+  cl = NULL
 )
 }
 \arguments{
@@ -24,14 +24,16 @@ consolidate_data(
 in variable \emph{epit_struc_def} (within \code{epitopes}) be considered?}
 
 \item{set_positive}{how to decide whether an observation should be of the
-"Positive" (+1) or "Negative" (-1) class? Use "any" to set a sequence as positive if
-$n_positive > 0$, "mode" to set it if $n_positive >= n_negative$,
-or "all" to set it if $n_negative == 0$. Defaults to "mode".}
+"Positive" (+1) or "Negative" (-1) class? Use "any" to set a sequence
+as positive if $n_positive > 0$, "mode" to set it if
+$n_positive >= n_negative$, or "all" to set it if $n_negative == 0$.
+Defaults to "mode".}
 
-\item{ncpus}{positive integer, number of cores to use}
+\item{cl}{a SOCK cluster object created using \code{\link[=set_mc_cluster]{set_mc_cluster()}}, or
+\code{NULL} if parallel processing is not desired.}
 }
 \value{
-Data frame containing all proteins mentioned that appear at least
+Data frame with all proteins mentioned that appear at least
 once in \code{epitopes$protein_id} (one row per aminoacid residue), containing
 the consolidated information extracted from \code{epitopes}.
 }
@@ -58,10 +60,7 @@ entry in \code{proteins})
 corresponding sequence between \emph{start_pos} and \emph{end_pos} on the protein
 sequence.
 }
-
-Entries in the \code{proteins} data frame with a value of \emph{TSeq_seqtype} different
-from "protein" are also removed.
 }
 \author{
-Felipe Campelo (\email{f.campelo@aston.ac.uk})
+Felipe Campelo (\email{fcampelo@gmail.com})
 }

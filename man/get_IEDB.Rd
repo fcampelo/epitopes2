@@ -7,7 +7,8 @@
 get_IEDB(
   url = "https://www.iedb.org/downloader.php?file_name=doc/iedb_export.zip",
   save_folder = NULL,
-  remove_zip = TRUE
+  remove_zip = TRUE,
+  timeout = 3600
 )
 }
 \arguments{
@@ -19,6 +20,9 @@ export (XML).}
 
 \item{remove_zip}{logical flag: should the \emph{.zip} file be deleted after
 extraction?}
+
+\item{timeout}{Timeout (in seconds) to be applied when downloading the IEDB
+export. Increase for slow connections (the export is about 500Mb).}
 }
 \value{
 The function returns \code{TRUE} upon completion.
@@ -28,5 +32,5 @@ This function is used to retrieve the full IEDB database from
 \href{https://www.iedb.org}{IEDB} and extract it to a target folder.
 }
 \author{
-Felipe Campelo (\email{f.campelo@aston.ac.uk})
+Felipe Campelo (\email{fcampelo@gmail.com})
 }

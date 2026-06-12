@@ -24,10 +24,13 @@ process_xml_file <- function(filename, type = "B", ...){
                       FUN  = process_individual_epitope_B,
                       list_data = list_data)
   } else if (type == "T"){
-    # TODO: implement T cell epitope processor
-    stop("T-cell epitope extraction still under development.")
+    outlist <- lapply(seq_along(list_data$Reference$Epitopes),
+                      FUN  = process_individual_epitope_T,
+                      list_data = list_data)
   } else stop("epitope type not recognised")
 
   df <- do.call(rbind, outlist)
+  if(is.data.frame(df) && nrow(df) > 0) df$Info_filename <- basename(filename)
+
   return(df)
 }
