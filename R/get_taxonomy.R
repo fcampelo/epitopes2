@@ -27,7 +27,9 @@
 #' get_taxonomy(uids, consolidate = TRUE)
 #'
 
-get_taxonomy <- function(uids, save_folder = NULL, consolidate = FALSE,
+get_taxonomy <- function(uids,
+                         save_folder = NULL,
+                         consolidate = FALSE,
                          IEDBOrgFile = NULL){
 
   # ========================================================================== #
@@ -74,11 +76,15 @@ get_taxonomy <- function(uids, save_folder = NULL, consolidate = FALSE,
       errk <- FALSE
       suppressMessages(
         tryCatch({
-          tt  <- reutils::efetch(as.numeric(uids[idx]),
-                                 db      = "taxonomy",
-                                 retmode = "xml")
-          if(is.null(tt$errors$errmsg)){
-            ttp <- XML::xmlTreeParse(tt$content, useInternalNodes = TRUE)
+          # tt  <- reutils::efetch(as.numeric(uids[idx]),
+          #                        db      = "taxonomy",
+          #                        retmode = "xml")
+          tt <- entrez_fetch(db = "taxonomy",
+                             id = as.numeric(uids[idx]),
+                             retmode = "xml", rettype = "xml")
+          #if(is.null(tt$errors$errmsg)){
+            # ttp <- XML::xmlTreeParse(tt$content, useInternalNodes = TRUE)
+            ttp <- XML::xmlTreeParse(tt, useInternalNodes = TRUE)
             reslist[[idx]]$Taxonomy <- data.frame(
               ScientificName = XML::xpathSApply(ttp,
                                                 "//TaxaSet/Taxon/LineageEx/Taxon/ScientificName",
@@ -88,6 +94,7 @@ get_taxonomy <- function(uids, save_folder = NULL, consolidate = FALSE,
               UID  = XML::xpathSApply(ttp, "//TaxaSet/Taxon/LineageEx/Taxon/TaxId",
                                       XML::xmlValue),
               stringsAsFactors = FALSE)
+            ttp <-
 
             reslist[[idx]]$Target <-  data.frame(
               ScientificName = XML::xpathSApply(ttp,
@@ -98,7 +105,7 @@ get_taxonomy <- function(uids, save_folder = NULL, consolidate = FALSE,
               UID  = XML::xpathSApply(ttp, "//TaxaSet/Taxon/TaxId",
                                       XML::xmlValue),
               stringsAsFactors = FALSE)
-          }
+          #}
         },
         warning = function(c) {errk <<- TRUE},
         error   = function(c) {errk <<- TRUE},
