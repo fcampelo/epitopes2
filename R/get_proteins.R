@@ -86,19 +86,26 @@ get_proteins <- function(uids,
         tryCatch({
           R.utils::withTimeout(
             {
-              x <- reutils::efetch(uid = queries[idx[[i]]],
-                                   db      = "protein",
-                                   rettype = "gp",
-                                   retmode = "xml")
+              x <- rentrez::entrez_fetch(db = "protein",
+                                         id = queries[idx[[i]]],
+                                         retmode = "xml",
+                                         rettype = "xml")
+              x <- XML::xmlToList(x)
 
-              x <- XML::xmlToList(x$get_content())
-
-              reslist[[i]] <- data.frame(
-                Info_protein_id_clean = sapply(x, function(c) {nullcheck(c$`GBSeq_primary-accession`)}),
-                Info_protein_version  = sapply(x, function(c) {nullcheck(c$`GBSeq_accession-version`)}),
-                Info_protein_all_ids  = sapply(x, function(c) {nullcheck(paste(c$`GBSeq_other-seqids`, collapse = ";"))}),
-                Info_protein_sequence = sapply(x, function(c) {nullcheck(toupper(c$GBSeq_sequence))})
-              )
+              if(length(x) == 1){
+                reslist[[i]] <- data.frame(
+                  Info_protein_id_clean = nullcheck(x$`GBSeq_primary-accession`),
+                  Info_protein_version  = nullcheck(x$`GBSeq_accession-version`),
+                  Info_protein_all_ids  = nullcheck(paste(x$`GBSeq_other-seqids`, collapse = ";")),
+                  Info_protein_sequence = nullcheck(toupper(x$GBSeq_sequence)))
+              } else {
+                reslist[[i]] <- data.frame(
+                  Info_protein_id_clean = sapply(x, function(c) {nullcheck(c$`GBSeq_primary-accession`)}),
+                  Info_protein_version  = sapply(x, function(c) {nullcheck(c$`GBSeq_accession-version`)}),
+                  Info_protein_all_ids  = sapply(x, function(c) {nullcheck(paste(c$`GBSeq_other-seqids`, collapse = ";"))}),
+                  Info_protein_sequence = sapply(x, function(c) {nullcheck(toupper(c$GBSeq_sequence))})
+                )
+              }
             }, timeout = block.timeout)
         },
         TimeoutException  = function(c) message("\n\nTimeout - consider increasing block.timeout"),
@@ -157,10 +164,11 @@ get_proteins <- function(uids,
 
       # Extract remaining (not retrieved) ids
       queries <- unique(prots$Info_protein_id_clean[which(is.na(prots$Info_protein_sequence))])
+      if(length(queries) == 0) break
 
       # Update blocksizes
       blocksize <- ceiling(blocksize * length(queries) / nq)
-      idx <- lapply((0:floor(length(queries) / blocksize)),
+      idx <- lapply((0:floor(length(queries) / (blocksize))),
                     function(i){
                       unique(pmin(length(queries), (i*blocksize + 1):((i+1)*blocksize)))})
       if(!(length(queries) %% blocksize)) idx <- idx[-length(idx)]
