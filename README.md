@@ -7,10 +7,12 @@ Processing, Feature Extraction and modelling of epitope data from the Immune Epi
 
 ## Authors: 
 - Felipe Campelo - [f.campelo@aston.ac.uk](mailto:f.campelo@aston.ac.uk), [fcampelo@gmail.com](mailto:fcampelo@gmail.com)
-- Jodie Ashford - [ashfojsm@aston.ac.uk](mailto:ashfojsm@aston.ac.uk)
 
-## Contributors:
+## Collaborators:
 - Francisco Lobo - [franciscolobo@ufmg.br](mailto:franciscolobo@ufmg.br)
+
+## Previous contributors:
+- Jodie Ashford - [ashfojsm@aston.ac.uk](mailto:ashfojsm@aston.ac.uk)
 - Joao Reis-Cunha - [jaumlrc@gmail.com](jaumlrc@gmail.com)
 
 ## Current version:
