@@ -13,7 +13,7 @@ set_mc_cluster(ncpus)
 a SOCK cluster object
 }
 \description{
-This function is a wrapper around \code{\link[parallel:makeCluster]{parallel::makePSOCKcluster()}} followed
-by \code{\link[parallel:clusterApply]{parallel::clusterEvalQ()}}, which loads all required packages in the
+This function is a wrapper around \code{\link[parallel:makePSOCKcluster]{parallel::makePSOCKcluster()}} followed
+by \code{\link[parallel:clusterEvalQ]{parallel::clusterEvalQ()}}, which loads all required packages in the
 individual cluster workers.
 }

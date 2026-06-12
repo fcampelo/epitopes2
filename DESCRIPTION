@@ -35,7 +35,7 @@ Suggests:
     rmarkdown
 Encoding: UTF-8
 LazyData: false
-RoxygenNote: 7.3.2
 VignetteBuilder: knitr
 URL: https://github.com/fcampelo/epitopes
 Roxygen: list(markdown = TRUE)
+Config/roxygen2/version: 8.0.0
