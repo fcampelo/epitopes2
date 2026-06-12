@@ -18,7 +18,7 @@ set_mc_cluster <- function(ncpus){
                                      require(assertthat)
                                      require(XML)
                                      require(rlang)
-                                     require(reutils)
+                                     require(rentrez)
                                      require(pbapply)
                                      require(protr)
                                      require(stringr)
