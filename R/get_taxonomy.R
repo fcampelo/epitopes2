@@ -76,9 +76,9 @@ get_taxonomy <- function(uids,
       errk <- FALSE
       suppressMessages(
         tryCatch({
-          tt <- entrez_fetch(db = "taxonomy",
-                             id = as.numeric(uids[idx]),
-                             retmode = "xml", rettype = "xml")
+          tt <- rentrez::entrez_fetch(db = "taxonomy",
+                                      id = as.numeric(uids[idx]),
+                                      retmode = "xml", rettype = "xml")
           ttp <- XML::xmlTreeParse(tt, useInternalNodes = TRUE)
           reslist[[idx]]$Taxonomy <- data.frame(
             ScientificName = XML::xpathSApply(ttp,

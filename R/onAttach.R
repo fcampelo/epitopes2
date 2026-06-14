@@ -19,4 +19,17 @@
                           "before using the epitopes package.")
   }
 
+  # Check if CellaRepertorium is installed
+  crp <- suppressWarnings(utils::packageDescription("CellaRepertorium"))
+
+
+  if(all(is.na(crp))) {
+    packageStartupMessage("\nPackage 'CellaRepertorium' not detected.\n",
+                          "Please run BiocManager::install('amcdavid/CellaRepertorium')\n",
+                          "before using the epitopes package.")
+  } else if(utils::packageVersion("CellaRepertorium") < '1.7.2') {
+    packageStartupMessage("\nPackage 'CellaRepertorium' version 1.7.2 or later is required\n",
+                          "Please run BiocManager::install('amcdavid/CellaRepertorium', force = TRUE)\n",
+                          "before using the epitopes package.")
+  }
 }
