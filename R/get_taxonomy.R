@@ -149,7 +149,9 @@ get_taxonomy <- function(uids,
       ParentTaxId = as.character(XML::getNodeSet(xmldata, "//Organism/ParentTaxId", fun = XML::xmlValue)),
       OrganismName = as.character(XML::getNodeSet(xmldata, "//Organism/OrganismName", fun = XML::xmlValue)))
 
+    message("\n")
     for(k in seq_along(searchids)){
+      message(sprintf("\rBuilding taxonomies: %d/%d", k, length(searchids)))
       searchstack <- searchids[k]
       go <- TRUE
       while(go){
@@ -178,7 +180,7 @@ get_taxonomy <- function(uids,
   }
 
 
-  message("Done!\n", length(reslist), " taxonomies retrieved.\n",
+  message("\nDone!\n", length(reslist), " taxonomies retrieved.\n",
           length(errlist), " retrieval errors.")
 
   return(reslist)
