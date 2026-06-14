@@ -46,9 +46,9 @@ get_proteins <- function(uids,
   # Check save folder and create file names
   if(!is.null(save_folder)) {
     if(!dir.exists(save_folder)) dir.create(save_folder, recursive = TRUE)
-    df_file <- paste0(normalizePath(save_folder), "/proteins_", as.character(Sys.Date()), ".rds")
+    df_file <- paste0(normalizePath(save_folder), "/proteins.rds")
     errfile <- paste0(normalizePath(save_folder),
-                      "/protein_retrieval_errors_", as.character(Sys.Date()), ".rds")
+                      "/protein_retrieval_errors.rds")
     tmpf    <- tempfile(pattern = "get_proteins_tmpfile_", fileext = ".rds", tmpdir = save_folder)
 
     if(file.exists(tmpf)) file.remove(tmpf)
