@@ -33,7 +33,7 @@ mydata <- epitopes %>%
 
 # Generate models
 
-library(tidymodels)
+#library(tidymodels)
 
 
 
