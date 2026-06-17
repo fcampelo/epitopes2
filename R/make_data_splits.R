@@ -71,7 +71,7 @@ make_data_splits <- function(peptides.list,
                              tax_list    = NULL,
                              ncpus       = 1,
                              seed        = NULL,
-                             cdhit.par.list = list(s = 0.5)){
+                             cdhit.par.list = list(G = 0, aL = .1, aS = .1)){
 
 
   # ========================================================================== #
@@ -103,18 +103,13 @@ make_data_splits <- function(peptides.list,
 
   # Remove pre-existing groupings
   df <- peptides.list$df %>%
-    dplyr::select(-dplyr::starts_with(c("Info_group",
-                                        "Info_split",
-                                        "Info_is_target_id",
-                                        "Info_has_target_in_group")))
+    dplyr::select(-dplyr::matches(c("Info\\_group|Info\\_split|Info\\_is\\_target\\_id|Info\\_has\\_target\\_in\\_group")))
+
   peptides <- peptides.list$peptides %>%
-    dplyr::select(-dplyr::starts_with(c("Info_group",
-                                        "Info_split",
-                                        "Info_is_target_id",
-                                        "Info_has_target_in_group")))
+    dplyr::select(-dplyr::matches(c("Info\\_group|Info\\_split|Info\\_is\\_target\\_id|Info\\_has\\_target\\_in\\_group")))
+
   proteins <- peptides.list$proteins %>%
-    dplyr::select(-dplyr::starts_with("Info_group"),
-                  -dplyr::starts_with("Info_split"))
+    dplyr::select(-dplyr::matches("Info\\_group|Info\\_split|Info\\_is\\_target\\_id|Info\\_has\\_target\\_in\\_group"))
 
   if("clustering_summary" %in% names(peptides.list)){
     peptides.list$clustering_summary <- NULL

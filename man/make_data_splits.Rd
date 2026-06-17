@@ -15,7 +15,7 @@ make_data_splits(
   tax_list = NULL,
   ncpus = 1,
   seed = NULL,
-  cdhit.par.list = list(s = 0.5)
+  cdhit.par.list = list(G = 0, aL = 0.1, aS = 0.1)
 )
 }
 \arguments{
