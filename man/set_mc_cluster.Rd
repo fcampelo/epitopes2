@@ -4,10 +4,20 @@
 \alias{set_mc_cluster}
 \title{Set multicore cluster}
 \usage{
-set_mc_cluster(ncpus)
+set_mc_cluster(
+  ncpus,
+  setup_timeout = 2,
+  pkgs_to_load = c("dplyr", "assertthat", "XML", "rlang", "rentrez", "pbapply", "protr",
+    "stringr", "BiocManager", "R.utils", "moses", "seqinr", "parallel", "utils",
+    "Biostrings")
+)
 }
 \arguments{
 \item{ncpus}{number of cores to use}
+
+\item{setup_timeout}{parameter passed to \url{parallel::makePSOCKcluster}}
+
+\item{pkgs_to_load}{packages to load in the workers. Defaults to the packages imported by \code{epitopes}.}
 }
 \value{
 a SOCK cluster object

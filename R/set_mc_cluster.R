@@ -5,31 +5,32 @@
 #' individual cluster workers.
 #'
 #' @param ncpus number of cores to use
+#' @param setup_timeout parameter passed to [parallel::makePSOCKcluster](parallel::makePSOCKcluster)
+#' @param pkgs_to_load packages to load in the workers. Defaults to the packages imported by `epitopes`.
 #'
 #' @return a SOCK cluster object
 #'
 #' @export
 #'
-set_mc_cluster <- function(ncpus){
-  cl <- parallel::makePSOCKcluster(names = ncpus, setup_timeout = 2)
+set_mc_cluster <- function(ncpus,
+                           setup_timeout = 2,
+                           pkgs_to_load = c("dplyr", "assertthat", "XML",
+                                            "rlang", "rentrez", "pbapply",
+                                            "protr", "stringr", "BiocManager",
+                                            "R.utils", "moses", "seqinr",
+                                            "parallel", "utils", "Biostrings")){
+
+  assertthat::assert_that(is.character(pkgs_to_load),
+                          is.numeric(setup_timeout),
+                          setup_timeout > 0,
+                          assertthat::is.count(ncpus))
+  cl <- parallel::makePSOCKcluster(names = ncpus, setup_timeout = setup_timeout)
+  parallel::clusterExport(cl, varlist = "pkgs_to_load")
   ignore <- parallel::clusterEvalQ(cl = cl,
                                    {
-                                     require(dplyr)
-                                     require(assertthat)
-                                     require(XML)
-                                     require(rlang)
-                                     require(rentrez)
-                                     require(pbapply)
-                                     require(protr)
-                                     require(stringr)
-                                     require(BiocManager)
-                                     require(R.utils)
-                                     require(moses)
-                                     require(seqinr)
-                                     require(parallel)
-                                     require(utils)
-                                     require(Biostrings)
-                                     invisible(NULL)
+                                     lapply(pkgs_to_load,
+                                            \(p) require(p, character.only = TRUE))
+                                     invisible(TRUE)
                                    })
   return(cl)
 }

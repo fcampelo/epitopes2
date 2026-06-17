@@ -6,15 +6,17 @@
 #'
 #' @param df data frame of consolidated protein-epitope data, returned by
 #' [consolidate_data()].
-#' @param min_peptide positive integer, shortest peptide to be considered
-#' (applies to both **positive** and **negative** observations)
-#' @param max_epitope positive integer, longest peptide to be considered (only
-#' applies to **positive** observations.)
+#' @param min_peptide positive integer, shortest peptide to be considered.
+#' Peptides shorter than `min_peptide` have their class label reverted to `NA` to
+#' prevent very short entries from adding too much noise into the data.
+#' @param max_epitope positive integer, longest positively-labelled peptide to
+#' be considered. Positively-labelled peptides longer than `max_epitope` have
+#' their class label reverted to `NA` to prevent long epitope-containing regions from
+#' adding too much noise into the data.
 #' @param window_size positive integer, size of the local neighbourhood to be
 #' considered.
 #' @param clean_main_df flag: should the main dataframe (`$df` in the output list)
-#' be filtered to remove positions without class labels and regions violating the
-#' size requirements given by `min_peptide` and `max_epitope`?
+#' be filtered to remove positions without class labels?
 #' @param save_folder path to folder for saving the results. It will save the
 #' results as file *peptides_list.rds* (overwriting if necessary)
 #'
@@ -106,17 +108,17 @@ extract_labelled_data <- function(df,
     dplyr::mutate(Info_window = make_windows(.data$Info_AA,
                                              .data$Class,
                                              window_size)) %>%
-    dplyr::ungroup()
-  if(clean_main_df){
-    df <- df %>%
-      dplyr::filter(!is.na(.data$Class),
-                    .data$Info_peptide_length >= min_peptide,
-                    (.data$Class == -1) | (.data$Info_peptide_length <= max_epitope))
-  }
-
-  df <- df %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(.data$Info_peptide_length >= min_peptide,
+                  (.data$Class == -1) | (.data$Info_peptide_length <= max_epitope)) %>%
     dplyr::select(.data$Info_PepID, dplyr::everything(), -.data$Class,
                   -.data$IsBreak, -.data$Info_peptide_length, .data$Class)
+
+  if(clean_main_df){
+    df <- df %>%
+      dplyr::filter(!is.na(.data$Class))
+  }
+
 
 
   outlist <- list(df                = df,

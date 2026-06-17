@@ -17,18 +17,20 @@ extract_labelled_data(
 \item{df}{data frame of consolidated protein-epitope data, returned by
 \code{\link[=consolidate_data]{consolidate_data()}}.}
 
-\item{min_peptide}{positive integer, shortest peptide to be considered
-(applies to both \strong{positive} and \strong{negative} observations)}
+\item{min_peptide}{positive integer, shortest peptide to be considered.
+Peptides shorter than \code{min_peptide} have their class label reverted to \code{NA} to
+prevent very short entries from adding too much noise into the data.}
 
-\item{max_epitope}{positive integer, longest peptide to be considered (only
-applies to \strong{positive} observations.)}
+\item{max_epitope}{positive integer, longest positively-labelled peptide to
+be considered. Positively-labelled peptides longer than \code{max_epitope} have
+their class label reverted to \code{NA} to prevent long epitope-containing regions from
+adding too much noise into the data.}
 
 \item{window_size}{positive integer, size of the local neighbourhood to be
 considered.}
 
 \item{clean_main_df}{flag: should the main dataframe (\verb{$df} in the output list)
-be filtered to remove positions without class labels and regions violating the
-size requirements given by \code{min_peptide} and \code{max_epitope}?}
+be filtered to remove positions without class labels?}
 
 \item{save_folder}{path to folder for saving the results. It will save the
 results as file \emph{peptides_list.rds} (overwriting if necessary)}
