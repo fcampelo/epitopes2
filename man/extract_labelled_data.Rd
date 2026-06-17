@@ -9,6 +9,7 @@ extract_labelled_data(
   min_peptide = 8,
   max_epitope = 30,
   window_size = (2 * min_peptide) - 1,
+  clean_main_df = TRUE,
   save_folder = NULL
 )
 }
@@ -24,6 +25,10 @@ applies to \strong{positive} observations.)}
 
 \item{window_size}{positive integer, size of the local neighbourhood to be
 considered.}
+
+\item{clean_main_df}{flag: should the main dataframe (\verb{$df} in the output list)
+be filtered to remove positions without class labels and regions violating the
+size requirements given by \code{min_peptide} and \code{max_epitope}?}
 
 \item{save_folder}{path to folder for saving the results. It will save the
 results as file \emph{peptides_list.rds} (overwriting if necessary)}
