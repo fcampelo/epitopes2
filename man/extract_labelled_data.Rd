@@ -30,7 +30,8 @@ adding too much noise into the data.}
 considered.}
 
 \item{clean_main_df}{flag: should the main dataframe (\verb{$df} in the output list)
-be filtered to remove positions without class labels?}
+be filtered to remove positions without class labels or that don't comply with
+\code{min_peptide} and \code{max_epitope}?}
 
 \item{save_folder}{path to folder for saving the results. It will save the
 results as file \emph{peptides_list.rds} (overwriting if necessary)}

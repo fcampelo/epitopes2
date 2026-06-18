@@ -25,10 +25,13 @@ set_mc_cluster <- function(ncpus,
                           setup_timeout > 0,
                           assertthat::is.count(ncpus))
   cl <- parallel::makePSOCKcluster(names = ncpus, setup_timeout = setup_timeout)
-  parallel::clusterExport(cl, varlist = "pkgs_to_load")
+
+  pkgs <- pkgs_to_load
+
+  parallel::clusterExport(cl, varlist = "pkgs", envir = environment())
   ignore <- parallel::clusterEvalQ(cl = cl,
                                    {
-                                     lapply(pkgs_to_load,
+                                     lapply(pkgs,
                                             \(p) require(p, character.only = TRUE))
                                      invisible(TRUE)
                                    })
