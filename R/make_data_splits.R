@@ -40,6 +40,7 @@
 #' split_mode == "constructive".
 #' @param cdhit.par.list further parameters to be passed down to
 #' [CellaRepertorium::cdhit()]. Please check that function for details.
+#' @param verbose flag: should CDHIT echo its progress?
 #'
 #' @return Updated `peptides.list` with dataframes containing 2 additional columns,
 #' `Info_group` (cluster id returned by CDHIT) and `Info_split` (which allocates
@@ -73,7 +74,8 @@ make_data_splits <- function(peptides.list,
                              tax_list    = NULL,
                              ncpus       = 1,
                              seed        = NULL,
-                             cdhit.par.list = list(G = 0, aL = .1, aS = .1)){
+                             cdhit.par.list = list(G = 0, aL = .1, aS = .1),
+                             verbose = FALSE){
 
 
   # ========================================================================== #
@@ -136,12 +138,12 @@ make_data_splits <- function(peptides.list,
                                           diss_threshold = 1 - similarity_threshold,
                                           ncpus = ncpus,
                                           par.list = cdhit.par.list,
-                                          vrb = FALSE)
+                                          vrb = verbose)
   } else {
     mycl <- moses::extract_clusters_cdhit(myprots,
                                           diss_threshold = 1 - similarity_threshold,
                                           ncpus = ncpus,
-                                          vrb = FALSE)
+                                          vrb = verbose)
   }
 
   if(length(unique(mycl$cl.df$cluster_idx)) < length(delta)){
@@ -202,12 +204,12 @@ make_data_splits <- function(peptides.list,
 
     # Get split allocations for reduced matrix C0
     if(split_mode == "constructive"){
-      X <- moses::make_splits_constructive(C = C0, delta = delta, w = w)
+      X <- moses::make_splits_constructive(C = C0, delta = delta, w = w, vrb = verbose)
     } else {
       w <- w[1:2] / sum(w[1:2])
 
       # TODO: investigate error source here
-      X <- moses::make_splits_rand_refine(C = C0, delta = delta, w = w, seed = seed)
+      X <- moses::make_splits_rand_refine(C = C0, delta = delta, w = w, seed = seed, vrb = verbose)
     }
 
     # Incorporate partial allocation into a full initial allocation matrix
@@ -229,10 +231,10 @@ make_data_splits <- function(peptides.list,
   C1 <- C
   colnames(C1) <- paste0("class.", colnames(C1))
   if(split_mode == "constructive"){
-    X <- moses::make_splits_constructive(C = C1, delta = delta, w = w, X0 = X0)
+    X <- moses::make_splits_constructive(C = C1, delta = delta, w = w, X0 = X0, vrb = verbose)
   } else {
     w <- w[1:2] / sum(w[1:2])
-    X <- moses::make_splits_rand_refine(C = C1, delta = delta, w = w, X0 = X0, seed = seed)
+    X <- moses::make_splits_rand_refine(C = C1, delta = delta, w = w, X0 = X0, seed = seed, vrb = verbose)
   }
 
   allocF <- X %*% C

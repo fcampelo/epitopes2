@@ -15,7 +15,8 @@ make_data_splits(
   tax_list = NULL,
   ncpus = 1,
   seed = NULL,
-  cdhit.par.list = list(G = 0, aL = 0.1, aS = 0.1)
+  cdhit.par.list = list(G = 0, aL = 0.1, aS = 0.1),
+  verbose = FALSE
 )
 }
 \arguments{
@@ -63,6 +64,8 @@ split_mode == "constructive".}
 
 \item{cdhit.par.list}{further parameters to be passed down to
 \code{\link[CellaRepertorium:cdhit]{CellaRepertorium::cdhit()}}. Please check that function for details.}
+
+\item{verbose}{flag: should CDHIT echo its progress?}
 }
 \value{
 Updated \code{peptides.list} with dataframes containing 2 additional columns,
