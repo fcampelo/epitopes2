@@ -61,6 +61,8 @@
 #' @export
 #'
 
+# TODO: implement safeguards against (or at least warnings for) splits with
+# 0 observations of any class.
 make_data_splits <- function(peptides.list,
                              delta,
                              w           = c(.5, .4, .1),
@@ -162,8 +164,8 @@ make_data_splits <- function(peptides.list,
     dplyr::left_join(mycl$clusters, by = c("Info_protein_id" = "ID")) %>%
     dplyr::rename(Group = "Cluster") %>%
     dplyr::group_by(.data$Group) %>%
-    dplyr::summarise(nPos    = sum(.data$Class == 1),
-                     nNeg    = sum(.data$Class == -1),
+    dplyr::summarise(nPos    = sum(.data$Class == 1, na.rm = TRUE),
+                     nNeg    = sum(.data$Class == -1, na.rm = TRUE),
                      txids   = list(unique(sapply(.data$Info_sourceOrg_id, txid_boildown))),
                      protids = list(unique(.data$Info_protein_id)))
 
