@@ -8,7 +8,8 @@ is.peptide.list <- function(x){
 
 # Extract unique taxonomy IDs from a comma-separated string
 txid_boildown <- function(x){
-  unname(unlist(unique(strsplit(x, split = ",")[[1]])))
+  x <- unname(unlist(unique(strsplit(x, split = ",")[[1]])))
+  unlist(x[!is.na(x)])
 }
 
 

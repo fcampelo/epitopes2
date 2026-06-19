@@ -176,20 +176,25 @@ make_data_splits <- function(peptides.list,
   # Initial splitting (target group only) first, if needed
   if(!is.null(target_id)){
 
-    # Get all ids under the target_id taxon
-    ids <- tax_list[which(sapply(tax_list,
-                                 function(a, id){
-                                   any(unique(c(a$Taxonomy$UID, a$UID)) == id)
-                                 },
-                                 id = target_id))]
-    ids <- sapply(ids, function(a) a$UID)
-    target_id_list <- ids
-
+    # Get all ids under the target_id taxa
+    target_id_list <- character()
+    for (i in seq_along(target_id)){
+      ids <- tax_list[which(sapply(tax_list,
+                                   function(a, id){
+                                     any(unique(c(a$Taxonomy$UID, a$UID)) == id)
+                                   },
+                                   id = target_id[i]))]
+      ids <- sapply(ids, function(a) a$UID)
+      target_id_list <- c(target_id_list, ids)
+    }
+    target_id_list <- unique(target_id_list)
 
     # Get which groups have observations from target_id
     idx <- which(sapply(Y$txids,
-                        function(x, ids) any(x %in% ids),
-                        ids = ids))
+                        function(x, ids) {
+                          any(x %in% ids)
+                        },
+                        ids = target_id_list))
 
     # Get reduced matrix of class counts for only the selected groups
     C0 <- C[idx, ]
