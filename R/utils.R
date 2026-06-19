@@ -32,15 +32,18 @@ find_breaks <- function(x){
 # Build local neighbourhoods for non-NA peptides
 make_windows <- function(x, Class, window_size){
   imax    <- length(x)
-  noNA    <- which(!is.na(Class))
+  noNA    <- 1:imax
+  # noNA    <- which(!is.na(Class))
   windows <- rep(NA, length(x))
   windows[noNA] <- sapply(noNA,
                           function(y){
                             idx <- (y - floor(window_size/2)):(y + floor(window_size/2))
-                            idx[which(idx <= 0)] <- 2 - idx[which(idx <= 0)]
-                            idx[which(idx > imax)] <- 2 * imax - idx[which(idx > length(x))]
+                            idx <- idx[(idx > 0) & (idx <= length(x))]
+                            #idx[which(idx <= 0)] <- 2 - idx[which(idx <= 0)]
+                            #idx[which(idx > imax)] <- 2 * imax - idx[which(idx > length(x))]
                             paste(x[idx], collapse = "")
                           })
+
   return(windows)
 }
 
