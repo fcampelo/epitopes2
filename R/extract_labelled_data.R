@@ -15,9 +15,9 @@
 #' adding too much noise into the data.
 #' @param window_size positive integer, size of the local neighbourhood to be
 #' considered.
-#' @param clean_main_df flag: should the main dataframe (`$df` in the output list)
-#' be filtered to remove positions without class labels or that don't comply with
-#' `min_peptide` and `max_epitope`?
+#' @param include_extended_df flag: should an extended dataframe (including
+#' every position of the proteins and not only the labelled ones) be included in
+#' the output list?
 #' @param save_folder path to folder for saving the results. It will save the
 #' results as file *peptides_list.rds* (overwriting if necessary)
 #'
@@ -44,7 +44,7 @@
 extract_labelled_data <- function(df,
                                   min_peptide = 8, max_epitope = 30,
                                   window_size = (2 * min_peptide) - 1,
-                                  clean_main_df = TRUE,
+                                  include_extended_df = FALSE,
                                   save_folder = NULL){
 
   # ========================================================================== #
@@ -56,7 +56,7 @@ extract_labelled_data <- function(df,
                           assertthat::is.count(window_size),
                           is.null(save_folder) | (is.character(save_folder)),
                           is.null(save_folder) | length(save_folder) == 1,
-                          is.logical(clean_main_df), length(clean_main_df) == 1)
+                          is.logical(include_extended_df), length(include_extended_df) == 1)
 
   my.attrs <- attributes(df)
   filter.attrs <- my.attrs[names(my.attrs) %in% c("orgIDs", "hostIDs", "removeIDs")]
@@ -100,30 +100,29 @@ extract_labelled_data <- function(df,
                      Class               = dplyr::first(.data$Class),
                      .groups = "drop")
 
-
-  # Update df to include local neighbourhood and remove NA regions and those
-  # that do not comply with min_peptide and max_epitope
-  if(clean_main_df){
-    message("Removing unlabelled positions and peptides that are too short/too long")
-    df <- df %>%
-      dplyr::filter(.data$Info_peptide_length >= min_peptide,
-                    (.data$Class == -1) | (.data$Info_peptide_length <= max_epitope),
-                    !is.na(.data$Class))
-  }
-
-  message("Extracting windows...")
-  df <- df %>%
+  # Extract windowed representation for full (unfiltered) df
+  df.extended <- df %>%
     dplyr::group_by(.data$Info_protein_id) %>%
     dplyr::mutate(Info_window = make_windows(.data$Info_AA,
                                              .data$Class,
-                                             window_size)) %>%
-    dplyr::ungroup() %>%
+                                             window_size),
+                  Class = ifelse(.data$Info_peptide_length < min_peptide, NA, Class),
+                  Class = ifelse((.data$Class == 1) & (.data$Info_peptide_length > max_epitope), NA, Class)) %>%
+    dplyr::ungroup()
+
+  # Update df to include local neighbourhood and remove NA regions and those
+  # that do not comply with min_peptide and max_epitope
+  df <- df.extended %>%
+    dplyr::filter(!is.na(.data$Class)) %>%
     dplyr::select("Info_PepID", dplyr::everything(), -"Class",
                   -"IsBreak", -"Info_peptide_length", "Class")
 
-
+  df.extended <- df.extended %>%
+    dplyr::select("Info_PepID", dplyr::everything(), -"Class",
+                  -"IsBreak", -"Info_peptide_length", "Class")
 
   outlist <- list(df                = df,
+                  df.extended       = ifelse(include_extended_df, df.extended, NULL),
                   peptides          = peptides,
                   proteins          = proteins,
                   filter.attrs      = filter.attrs,
