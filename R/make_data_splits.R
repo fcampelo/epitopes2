@@ -279,7 +279,7 @@ make_data_splits <- function(peptides.list,
 
   if("df.extended" %in% names(peptides.list) & is.data.frame(peptides.list$df.extended)){
     peptides.list$df.extended <- peptides.list$df.extended %>%
-      dplyr::select(-dplyr::matches(c("Info\\_group|Info\\_split|Info\\_is\\_target\\_id|Info\\_has\\_target\\_in\\_group")))
+      dplyr::select(-dplyr::matches(c("Info\\_group|Info\\_split|Info\\_is\\_target\\_id|Info\\_has\\_target\\_in\\_group"))) %>%
       dplyr::left_join(Y, by = "Info_protein_id") %>%
       dplyr::mutate(Info_is_target_id = ifelse(.data$Info_organism_id %in% target_id_list,
                                                TRUE, FALSE)) %>%
