@@ -122,7 +122,7 @@ extract_labelled_data <- function(df,
                   -"IsBreak", -"Info_peptide_length", "Class")
 
   outlist <- list(df                = df,
-                  df.extended       = ifelse(include_extended_df, df.extended, NULL),
+                  df.extended       = NA,
                   peptides          = peptides,
                   proteins          = proteins,
                   filter.attrs      = filter.attrs,
@@ -130,6 +130,8 @@ extract_labelled_data <- function(df,
                   peptide.attrs     = list(min_peptide = min_peptide,
                                            max_epitope = max_epitope,
                                            window_size = window_size))
+
+  if(include_extended_df) outlist$df.extended <- df.extended
 
   class(outlist) <- unique(c(class(outlist), "peptide.list"))
 

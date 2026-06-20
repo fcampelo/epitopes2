@@ -9,7 +9,7 @@ extract_labelled_data(
   min_peptide = 8,
   max_epitope = 30,
   window_size = (2 * min_peptide) - 1,
-  clean_main_df = TRUE,
+  include_extended_df = FALSE,
   save_folder = NULL
 )
 }
@@ -29,9 +29,9 @@ adding too much noise into the data.}
 \item{window_size}{positive integer, size of the local neighbourhood to be
 considered.}
 
-\item{clean_main_df}{flag: should the main dataframe (\verb{$df} in the output list)
-be filtered to remove positions without class labels or that don't comply with
-\code{min_peptide} and \code{max_epitope}?}
+\item{include_extended_df}{flag: should an extended dataframe (including
+every position of the proteins and not only the labelled ones) be included in
+the output list?}
 
 \item{save_folder}{path to folder for saving the results. It will save the
 results as file \emph{peptides_list.rds} (overwriting if necessary)}

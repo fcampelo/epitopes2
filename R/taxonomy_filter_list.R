@@ -93,10 +93,18 @@ taxonomy_filter_list <- function(peptides.list = NULL,
       dplyr::filter(.data$Info_PepID %in% unique(df$Info_PepID))
     peptides.list$proteins <- peptides.list$proteins %>%
       dplyr::filter(.data$Info_protein_id %in% unique(df$Info_protein_id))
+
+    if("df.extended" %in% names(peptides.list) & is.data.frame(peptides.list$df.extended)){
+      peptides.list$df.extended <- peptides.list$df.extended %>%
+        dplyr::filter(Info_PepID %in% df$Info_PepID)
+    }
   } else {
-    peptides.list$df <- peptides.list$df[-(1:nrow(peptides.list$df)), ]
-    peptides.list$peptides <- peptides.list$peptides[-(1:nrow(peptides.list$peptides)), ]
-    peptides.list$proteins <- peptides.list$proteins[-(1:nrow(peptides.list$proteins)), ]
+    peptides.list$df <- peptides.list$df %>% dplyr::filter(FALSE)
+    peptides.list$peptides <- peptides.list$peptides %>% dplyr::filter(FALSE)
+    peptides.list$proteins <- peptides.list$proteins %>% dplyr::filter(FALSE)
+    if("df.extended" %in% names(peptides.list) & is.data.frame(peptides.list$df.extended)){
+      peptides.list$df.extended <- peptides.list$df.extended %>% dplyr::filter(FALSE)
+    }
   }
 
   return(peptides.list)
