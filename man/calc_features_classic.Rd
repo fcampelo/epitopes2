@@ -4,7 +4,13 @@
 \alias{calc_features_classic}
 \title{Calculate classic features for epitope prediction}
 \usage{
-calc_features_classic(X, seqs_column, features, cl = NULL)
+calc_features_classic(
+  X,
+  seqs_column,
+  features,
+  cl = NULL,
+  calc_extended = FALSE
+)
 }
 \arguments{
 \item{X}{a peptide.list object (returned by \code{\link[=extract_labelled_data]{extract_labelled_data()}} or a
@@ -18,6 +24,10 @@ See \strong{Feature Vector} for details.}
 
 \item{cl}{a SOCK cluster object created using \code{\link[=set_mc_cluster]{set_mc_cluster()}}, or
 \code{NULL} if parallel processing is not desired.}
+
+\item{calc_extended}{logical: should the features be calculated for
+the extended dataframe (i.e., containing all positions and not only the
+labelled ones), if available?}
 }
 \value{
 Updated \code{X} with features appended as columns
@@ -75,9 +85,6 @@ implementations:
 \item "MolWeight" - the total molecular weight of the peptide
 \item "AAtypes" - the proportion of AAs of each type (acidic, aliphatic,
 acidic, etc.)
-\item "BLOSUM" - BLOSUM-derived descriptors (same as
-\code{\link[protr:extractBLOSUM]{protr::extractBLOSUM()}} with \code{submat = "AABLOSUM62"},
-\code{k = 5}, \code{lag = 3} and \code{scale = TRUE})
 \item "LegacyFeatures" - calculates the features used in paper
 \doi{10.1093/bioinformatics/btab536}
 }

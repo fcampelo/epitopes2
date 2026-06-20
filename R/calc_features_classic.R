@@ -50,9 +50,6 @@
 #'     \item "MolWeight" - the total molecular weight of the peptide
 #'     \item "AAtypes" - the proportion of AAs of each type (acidic, aliphatic,
 #'     acidic, etc.)
-#'     \item "BLOSUM" - BLOSUM-derived descriptors (same as
-#'     [protr::extractBLOSUM()] with `submat = "AABLOSUM62"`,
-#'     `k = 5`, `lag = 3` and `scale = TRUE`)
 #'     \item "LegacyFeatures" - calculates the features used in paper
 #'     \doi{10.1093/bioinformatics/btab536}
 #' }
@@ -97,6 +94,9 @@
 #' See **Feature Vector** for details.
 #' @param cl a SOCK cluster object created using [epitopes::set_mc_cluster()], or
 #'        `NULL` if parallel processing is not desired.
+#' @param calc_extended logical: should the features be calculated for
+#' the extended dataframe (i.e., containing all positions and not only the
+#' labelled ones), if available?
 #'
 #' @return Updated `X` with features appended as columns
 #' (directly to `X` if it is a data.frame, or to `X$df` if it is a peptide.list object)
@@ -110,7 +110,8 @@
 calc_features_classic <- function(X,
                                   seqs_column,
                                   features,
-                                  cl = NULL){
+                                  cl = NULL,
+                                  calc_extended = FALSE){
   # ========================================================================== #
   # Sanity checks and initial definitions
   assertthat::assert_that(is.data.frame(X) | is.peptide.list(X),
@@ -118,7 +119,9 @@ calc_features_classic <- function(X,
                           length(seqs_column) == 1,
                           is.character(features),
                           length(features) > 0,
-                          is.null(cl) | "SOCKcluster" %in% class(cl))
+                          is.null(cl) | "SOCKcluster" %in% class(cl),
+                          is.logical(calc_extended),
+                          length(calc_extended) == 1)
 
   if(is.data.frame(X)){
     assertthat::assert_that(nrow(X) > 0,
@@ -128,7 +131,15 @@ calc_features_classic <- function(X,
                             seqs_column %in% names(X$df))
   }
 
-  if(is.peptide.list(X)) df <- X$df else df <- X
+  if(is.peptide.list(X)) {
+    if("df.extended" %in% names(X) & is.data.frame(X$df.extended) & calc_extended){
+      df <- X$df.extended
+    } else {
+      df <- X$df
+    }
+  } else {
+    df <- X
+  }
   # ========================================================================== #
 
   SEQs <- df %>%
@@ -157,7 +168,18 @@ calc_features_classic <- function(X,
 
   attr(df, "features") <- features
 
-  if(is.peptide.list(X)) X$df <- df else X <- df
+  if(is.peptide.list(X)) {
+    if("df.extended" %in% names(X) & is.data.frame(X$df.extended) & calc_extended){
+      X$df.extended <- df
+      df <- df %>%
+        dplyr::filter(Info_PepID %in% unique(X$df$Info_PepID))
+    }
+
+    X$df <- df
+
+  } else {
+    X <- df
+  }
 
   return(X)
 }
