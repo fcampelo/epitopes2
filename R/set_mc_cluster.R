@@ -24,6 +24,9 @@ set_mc_cluster <- function(ncpus,
                           is.numeric(setup_timeout),
                           setup_timeout > 0,
                           is.null(ncpus) | assertthat::is.count(ncpus))
+
+  if(is.null(ncpus)) return(NULL)
+
   cl <- parallel::makePSOCKcluster(names = ncpus, setup_timeout = setup_timeout)
 
   pkgs <- pkgs_to_load
