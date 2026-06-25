@@ -157,15 +157,24 @@ consolidate_data <- function(epitopes, proteins,
     return(class)
   }
 
+  tmpepits <- epits %>%
+    dplyr::group_by(.data$protein_id) %>%
+    dplyr::summarise(Info_organism_id = first(sourceOrg_id),
+                     Info_host_id = first(host_id)) %>%
+    dplyr::rename(Info_protein_id = protein_id)
+
   # Join epitope information onto long protein data frame
   message("Consolidating data...")
   df <- df %>%
     dplyr::left_join(epit_summary, by = c("Info_protein_id", "Info_pos")) %>%
+    dplyr::select(-dplyr::matches("Info\\_organism\\_id|Info\\_host\\_id")) %>%
+    dplyr::left_join(tmpepits, by = "Info_protein_id") %>%
     # dplyr::select(-c("Info_sourceOrg_id")) %>%
     dplyr::rowwise() %>%
     dplyr::mutate(Class = make_class(.data$Info_nPos,
                                      .data$Info_nNeg,
-                                     set_positive)) %>%
+                                     set_positive),
+                  Info_sourceOrg_id = Info_organism_id) %>%
     dplyr::ungroup()
 
   # Propagate original attributes from epitopes onto df
