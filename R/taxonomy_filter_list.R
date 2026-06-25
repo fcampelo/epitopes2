@@ -96,7 +96,7 @@ taxonomy_filter_list <- function(peptides.list = NULL,
 
     if("df.extended" %in% names(peptides.list) & is.data.frame(peptides.list$df.extended)){
       peptides.list$df.extended <- peptides.list$df.extended %>%
-        dplyr::filter(Info_PepID %in% df$Info_PepID)
+        dplyr::filter(Info_sourceOrg_id %in% df$Info_sourceOrg_id)
     }
   } else {
     peptides.list$df <- peptides.list$df %>% dplyr::filter(FALSE)
