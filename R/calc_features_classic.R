@@ -97,6 +97,7 @@
 #' @param calc_extended logical: should the features be calculated for
 #' the extended dataframe (i.e., containing all positions and not only the
 #' labelled ones), if available?
+#' @param blocksize maximum number of sequences in each feature calculation block
 #'
 #' @return Updated `X` with features appended as columns
 #' (directly to `X` if it is a data.frame, or to `X$df` if it is a peptide.list object)
@@ -111,7 +112,8 @@ calc_features_classic <- function(X,
                                   seqs_column,
                                   features,
                                   cl = NULL,
-                                  calc_extended = FALSE){
+                                  calc_extended = FALSE,
+                                  blocksize = 5000){
   # ========================================================================== #
   # Sanity checks and initial definitions
   assertthat::assert_that(is.data.frame(X) | is.peptide.list(X),
@@ -121,7 +123,8 @@ calc_features_classic <- function(X,
                           length(features) > 0,
                           is.null(cl) | "SOCKcluster" %in% class(cl),
                           is.logical(calc_extended),
-                          length(calc_extended) == 1)
+                          length(calc_extended) == 1,
+                          assertthat::is.count(blocksize))
 
   if(is.data.frame(X)){
     assertthat::assert_that(nrow(X) > 0,
@@ -145,17 +148,26 @@ calc_features_classic <- function(X,
   SEQs <- df %>%
     dplyr::select(dplyr::all_of(seqs_column)) %>%
     unlist() %>% unname()
+  nseqs <- length(SEQs)
+  nblocks <- floor(nseqs / blocksize)
+  if(nseqs / blocksize > nblocks) nblocks <- nblocks + 1
+  st <- seq(0, (nblocks - 1)) * blocksize + 1
+  en <- pmin(seq(1, (nblocks)) * blocksize, nseqs)
 
   myres <- vector("list", length(features))
   for (i in seq_along(features)){
-    message("Calculating features: ", features[i])
+    message("Calculating features: ", features[i], " in ", nblocks, " blocks")
 
-    myres[[i]] <- pbapply::pblapply(X = SEQs,
-                                    FUN = call_feat_functions,
-                                    feat.name = features[i],
-                                    myargs = get_feature_args(features[i]),
-                                    cl = cl) %>%
-      dplyr::bind_rows()
+    for(j in 1:nblocks){
+      myres[[i]] <- c(myres[[i]],
+                      pbapply::pblapply(X = SEQs[st[j]:en[j]],
+                                        FUN = call_feat_functions,
+                                        feat.name = features[i],
+                                        myargs = get_feature_args(features[i]),
+                                        cl = cl))
+    }
+
+    myres[[i]] <- dplyr::bind_rows(myres[[i]])
   }
 
   y <- dplyr::bind_cols(myres)
